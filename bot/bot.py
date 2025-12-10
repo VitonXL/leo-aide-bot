@@ -275,4 +275,7 @@ def main():
     logger.info("✅ Бот и VirusTotal API запущены на одном сервере")
     application.run_polling()
 
+# ... остальной код ...
+
 if __name__ == '__main__':
+    main()
