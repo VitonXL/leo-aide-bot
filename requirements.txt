@@ -1,1 +1,7 @@
-
+python-telegram-bot[job-queue]==20.6
+Flask==2.3.3
+requests
+httpx~=0.25.0
+gspread
+google-auth
+APScheduler~=3.10.4
