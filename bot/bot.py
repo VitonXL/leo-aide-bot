@@ -1,7 +1,8 @@
 # bot/bot.py
 import os
 import logging
-from datetime import datetime, timedelta, timezone as tz, time as dt_time
+import requests
+from datetime import datetime, timedelta, timezone, time as dt_time
 from zoneinfo import ZoneInfo
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
@@ -325,11 +326,11 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # --- ОСНОВНОЙ ЗАПУСК ---
 
 def main():
-    # Создаём application, отключая автоматическое создание JobQueue
-    application = ApplicationBuilder().token(os.getenv("TELEGRAM_BOT_TOKEN")).job_queue(None).build()
+    # Создаём application — JobQueue создаётся автоматически
+    application = ApplicationBuilder().token(os.getenv("TELEGRAM_BOT_TOKEN")).build()
 
-    # Настраиваем JobQueue на Moscow Time (UTC+3)
-    application.job_queue.scheduler.configure(timezone=tz(timedelta(hours=3)))
+    # Настраиваем часовой пояс (UTC+3 — Moscow)
+    application.job_queue.scheduler.configure(timezone=timezone(timedelta(hours=3)))
 
     # Команды
     application.add_handler(CommandHandler("start", start))
@@ -342,7 +343,7 @@ def main():
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, message_handler))
     application.add_handler(MessageHandler(filters.Document.ALL | filters.Entity("url"), message_handler))
 
-    # Задачи — время в UTC+3, без tzinfo
+    # Задачи
     application.job_queue.run_repeating(check_pending_payments, interval=300, first=10)
 
     application.job_queue.run_daily(
@@ -354,7 +355,7 @@ def main():
     async def backup_job(context: ContextTypes.DEFAULT_TYPE):
         if os.path.exists("bot.db"):
             await context.bot.send_document(
-                chat_id=1799560429,  # ← замените на ваш Telegram ID
+                chat_id=1799560429,  # ← ЗАМЕНИТЕ на свой Telegram ID
                 document=open("bot.db", "rb"),
                 caption="📦 Ежедневный бэкап"
             )
