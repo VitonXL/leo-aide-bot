@@ -342,12 +342,15 @@ def main():
     application.add_handler(MessageHandler(filters.Document.ALL | filters.Entity("url"), message_handler))
 
     # Задачи
-    application.job_queue.run_repeating(check_pending_payments, interval=300, first=10)
-    application.job_queue.run_daily(
-        fetch_cbr_rates,
-        time=dt_time(hour=8, minute=30),
-        timezone=timezone(timedelta(hours=3))
-    )
+    from datetime import time as dt_time
+
+# ...
+
+application.job_queue.run_daily(
+    fetch_cbr_rates,
+    time=dt_time(hour=8, minute=30),
+    job_kwargs={"timezone": timezone(timedelta(hours=3))}
+)
 
     # Бэкап базы
     async def backup_job(context):
