@@ -97,7 +97,6 @@ def get_premium_info(user_id: int):
         user = cursor.fetchone()
         if not user:
             return None
-        # Теперь точно знаем, что столбцы есть
         return {
             "is_premium": bool(user["is_premium"]),
             "premium_until": user["premium_until"],
@@ -111,7 +110,6 @@ def is_premium(user_id: int) -> bool:
         return False
     if info["premium_until"]:
         if datetime.now() > datetime.fromisoformat(info["premium_until"]):
-            # Премиум истёк
             with sqlite3.connect("users.db") as conn:
                 conn.execute("UPDATE users SET is_premium = 0, premium_until = NULL WHERE user_id = ?", (user_id,))
             return False
@@ -180,7 +178,7 @@ def get_main_menu(user_id: int = None):
         [InlineKeyboardButton("🔓 Обход YouTube", callback_data="youtube_bypass")],
         [InlineKeyboardButton("📋 Мои функции", callback_data="my_features")],
         [InlineKeyboardButton("🎮 Играть", url="https://t.me/gamee")],
-        [InlineKeyboardButton("🌐 Mini App", web_app=WebAppInfo(url="https://leo-aide.onrender.com"))],
+        [InlineKeyboardButton("🌐 Mini App", web_app=WebAppInfo(url="https://leo-aide-bot.onrender.com"))],
         [InlineKeyboardButton("💎 Премиум & Рефералы", callback_data="premium_menu")],
     ]
     return InlineKeyboardMarkup(keyboard)
@@ -231,7 +229,6 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         now = datetime.now().strftime("%H:%M:%S")
         await query.edit_message_text(f"⏰ Текущее время: {now}")
     elif query.data == "currency":
-        # Здесь можно добавить запрос к API курсов
         await query.edit_message_text("💱 Курсы валют: скоро!")
     elif query.data == "antivirus":
         await query.edit_message_text("🛡 Антивирусы: скоро!")
@@ -259,7 +256,7 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(f"🌤 Погода в {city}: 22°C, солнечно")
         user_data.clear()
 
-# --- Основная функция ---
+# --- Запуск бота (без __main__) ---
 def main():
     init_db()
 
@@ -274,8 +271,3 @@ def main():
 
     logger.info("✅ Бот и VirusTotal API запущены на одном сервере")
     application.run_polling()
-
-# ... остальной код ...
-
-if __name__ == '__main__':
-    main()
