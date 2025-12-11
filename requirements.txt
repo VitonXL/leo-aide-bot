@@ -1,6 +1,6 @@
-python-telegram-bot[job-queue]==20.6
-Flask==2.3.3
+python-telegram-bot==20.7
+gigachat==0.1.7
 requests
-httpx~=0.25.0
-gspread
-google-auth
+Flask
+psycopg2-binary==2.9.9
+APScheduler
