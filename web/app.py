@@ -1,109 +1,229 @@
 # web/app.py
-from flask import Flask, render_template_string, jsonify
+from flask import Flask, request, jsonify, render_template_string
 import os
-import sqlite3
+import requests
+import random
 from datetime import datetime
 
 app = Flask(__name__)
 
-# Путь к базе данных
-DB_PATH = "bot.db"
+# === Настройки ===
+WEATHER_API_KEY = os.getenv("WEATHER_API_KEY")
+NEWS_API_KEY = os.getenv("NEWS_API_KEY")
 
-# Простой HTML (можно позже заменить на шаблоны)
-HTML_TEMPLATE = """
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <title>Leo Aide Bot — Админ-панель</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body { font-family: Arial, sans-serif; margin: 40px; background: #f7f7f7; }
-        .container { max-width: 900px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        h1 { color: #333; }
-        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 20px 0; }
-        .card { background: #f0f8ff; padding: 15px; border-radius: 8px; text-align: center; }
-        .card h3 { margin: 0; color: #0066cc; }
-        .card p { margin: 10px 0 0; font-size: 1.2em; font-weight: bold; }
-        .logs { font-size: 0.9em; background: #f8f8f8; padding: 15px; border-radius: 8px; max-height: 400px; overflow-y: auto; }
-        .footer { margin-top: 40px; color: #888; font-size: 0.9em; text-align: center; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>📊 Leo Aide Bot — Админ-панель</h1>
-        <div class="stats">
-            <div class="card">
-                <h3>Пользователи</h3>
-                <p>{{ user_count }}</p>
-            </div>
-            <div class="card">
-                <h3>Премиум</h3>
-                <p>{{ premium_count }}</p>
-            </div>
-            <div class="card">
-                <h3>Сегодня</h3>
-                <p>{{ today_joined }}</p>
-            </div>
-        </div>
+# Цитаты
+QUOTES = [
+    "Лучше поздно, чем никогда.",
+    "Начни с малого — но начни.",
+    "Успех — это серия неудач без потери энтузиазма.",
+    "Маленькие шаги каждый день ведут к большим результатам."
+]
 
-        <h2>📋 Последние действия</h2>
-        <div class="logs">
-            {% for log in logs %}
-            <p><b>[{{ log['timestamp'] }}]</b> {{ log['user_id'] }} → {{ log['action'] }}</p>
-            {% endfor %}
-        </div>
+# Кэш новостей
+_last_news = None
+_last_news_time = None
 
-        <div class="footer">
-            🕒 Обновлено: {{ now }} | 🤖 <a href="https://t.me/LeoAideBot" target="_blank">Bot</a>
-        </div>
-    </div>
-</body>
-</html>
-"""
-
-def get_db_connection():
-    try:
-        conn = sqlite3.connect(DB_PATH)
-        conn.row_factory = sqlite3.Row
-        return conn
-    except:
-        return None
-
+# === Главная страница ===
 @app.route('/')
-def dashboard():
-    conn = get_db_connection()
-    if not conn:
-        return "<h1>❌ Не удалось подключиться к базе данных</h1>", 500
+def index():
+    html = """
+    <!DOCTYPE html>
+    <html lang="ru">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <title>Leo Aide Mini-app</title>
+        <style>
+            body { font-family: -apple-system, sans-serif; padding: 20px; background: #f8f9fa; }
+            .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin: 10px 0; }
+            input, button, textarea { padding: 10px; margin: 5px 0; width: 100%; border: 1px solid #ddd; border-radius: 8px; }
+            button { background: #0088cc; color: white; border: none; }
+            ul { list-style: none; padding: 0; }
+            li { padding: 8px 0; border-bottom: 1px solid #eee; }
+            .admin-link { color: red; }
+            .news-item { padding: 10px 0; border-bottom: 1px solid #eee; }
+        </style>
+    </head>
+    <body>
+        <h1>🌐 Leo Aide Mini-app</h1>
+        <p>Всё в одном месте: погода, курсы, ИИ, новости.</p>
 
+        <div class="card">
+            <h2>🌤 Погода</h2>
+            <input type="text" id="weather-city" placeholder="Город" />
+            <button onclick="getWeather()">Узнать</button>
+            <div id="weather-result"></div>
+        </div>
+
+        <div class="card">
+            <h2>💸 Курсы валют</h2>
+            <button onclick="getRates()">Обновить</button>
+            <div id="rates-result">Загружаю...</div>
+        </div>
+
+        <div class="card">
+            <h2>🧠 GigaChat</h2>
+            <textarea id="ai-query" placeholder="Задайте вопрос..."></textarea>
+            <button onclick="askAI()">Спросить</button>
+            <div id="ai-result"></div>
+        </div>
+
+        <div class="card">
+            <h2>🎮 Угадай число</h2>
+            <input type="number" id="guess" placeholder="1-10" />
+            <button onclick="playGame()">Играть</button>
+            <div id="game-result"></div>
+        </div>
+
+        <div class="card">
+            <h2>📰 Новости дня</h2>
+            <button onclick="getNews()">Обновить</button>
+            <div id="news-result">Загружаю...</div>
+        </div>
+
+        <div class="card">
+            <h2>💬 Цитата дня</h2>
+            <blockquote id="quote">Загружаю...</blockquote>
+        </div>
+
+        <div id="admin-section" style="display: none;">
+            <a href="/admin" class="admin-link" target="_blank">🛠 Админ-панель</a>
+        </div>
+
+        <script>
+            const urlParams = new URLSearchParams(window.location.search);
+            const userId = urlParams.get('id');
+            if (userId === '1799560429') {
+                document.getElementById('admin-section').style.display = 'block';
+            }
+
+            async function getWeather() {
+                const city = document.getElementById('weather-city').value;
+                const res = await fetch(`/api/weather?city=${encodeURIComponent(city)}`);
+                const data = await res.json();
+                document.getElementById('weather-result').innerHTML = data.success ? 
+                    `<b>${data.city}</b>: ${data.temp}°C, ${data.desc}` : 
+                    `❌ ${data.error}`;
+            }
+
+            async function getRates() {
+                const res = await fetch('/api/rates');
+                const data = await res.json();
+                document.getElementById('rates-result').innerHTML = `
+                    💵 USD: ${data.usd} ₽<br>
+                    💶 EUR: ${data.eur} ₽<br>
+                    💎 TON: ${data.ton} $
+                `;
+            }
+
+            async function askAI() {
+                const query = document.getElementById('ai-query').value;
+                document.getElementById('ai-result').innerHTML = '🧠 ...';
+                const res = await fetch('/api/ai', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query })
+                });
+                const data = await res.json();
+                document.getElementById('ai-result').innerHTML = data.answer || data.error;
+            }
+
+            async function playGame() {
+                const guess = document.getElementById('guess').value;
+                const res = await fetch('/api/game', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ guess: parseInt(guess) })
+                });
+                const data = await res.json();
+                document.getElementById('game-result').innerHTML = data.message;
+            }
+
+            async function getNews() {
+                const res = await fetch('/api/news');
+                const data = await res.json();
+                if (data.articles) {
+                    document.getElementById('news-result').innerHTML = data.articles.map(a =>
+                        `<div class="news-item">
+                            <b>${a.title}</b><br>
+                            <small>${a.source} · ${a.time}</small>
+                        </div>`
+                    ).join('');
+                } else {
+                    document.getElementById('news-result').innerHTML = '❌ Нет новостей';
+                }
+            }
+
+            async function getQuote() {
+                const res = await fetch('/api/quote');
+                const data = await res.json();
+                document.getElementById('quote').innerText = `"${data.quote}"`;
+            }
+
+            getRates(); getQuote(); getNews();
+        </script>
+    </body>
+    </html>
+    """
+    return html
+
+# === API ===
+@app.route('/api/weather')
+def api_weather():
+    city = request.args.get('city')
+    if not city: return jsonify({"success": False, "error": "Город не указан"})
+    url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={WEATHER_API_KEY}&lang=ru&units=metric"
     try:
-        user_count = conn.execute("SELECT COUNT(*) as c FROM users").fetchone()["c"]
-        premium_count = conn.execute("SELECT COUNT(*) as c FROM users WHERE is_premium = 1").fetchone()["c"]
-        today_joined = conn.execute("SELECT COUNT(*) as c FROM users WHERE date(last_seen) = date('now')").fetchone()["c"]
+        r = requests.get(url).json()
+        return jsonify({
+            "success": True,
+            "city": r["name"],
+            "temp": round(r["main"]["temp"]),
+            "desc": r["weather"][0]["description"]
+        })
+    except: return jsonify({"success": False, "error": "Не найден"})
 
-        logs = conn.execute("SELECT * FROM logs ORDER BY timestamp DESC LIMIT 30").fetchall()
-        conn.close()
+@app.route('/api/rates')
+def api_rates():
+    return jsonify({"usd": "91.20", "eur": "98.50", "ton": "2.15"})
 
-        return render_template_string(
-            HTML_TEMPLATE,
-            user_count=user_count,
-            premium_count=premium_count,
-            today_joined=today_joined,
-            logs=logs,
-            now=datetime.now().strftime("%H:%M:%S")
-        )
-    except Exception as e:
-        return f"<h1>❌ Ошибка базы: {str(e)}</h1>"
+@app.route('/api/ai', methods=['POST'])
+def api_ai():
+    return jsonify({"answer": "GigaChat в вебе пока через бота. Используйте команду /ai"})
 
-@app.route('/status')
-def status():
-    return jsonify({
-        "status": "ok",
-        "service": "Leo Aide Bot",
-        "uptime": "24/7",
-        "timestamp": datetime.now().isoformat()
-    })
+@app.route('/api/game', methods=['POST'])
+def api_game():
+    data = request.get_json()
+    guess = data.get("guess")
+    number = random.randint(1, 10)
+    msg = "🎉 Угадал!" if guess == number else f"❌ Нет. Загадано: {number}"
+    return jsonify({"message": msg})
+
+@app.route('/api/news')
+def api_news():
+    global _last_news, _last_news_time
+    now = datetime.now()
+    if _last_news and _last_news_time and (now - _last_news_time).seconds < 3600:
+        return jsonify(_last_news)
+    url = f"https://newsapi.org/v2/top-headlines?country=ru&apiKey={NEWS_API_KEY}"
+    try:
+        r = requests.get(url).json()
+        articles = [{"title": a["title"], "source": a["source"]["name"], "time": a["publishedAt"][:10]} for a in r["articles"][:3]]
+        _last_news = {"articles": articles}
+        _last_news_time = now
+        return jsonify(_last_news)
+    except: return jsonify({"articles": []})
+
+@app.route('/api/quote')
+def api_quote():
+    return jsonify({"quote": random.choice(QUOTES)})
+
+@app.route('/admin')
+def admin_panel():
+    user_id = request.args.get('id')
+    if not user_id or int(user_id) != 1799560429: return "❌", 403
+    return "<h1>🛠 Админ-панель</h1><p>Доступ получен!</p>"
 
 if __name__ == '__main__':
-    port = int(os.getenv("PORT", 8000))  # Важно: читать PORT из окружения
-    app.run(host="0.0.0.0", port=port)  # host="0.0.0.0" — обязательно
+    port = int(os.getenv("PORT", 8000))
+    app.run(host="0.0.0.0", port=port)
