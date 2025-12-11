@@ -41,13 +41,11 @@ MOVIE_GENRES = {
 }
 
 # --- ОСНОВНЫЕ КОМАНДЫ ---
-
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     db.reset_daily_counters(user_id)
     db.log_action(user_id, "start")
 
-    # Рефералы
     if context.args and context.args[0].startswith("ref_"):
         referrer_id = int(context.args[0].split("_")[1])
         if referrer_id != user_id:
@@ -174,7 +172,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     elif query.data == "settings":
         theme = db.get_user(user_id)["theme"]
-        theme_text = "🌑 Тёмная" if theme == "dark" else "☀️ Светлая"
+        theme_text = "🌑 Тёмкая" if theme == "dark" else "☀️ Светлая"
         keyboard = [
             [InlineKeyboardButton(f"🎨 Тема: {theme_text}", callback_data="change_theme")],
             [InlineKeyboardButton("⬅️ Назад", callback_data="back_to_main")]
@@ -216,7 +214,6 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 # --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
-
 def back_button():
     return InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Назад", callback_data="back_to_main")]])
 
@@ -248,7 +245,6 @@ async def show_premium_info(query, context):
 
 
 # --- ОБРАБОТКА СООБЩЕНИЙ ---
-
 async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     text = update.message.text
@@ -324,7 +320,6 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 # --- ОСНОВНОЙ ЗАПУСК ---
-
 def main():
     # Создаём application — JobQueue создаётся автоматически
     application = ApplicationBuilder().token(os.getenv("TELEGRAM_BOT_TOKEN")).build()
@@ -332,14 +327,10 @@ def main():
     # Настраиваем часовой пояс (UTC+3 — Moscow)
     application.job_queue.scheduler.configure(timezone=timezone(timedelta(hours=3)))
 
-    # Команды
+    # Хендлеры
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("admin", admin_command))
-
-    # Колбэки
     application.add_handler(CallbackQueryHandler(button_handler))
-
-    # Сообщения
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, message_handler))
     application.add_handler(MessageHandler(filters.Document.ALL | filters.Entity("url"), message_handler))
 
@@ -351,11 +342,11 @@ def main():
         time=dt_time(hour=8, minute=30)
     )
 
-    # Бэкап базы
+    # Бэкап (замените 1799560429 на ваш ID)
     async def backup_job(context: ContextTypes.DEFAULT_TYPE):
         if os.path.exists("bot.db"):
             await context.bot.send_document(
-                chat_id=1799560429,  # ← ЗАМЕНИТЕ на свой Telegram ID
+                chat_id=1799560429,
                 document=open("bot.db", "rb"),
                 caption="📦 Ежедневный бэкап"
             )
