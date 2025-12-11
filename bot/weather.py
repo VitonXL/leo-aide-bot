@@ -3,9 +3,10 @@ import requests
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 
-from bot.database import db
+# ✅ Заменяем db на прямые импорты
+from bot.database import get_user_cities, add_user_city, get_user
 
-API_KEY = "ваш_openweathermap_ключ"  # замените в Railway через WEATHER_API_KEY
+API_KEY = "ваш_openweathermap_ключ"  # Замените в Railway
 BASE_URL = "http://api.openweathermap.org/data/2.5/weather"
 
 async def add_city(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -15,8 +16,8 @@ async def add_city(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("🌤 Напишите: /city <город>")
         return
     city = " ".join(args).strip().title()
-    user = db.get_user(user_id)
-    cities = db.get_user_cities(user_id)
+    user = get_user(user_id)
+    cities = get_user_cities(user_id)
     max_cities = 5 if user["is_premium"] else 1
     if len(cities) >= max_cities:
         await update.message.reply_text(f"❌ Лимит городов: {max_cities}. Премиум — больше!")
@@ -27,16 +28,16 @@ async def add_city(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not await is_valid_city(city):
         await update.message.reply_text("❌ Город не найден. Проверьте написание.")
         return
-    db.add_user_city(user_id, city)
+    add_user_city(user_id, city)
     await update.message.reply_text(f"✅ Город {city} добавлен!")
 
 async def show_cities(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
-    cities = db.get_user_cities(user_id)
+    cities = get_user_cities(user_id)
     if not cities:
         await update.message.reply_text("У вас нет городов. /city <город>")
         return
-    max_cities = 5 if db.get_user(user_id)["is_premium"] else 1
+    max_cities = 5 if get_user(user_id)["is_premium"] else 1
     text = f"📌 Ваши города: ({len(cities)}/{max_cities})\n\n"
     for city in cities:
         text += f"• {city}\n"
@@ -45,7 +46,7 @@ async def show_cities(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def show_weather(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
-    cities = db.get_user_cities(user_id)
+    cities = get_user_cities(user_id)
     if not cities:
         await update.message.reply_text("Нет городов. Добавьте: /city <город>")
         return
