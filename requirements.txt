@@ -4,4 +4,3 @@ requests
 httpx~=0.25.0
 gspread
 google-auth
-APScheduler>=3.11.0
