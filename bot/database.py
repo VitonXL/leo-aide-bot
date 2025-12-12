@@ -5,6 +5,7 @@ from contextlib import contextmanager
 import psycopg2
 from psycopg2.extras import DictCursor
 
+# Получаем URL базы из переменных окружения
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 if DATABASE_URL:
@@ -12,31 +13,33 @@ if DATABASE_URL:
 else:
     print("⚠️ Используем SQLite (локально)")
 
+
 @contextmanager
 def get_db():
+    """
+    Контекстный менеджер для подключения к базе
+    Поддерживает PostgreSQL и SQLite
+    """
     if DATABASE_URL:
         conn = psycopg2.connect(DATABASE_URL, sslmode='require', cursor_factory=DictCursor)
-        try:
-            yield conn
-            conn.commit()
-        except:
-            conn.rollback()
-            raise
-        finally:
-            conn.close()
     else:
         conn = sqlite3.connect("bot.db")
         conn.row_factory = sqlite3.Row
-        try:
-            yield conn
-            conn.commit()
-        except:
-            conn.rollback()
-            raise
-        finally:
-            conn.close()
+    try:
+        yield conn
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        print(f"❌ Ошибка базы данных: {e}")
+        raise
+    finally:
+        conn.close()
+
 
 def init_db():
+    """
+    Создаёт таблицы при старте
+    """
     with get_db() as conn:
         cur = conn.cursor()
         cur.execute("""
@@ -68,17 +71,20 @@ def init_db():
                 PRIMARY KEY (user_id, city)
             )
         """)
-        conn.commit()
+        print("✅ Таблицы инициализированы")
 
-# === Инициализация при старте ===
+
+# === Инициализация базы при импорте
 init_db()
 
-# === Пользователи ===
+
+# === Работа с пользователями ===
 def get_user(user_id: int):
     with get_db() as conn:
         cur = conn.cursor()
         cur.execute("SELECT * FROM users WHERE user_id = %s", (user_id,))
         return cur.fetchone()
+
 
 def add_user(user_data):
     with get_db() as conn:
@@ -99,15 +105,18 @@ def add_user(user_data):
             user_data["id"]
         ))
 
+
 def set_premium(user_id: int, is_premium: bool):
     with get_db() as conn:
         cur = conn.cursor()
         cur.execute("UPDATE users SET is_premium = %s WHERE user_id = %s", (is_premium, user_id))
 
+
 def set_admin(user_id: int, is_admin: bool):
     with get_db() as conn:
         cur = conn.cursor()
         cur.execute("UPDATE users SET is_admin = %s WHERE user_id = %s", (is_admin, user_id))
+
 
 def get_user_count():
     with get_db() as conn:
@@ -115,11 +124,13 @@ def get_user_count():
         cur.execute("SELECT COUNT(*) as c FROM users")
         return cur.fetchone()["c"]
 
+
 def get_premium_count():
     with get_db() as conn:
         cur = conn.cursor()
         cur.execute("SELECT COUNT(*) as c FROM users WHERE is_premium = TRUE")
         return cur.fetchone()["c"]
+
 
 def get_today_joined_count():
     with get_db() as conn:
@@ -127,17 +138,20 @@ def get_today_joined_count():
         cur.execute("SELECT COUNT(*) as c FROM users WHERE DATE(last_seen) = CURRENT_DATE")
         return cur.fetchone()["c"]
 
+
 def log_action(user_id: int, action: str):
     with get_db() as conn:
         cur = conn.cursor()
         cur.execute("INSERT INTO logs (user_id, action, timestamp) VALUES (%s, %s, NOW())", (user_id, action))
 
-# === Города ===
+
+# === Работа с городами ===
 def get_user_cities(user_id: int) -> list:
     with get_db() as conn:
         cur = conn.cursor()
         cur.execute("SELECT city FROM user_cities WHERE user_id = %s", (user_id,))
         return [row["city"] for row in cur.fetchall()]
+
 
 def add_user_city(user_id: int, city: str):
     with get_db() as conn:
@@ -147,10 +161,12 @@ def add_user_city(user_id: int, city: str):
             (user_id, city)
         )
 
+
 def remove_city(user_id: int, city: str):
     with get_db() as conn:
         cur = conn.cursor()
         cur.execute("DELETE FROM user_cities WHERE user_id = %s AND city = %s", (user_id, city))
+
 
 # === AI-запросы ===
 def get_ai_requests(user_id: int) -> int:
@@ -160,6 +176,7 @@ def get_ai_requests(user_id: int) -> int:
         row = cur.fetchone()
         return row["ai_requests_today"] if row else 0
 
+
 def increment_ai_request(user_id: int):
     with get_db() as conn:
         cur = conn.cursor()
@@ -167,6 +184,7 @@ def increment_ai_request(user_id: int):
             UPDATE users SET ai_requests_today = ai_requests_today + 1, last_seen = NOW()
             WHERE user_id = %s
         """, (user_id,))
+
 
 def reset_ai_requests():
     with get_db() as conn:
