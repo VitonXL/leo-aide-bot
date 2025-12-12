@@ -26,6 +26,7 @@ from bot.commands.antivirus import virus_check, antivirus_info
 from bot.commands.time import time_command, time_callback
 from bot.commands.admin import register_admin_handlers
 from bot.commands.broadcast import broadcast_menu, broadcast_callback, handle_broadcast_message, cancel_broadcast
+from bot.commands.menu import start_menu, handle_menu_buttons
 from bot.commands.reminders import (
     set_reminder,
     reminder_callback,
@@ -84,6 +85,11 @@ def bot_main():
     app.add_handler(CallbackQueryHandler(cancel_broadcast, pattern="^cancel_bcast_"))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_broadcast_message))
     app.add_handler(MessageHandler(filters.PHOTO, handle_broadcast_message))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_menu_buttons))
+    app.add_handler(CommandHandler("start", start_menu))  # теперь start открывает меню
+    app.add_handler(CommandHandler("menu", start_menu))
+
+# Обработчик кнопок меню (должен быть ПОСЛЕ всех команд)
   register_admin_handlers(app)
 
     print("🤖 Бот Лео запущен и слушает...")
