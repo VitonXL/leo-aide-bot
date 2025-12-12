@@ -2,7 +2,7 @@
 
 import os
 from flask import Flask, request, send_from_directory, jsonify
-from bot.database import set_premium, log_action, get_user, get_user_count, get_premium_count, get_today_joined_count
+from bot.database import set_premium, log_action, get_user, get_user_count, get_premium_count, get_today_joined_count, add_subscription
 from bot.utils.payments import verify_payment
 import json
 
@@ -42,20 +42,25 @@ def payment_callback():
 
     order_id = int(data['inv_id'])
     amount = float(data['amount'])
+    user_id = pending_payments.get(order_id, {}).get('user_id')
+
+    if not user_id:
+        return "user not found", 400
 
     if amount < 100.0:
         return "invalid amount", 400
 
-    if order_id in pending_payments and pending_payments[order_id]['status'] == 'waiting':
-        user_id = pending_payments[order_id]['user_id']
-        set_premium(user_id, days=30)
-        pending_payments[order_id]['status'] = 'paid'
-        log_action(user_id, "premium_paid", f"order_id={order_id}")
+    set_premium(user_id, days=30)
+    add_subscription(user_id, order_id, amount, days=30)
 
-        # Уведомляем пользователя
-        from telegram import Bot
-        bot = Bot(token=os.getenv("TELEGRAM_BOT_TOKEN"))
+    log_action(user_id, "premium_paid", f"order_id={order_id}, amount={amount}")
+
+    from telegram import Bot
+    bot = Bot(token=os.getenv("TELEGRAM_BOT_TOKEN"))
+    try:
         bot.send_message(user_id, "🎉 Премиум-доступ активирован! Спасибо за доверие 💙")
+    except:
+        pass
 
     return "OK", 200
 
@@ -87,22 +92,17 @@ def fail():
     </html>
     """
 
-
-# 🌐 Mini App — профиль пользователя
+# 🌐 Mini App — профиль
 @app.route("/app")
 def web_app():
-    # Получаем user_id из параметров (в будущем — через безопасную авторизацию)
     user_id = request.args.get("user_id")
     if not user_id:
         return "<h1>❌ Не указан user_id</h1>"
-
     try:
         user_id = int(user_id)
         user = get_user(user_id)
         if not user:
             return "<h1>❌ Пользователь не найден</h1>"
-
-        # Подготовим данные
         user_data = {
             "user_id": user["user_id"],
             "first_name": user["first_name"],
@@ -111,8 +111,6 @@ def web_app():
             "is_premium": bool(user["is_premium"]),
             "premium_expire": user["premium_expire"].strftime("%d.%m.%Y") if user["premium_expire"] else None
         }
-
-        # Передаём данные в HTML
         return f"""
         <script>
             window.user_data = {json.dumps(user_data, ensure_ascii=False)};
@@ -122,18 +120,14 @@ def web_app():
     except Exception as e:
         return f"<h1>❌ Ошибка: {str(e)}</h1>"
 
-
-# 📄 Статический файл Mini App
 @app.route('/static/app.html')
 def serve_app():
     return send_from_directory('static', 'app.html')
 
-
-# ⚠️ Временное хранилище (позже замени на БД)
+# ⚠️ Временные данные
 pending_payments = {}
 
-
-# 🔽 Функции статистики (для /)
+# 🔽 Функции статистики
 def get_user_count():
     from bot.database import get_user_count
     return get_user_count()
@@ -145,8 +139,3 @@ def get_premium_count():
 def get_today_joined_count():
     from bot.database import get_today_joined_count
     return get_today_joined_count()
-
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8000))
-    app.run(host="0.0.0.0", port=port)
