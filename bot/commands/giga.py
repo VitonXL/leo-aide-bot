@@ -4,6 +4,7 @@ from telegram import Update
 from telegram.ext import ContextTypes
 from bot.utils.giga import send_to_giga
 from bot.database import check_premium, log_action
+from datetime import datetime
 import os
 
 # Храним количество запросов (позже — в БД)
