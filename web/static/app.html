@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Профиль — Лео</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    body {
+      font-family: -apple-system, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f5f5f5;
+      color: #1c1c1e;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      margin-bottom: 16px;
+    }
+    .header {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .premium {
+      color: #ff9500;
+      font-weight: 600;
+    }
+    .btn {
+      display: block;
+      background: #007AFF;
+      color: white;
+      text-align: center;
+      padding: 12px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 500;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="header" id="name">Загрузка...</div>
+    <div id="username"></div>
+    <div id="premium"></div>
+    <div id="joined"></div>
+  </div>
+
+  <div class="card">
+    <div>Премиум до: <span id="expire">-</span></div>
+    <div>Рефералов: <span id="referrals">0</span></div>
+  </div>
+
+  <a href="https://t.me/LeoHelperBot" class="btn">Назад в бота</a>
+
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+
+    // Получаем данные из глобальной переменной
+    const user = window.user_data;
+
+    if (user) {
+      document.getElementById('name').textContent = user.first_name;
+      document.getElementById('username').textContent = '@' + (user.username || 'не указан');
+      document.getElementById('joined').textContent = 'Зарегистрирован: ' + user.joined_at;
+
+      const premiumEl = document.getElementById('premium');
+      if (user.is_premium) {
+        premiumEl.textContent = '💎 Премиум-аккаунт';
+        premiumEl.classList.add('premium');
+      } else {
+        premiumEl.textContent = '🧍 Обычный аккаунт';
+      }
+
+      document.getElementById('expire').textContent = user.premium_expire || '—';
+    }
+  </script>
+</body>
+</html>
