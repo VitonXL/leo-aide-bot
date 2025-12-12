@@ -1,28 +1,39 @@
-## bot/database.py
-import sqlite3
 import os
-from datetime import date
+import psycopg2
+from psycopg2.extras import RealDictCursor
+from datetime import datetime, date
 
-# Путь к базе данных
-DB_PATH = os.getenv("DB_PATH", "users.db")
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-# Глобальная переменная db — чтобы можно было импортировать
-db = None
+def get_db():
+    return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
 
 def init_db():
-    global db
-    db = sqlite3.connect(DB_PATH, check_same_thread=False)
-    cursor = db.cursor()
-    cursor.execute('''
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY,
-            user_id INTEGER UNIQUE,
-            is_premium INTEGER DEFAULT 0,
-            cities TEXT DEFAULT '',
-            ai_requests INTEGER DEFAULT 10
+            id SERIAL PRIMARY KEY,
+            user_id BIGINT UNIQUE NOT NULL,
+            username TEXT,
+            first_name TEXT,
+            last_name TEXT,
+            joined_at TIMESTAMP NOT NULL,
+            is_premium BOOLEAN DEFAULT FALSE
         )
-    ''')
-    db.commit()
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS actions (
+            id SERIAL PRIMARY KEY,
+            user_id BIGINT NOT NULL,
+            action TEXT NOT NULL,
+            details TEXT,
+            timestamp TIMESTAMP NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users (user_id)
+        )
+    """)
+    conn.commit()
+    conn.close()
     print("✅ Таблицы инициализированы")
     return db
 
