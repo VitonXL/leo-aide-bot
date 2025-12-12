@@ -21,6 +21,12 @@ from bot.commands.premium import premium_command, precheckout_callback, successf
 from bot.commands.start import start
 from bot.commands.referral import referral_command, show_referrals
 from bot.commands.weather import weather_command, weather_callback
+from bot.commands.reminders import (
+    set_reminder,
+    reminder_callback,
+    handle_text_input,
+    show_reminders
+)
 
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
@@ -53,6 +59,11 @@ def bot_main():
     app.add_handler(CallbackQueryHandler(weather_callback, pattern="^weather_"))
     app.add_handler(CallbackQueryHandler(weather_callback, pattern="^delete_city_"))
     app.add_handler(CallbackQueryHandler(weather_callback, pattern="^weather_back$"))
+    app.add_handler(CommandHandler("remind", set_reminder))
+    app.add_handler(CommandHandler("reminders", show_reminders))
+    app.add_handler(CallbackQueryHandler(reminder_callback, pattern="^reminder_"))
+    app.add_handler(CallbackQueryHandler(reminder_callback, pattern="^delay_"))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_input))
 
     print("🤖 Бот Лео запущен и слушает...")
     app.run_polling()
