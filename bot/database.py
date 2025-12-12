@@ -88,6 +88,19 @@ def init_db():
             timestamp TIMESTAMP DEFAULT NOW()
         )
     """)
+    # В init_db() после других таблиц:
+cursor.execute("""
+    CREATE TABLE IF NOT EXISTS broadcasts (
+        id SERIAL PRIMARY KEY,
+        message TEXT NOT NULL,
+        target TEXT NOT NULL, -- 'all', 'premium', 'free'
+        status TEXT DEFAULT 'scheduled', -- 'scheduled', 'sent', 'cancelled'
+        send_at TIMESTAMP NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW(),
+        sent_count INTEGER DEFAULT 0
+    )
+""")
+
     conn.commit()
     conn.close()
 
