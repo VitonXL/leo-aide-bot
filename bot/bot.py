@@ -25,6 +25,7 @@ from bot.commands.currency import currency_command
 from bot.commands.antivirus import virus_check, antivirus_info
 from bot.commands.time import time_command, time_callback
 from bot.commands.admin import register_admin_handlers
+from bot.commands.broadcast import broadcast_menu, broadcast_callback, handle_broadcast_message, cancel_broadcast
 from bot.commands.reminders import (
     set_reminder,
     reminder_callback,
@@ -76,6 +77,13 @@ def bot_main():
     app.add_handler(CallbackQueryHandler(time_callback, pattern="^detect_ip_tz$"))
     app.add_handler(CallbackQueryHandler(time_callback, pattern="^tz_"))
     app.add_handler(CallbackQueryHandler(time_callback, pattern="^back_to_time$"))
+    app.add_handler(CommandHandler("broadcast", broadcast_menu))
+    app.add_handler(CallbackQueryHandler(broadcast_callback, pattern="^broadcast_"))
+    app.add_handler(CallbackQueryHandler(broadcast_target_selected, pattern="^target_"))
+    app.add_handler(CallbackQueryHandler(broadcast_time_selected, pattern="^when_"))
+    app.add_handler(CallbackQueryHandler(cancel_broadcast, pattern="^cancel_bcast_"))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_broadcast_message))
+    app.add_handler(MessageHandler(filters.PHOTO, handle_broadcast_message))
   register_admin_handlers(app)
 
     print("🤖 Бот Лео запущен и слушает...")
