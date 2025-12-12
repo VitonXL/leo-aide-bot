@@ -1,4 +1,4 @@
-# bot/database.py
+## bot/database.py
 import sqlite3
 import os
 
@@ -30,6 +30,11 @@ def get_user(user_id):
     cursor.execute("SELECT * FROM users WHERE user_id = ?", (user_id,))
     return cursor.fetchone()
 
+def get_user_count():
+    cursor = db.cursor()
+    cursor.execute("SELECT COUNT(*) FROM users")
+    return cursor.fetchone()[0]
+
 def add_user(user_id):
     cursor = db.cursor()
     cursor.execute("INSERT OR IGNORE INTO users (user_id) VALUES (?)", (user_id,))
@@ -40,15 +45,12 @@ def set_premium(user_id, is_premium=True):
     cursor.execute("UPDATE users SET is_premium = ? WHERE user_id = ?", (int(is_premium), user_id))
     db.commit()
 
-# 🔽 ДОБАВЬ ЭТУ ФУНКЦИЮ ↓↓↓
 def set_admin(user_id, is_admin=True):
     cursor = db.cursor()
-    # Добавим столбец is_admin, если его нет
     try:
         cursor.execute("ALTER TABLE users ADD COLUMN is_admin INTEGER DEFAULT 0")
         db.commit()
     except sqlite3.OperationalError:
-        # Столбец уже существует
         pass
     cursor.execute("UPDATE users SET is_admin = ? WHERE user_id = ?", (int(is_admin), user_id))
     db.commit()
