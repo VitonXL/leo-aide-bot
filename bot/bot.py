@@ -17,6 +17,7 @@ from bot.commands.giga import giga_chat
 from bot.commands.games import games_menu
 from bot.commands.admin import admin_panel
 from bot.commands.support import support_chat
+from bot.commands.premium import premium_command, precheckout_callback, successful_payment
 
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
@@ -40,6 +41,8 @@ def bot_main():
     app.add_handler(CommandHandler("support", support_chat))
     app.add_handler(MessageHandler(filters.Document.ALL | filters.URL, virus_check))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, giga_chat))
+    app.add_handler(PreCheckoutQueryHandler(precheckout_callback))
+    app.add_handler(MessageHandler(filters.SUCCESSFUL_PAYMENT, successful_payment))
 
     print("🤖 Бот Лео запущен и слушает...")
     app.run_polling()
