@@ -24,6 +24,7 @@ from bot.commands.weather import weather_command, weather_callback
 from bot.commands.currency import currency_command
 from bot.commands.antivirus import virus_check, antivirus_info
 from bot.commands.time import time_command, time_callback
+from bot.commands.admin import register_admin_handlers
 from bot.commands.reminders import (
     set_reminder,
     reminder_callback,
@@ -75,6 +76,7 @@ def bot_main():
     app.add_handler(CallbackQueryHandler(time_callback, pattern="^detect_ip_tz$"))
     app.add_handler(CallbackQueryHandler(time_callback, pattern="^tz_"))
     app.add_handler(CallbackQueryHandler(time_callback, pattern="^back_to_time$"))
+  register_admin_handlers(app)
 
     print("🤖 Бот Лео запущен и слушает...")
     app.run_polling()
