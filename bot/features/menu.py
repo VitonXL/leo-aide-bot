@@ -179,8 +179,8 @@ async def handle_menu_callbacks(update: Update, context: ContextTypes.DEFAULT_TY
             "🔔 *Отслеживание подписок*\n\n"
             "Список активных:\n"
             "• YouTube Premium\n"
-            • Spotify\n
-            • Telegram Premium\n\n"
+            "• Spotify\n"
+            "• Telegram Premium\n\n"
             "🔔 Уведомление за 3 дня\n\n"
             "🛠 В разработке...",
             reply_markup=get_features_menu(),
