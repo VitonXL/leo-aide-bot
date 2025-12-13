@@ -1,18 +1,17 @@
 # web/main.py
 
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from .routes import router
 
 app = FastAPI(title="Лео Помощник — UI")
 
-# Убрали временно app.mount — чтобы исключить ошибку
+# Подключаем статику: /static/style.css
+app.mount("/static", StaticFiles(directory="web/static"), name="static")
+
+# Подключаем маршруты
 app.include_router(router)
 
 @app.get("/health")
 async def health():
     return {"status": "ok"}
-
-# Добавим прямой маршрут — для проверки
-@app.get("/test")
-async def test():
-    return {"test": "ok"}
