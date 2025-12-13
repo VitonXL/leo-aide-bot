@@ -21,7 +21,8 @@ async def ui_home(request: Request):
 @router.get("/toggle-theme")
 async def toggle_theme(response: Response):
     # Переключаем тему
-    theme = "dark" if response.cookies.get("theme") == "light" else "light"
+    current_theme = response.cookies.get("theme")
+    new_theme = "dark" if current_theme == "light" else "light"
     resp = HTMLResponse(content=f'<script>document.location="/"</script>')
-    resp.set_cookie(key="theme", value=theme, max_age=3600*24*30)  # 30 дней
+    resp.set_cookie(key="theme", value=new_theme, max_age=3600*24*30)  # 30 дней
     return resp
