@@ -1,29 +1,28 @@
 # bot/main.py
 
 import os
-from telegram import Update, WebAppInfo, BotCommand
+from telegram import Update, WebAppInfo
 from telegram.ext import Application, CommandHandler, ContextTypes
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-WEB_APP_URL = "https://web-production-b74ea.up.railway.app"  # ← Замени на свой, если нужно
+WEB_APP_URL = "https://web-production-b74ea.up.railway.app"  # ← замени, если нужно
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     await update.message.reply_html(
         text=f"Привет, <b>{user.first_name}</b>! 👋\n\n"
-             f"Панель управления доступна в меню бота (кнопка в правом верхнем углу чата) — нажми 🌐 Открыть панель.",
-        reply_markup=None  # Убрали клавиатуру
+             f"Панель управления доступна в меню бота (≡) — нажми 🌐 Открыть панель.",
+        reply_markup=None
     )
 
 async def post_init(application: Application):
-    """Устанавливаем команды и кнопку меню"""
     # Устанавливаем команды
     await application.bot.set_my_commands([
         ("start", "Запустить бота"),
         ("help", "Помощь и поддержка")
     ])
 
-    # Устанавливаем кнопку Web App в меню
+    # Устанавливаем кнопку в меню
     await application.bot.set_chat_menu_button(
         menu_button=WebAppInfo(
             text="🌐 Панель",
@@ -34,8 +33,11 @@ async def post_init(application: Application):
 def main():
     app = Application.builder().token(BOT_TOKEN).post_init(post_init).build()
 
+    # Добавляем только существующие обработчики
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("help", help_command))  # если есть
+
+    # Раскомментируй, если добавишь функцию help_command
+    # app.add_handler(CommandHandler("help", help_command))
 
     print("Бот запущен...")
     app.run_polling()
