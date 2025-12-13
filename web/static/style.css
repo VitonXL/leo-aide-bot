@@ -20,6 +20,7 @@ body {
   color: var(--text);
   margin: 0;
   padding: 0;
+  transition: background 0.3s ease;
 }
 
 .container {
@@ -71,6 +72,10 @@ main {
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   border: 1px solid var(--border);
   text-align: left;
+}
+
+.status {
+  font-weight: 500;
 }
 
 .btn {
