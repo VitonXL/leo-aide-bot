@@ -2,18 +2,20 @@
 
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import ContextTypes, CommandHandler
-from ..database import register_referral, get_referral_stats
+
+# ✅ Абсолютный импорт
+from database import register_referral, get_referral_stats
 
 
 async def cmd_referral(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Показывает реферальную ссылку и статистику"""
     user = update.effective_user
     user_id = user.id
+    pool = update.get_bot().bot.db_pool
 
-    referred = await get_referral_stats(update.get_bot().bot.db_pool, user_id)
+    referred = await get_referral_stats(pool, user_id)
     link = f"https://t.me/your_bot?start=ref{user_id}"
 
-    keyboard = [[InlineKeyboardButton("_share", url=f"https://t.me/share/url?url={link}")]]
+    keyboard = [[InlineKeyboardButton("📤 Поделиться", url=f"https://t.me/share/url?url={link}")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     text = f"""
