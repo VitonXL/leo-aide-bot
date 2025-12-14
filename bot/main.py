@@ -58,7 +58,7 @@ async def track_user_activity(update: Update, context: ContextTypes.DEFAULT_TYPE
 def get_start_keyboard():
     keyboard = [
         [InlineKeyboardButton("📌 Главное меню", callback_data="menu_main")],
-        [InlineKeyboardButton("🌐 Mini App", url="https://web-production-b74ea.up.railway.app")]
+        [InlineKeyboardButton("🌐 Mini App", url="https://leo-aide.online/")]
     ]
     return InlineKeyboardMarkup(keyboard)
 
@@ -109,7 +109,7 @@ async def on_post_init(application: Application):
     await application.bot.set_chat_menu_button(
         menu_button=MenuButtonWebApp(
             text="🌐 Панель",
-            web_app=WebAppInfo(url="https://web-production-b74ea.up.railway.app")
+            web_app=WebAppInfo(url="https://leo-aide.online/")
         )
     )
     logger.info("🚀 Меню (≡) установлено")
