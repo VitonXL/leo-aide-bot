@@ -2,13 +2,13 @@
 
 import asyncpg
 import os
+from loguru import logger  # Опционально: для красивых логов
 
-
-# Получаем URL базы из переменной окружения
+# Получаем URL базы из переменных окружения
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 if not DATABASE_URL:
-    raise ValueError("DATABASE_URL не установлена в переменных окружения")
+    raise ValueError("❌ Переменная DATABASE_URL не установлена в окружении")
 
 
 async def create_db_pool():
@@ -20,9 +20,10 @@ async def create_db_pool():
 
 async def init_db(pool):
     """
-    Инициализирует таблицы.
+    Инициализирует таблицы. Автоматически добавляет last_seen, если нужно.
     """
     async with pool.acquire() as conn:
+        # Основная таблица пользователей
         await conn.execute('''
             CREATE TABLE IF NOT EXISTS users (
                 id BIGINT PRIMARY KEY,
@@ -36,6 +37,7 @@ async def init_db(pool):
             );
         ''')
 
+        # Таблица напоминаний
         await conn.execute('''
             CREATE TABLE IF NOT EXISTS reminders (
                 id SERIAL PRIMARY KEY,
@@ -47,10 +49,22 @@ async def init_db(pool):
             );
         ''')
 
+        # На случай, если таблица users уже была без last_seen
+        try:
+            await conn.execute('''
+                ALTER TABLE users 
+                ADD COLUMN IF NOT EXISTS last_seen TIMESTAMPTZ DEFAULT NOW();
+            ''')
+            logger.info("✅ Колонка last_seen добавлена (если отсутствовала)")
+        except Exception as e:
+            logger.warning(f"⚠️ Колонка last_seen уже существует или ошибка: {e}")
+
+    logger.info("✅ База данных инициализирована")
+
 
 async def add_or_update_user(pool, user):
     """
-    Добавляет или обновляет пользователя.
+    Добавляет нового пользователя или обновляет last_seen.
     """
     async with pool.acquire() as conn:
         await conn.execute('''
@@ -63,6 +77,8 @@ async def add_or_update_user(pool, user):
         ''', user.id, user.username, user.first_name, user.last_name,
                          user.language_code, user.is_bot)
 
+    logger.info(f"👤 Пользователь {user.id} добавлен/обновлён")
+
 
 async def delete_inactive_users(pool, days=90):
     """
@@ -74,5 +90,7 @@ async def delete_inactive_users(pool, days=90):
             WHERE last_seen < NOW() - $1 * INTERVAL '1 day'
             RETURNING COUNT(*);
         ''', days)
-        print(f"🧹 Удалено неактивных пользователей: {deleted or 0}")
-        return deleted or 0
+        deleted = deleted or 0
+        if deleted > 0:
+            logger.info(f"🧹 Удалено неактивных пользователей: {deleted}")
+        return deleted
