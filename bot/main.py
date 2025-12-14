@@ -75,8 +75,8 @@ async def on_post_init(application: Application):
     await init_db(db_pool)
     logger.info("✅ База данных инициализирована")
 
-    # Передаём пул в bot, чтобы фичи могли к нему обращаться
-    application.bot.db_pool = db_pool
+    # Сохраняем пул в bot_data, а не в bot
+    application.bot_data['db_pool'] = db_pool
 
     # Устанавливаем кнопку (≡)
     await application.bot.set_chat_menu_button(
@@ -94,7 +94,6 @@ async def on_post_init(application: Application):
         first=10
     )
     logger.info("⏰ Фоновая задача: очистка неактивных — запущена")
-
 
 # --- Главная ---
 def main():
