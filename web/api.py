@@ -2,17 +2,23 @@
 
 from fastapi import APIRouter, HTTPException
 import httpx
+import os
 
 router = APIRouter()
 
-# 🔁 Замени на URL твоего бота (Railway)
-BOT_API_URL = "https://leo-helper.up.railway.app"
+# Получаем URL бота из переменной окружения
+# Если не задан — используем дефолтный Railway URL
+BOT_API_URL = os.getenv("BOT_API_URL", "https://mmuzs4kv.up.railway.app")
 
 @router.get("/user/{user_id}")
 async def get_user_status(user_id: int):
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=10.0) as client:
         try:
-            response = await client.get(f"{BOT_API_URL}/api/user/{user_id}")
+            # Формируем URL: https://mmuzs4kv.up.railway.app/api/user/123456
+            url = f"{BOT_API_URL.strip('/')}/api/user/{user_id}"
+            
+            response = await client.get(url)
+            
             if response.status_code == 200:
                 data = response.json()
                 return {
@@ -21,6 +27,12 @@ async def get_user_status(user_id: int):
                     "is_premium": data.get("role") == "premium"
                 }
             else:
-                raise HTTPException(status_code=404, detail="User not found")
-        except Exception:
+                raise HTTPException(status_code=response.status_code, detail="User not found in bot")
+
+        except httpx.ConnectError:
+            return {"role": "user", "premium_expires": None, "is_premium": False}
+        except httpx.TimeoutException:
+            return {"role": "user", "premium_expires": None, "is_premium": False}
+        except Exception as e:
+            # Логировать ошибку можно позже
             return {"role": "user", "premium_expires": None, "is_premium": False}
