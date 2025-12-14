@@ -74,12 +74,14 @@ def main():
     # Подключаем меню
     setup_menu(app)
 
-    # Обработчики
+    # Самый первый обработчик — отслеживание активности
+    app.add_handler(TypeHandler(Update, track_user_activity), group=-1)
+
+    # Обработчики команд
     app.add_handler(CommandHandler("start", start))
 
     print("🚀 Бот запущен...")
     app.run_polling()
-
 
 if __name__ == "__main__":
     main()
