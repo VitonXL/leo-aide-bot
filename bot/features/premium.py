@@ -8,7 +8,7 @@ from database import is_premium_or_admin
 
 
 async def cmd_premium(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    pool = update.get_bot().bot.db_pool
+    pool = context.application.bot_data['db_pool']
     if not await is_premium_or_admin(pool, update.effective_user.id):
         await update.message.reply_text("💎 Эта функция доступна только премиум-пользователям")
         return
