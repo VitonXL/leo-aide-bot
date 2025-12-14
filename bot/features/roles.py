@@ -2,14 +2,19 @@
 
 from telegram import Update
 from telegram.ext import ContextTypes, CommandHandler
-from ..database import get_user_role, set_user_role, is_admin
+
+# ❌ Было: from ..database import ...
+# ✅ Стало:
+from database import get_user_role, set_user_role, is_admin
 
 
 async def cmd_role(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """/role <user_id> <user|premium|admin> — только для админов"""
     user_id = update.effective_user.id
 
-    if not await is_admin(update.get_bot().bot.db_pool, user_id):
+    # Используем db_pool через bot
+    pool = update.get_bot().bot.db_pool
+
+    if not await is_admin(pool, user_id):
         await update.message.reply_text("❌ Доступ запрещён")
         return
 
@@ -20,7 +25,7 @@ async def cmd_role(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         target_id = int(context.args[0])
         new_role = context.args[1]
-        await set_user_role(update.get_bot().bot.db_pool, target_id, new_role)
+        await set_user_role(pool, target_id, new_role)
         await update.message.reply_text(f"✅ Пользователю `{target_id}` установлена роль `{new_role}`", parse_mode='Markdown')
     except Exception as e:
         await update.message.reply_text(f"❌ Ошибка: {e}")
