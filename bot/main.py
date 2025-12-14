@@ -1,16 +1,16 @@
 # bot/main.py
 
 import os
-import asyncio
-from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
+from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton, MenuButtonWebApp, WebAppInfo
 from telegram.ext import Application, ContextTypes, CommandHandler, CallbackQueryHandler
+from .database import create_db_pool, init_db, add_or_update_user, delete_inactive_users
 from features.menu import setup as setup_menu
-from database import Database  # ← подключаем БД
+import asyncio
 
-# Глобальный экземпляр БД
-db = Database()
+# Глобальный пул БД
+db_pool = None
 
-# Кнопки под /start
+# Клавиатура после /start
 def get_start_keyboard():
     keyboard = [
         [InlineKeyboardButton("📌 Главное меню", callback_data="menu_main")],
@@ -22,7 +22,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
 
     # Сохраняем или обновляем пользователя
-    await db.add_or_update_user(user)
+    await add_or_update_user(db_pool, user)
 
     await update.message.reply_html(
         text=f"👋 <b>Добро пожаловать, {user.first_name}!</b>\n\n"
@@ -30,14 +30,16 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=get_start_keyboard()
     )
 
+
 # Фоновая задача: удаляем неактивных каждые 24 часа
 async def cleanup_task(application: Application):
     while True:
         try:
             await asyncio.sleep(24 * 3600)  # Каждые 24 часа
-            await db.delete_inactive_users()
+            await delete_inactive_users(db_pool, days=90)
         except Exception as e:
             print(f"❌ Ошибка в cleanup: {e}")
+
 
 async def post_init(application: Application):
     await application.bot.set_chat_menu_button(
@@ -47,8 +49,20 @@ async def post_init(application: Application):
         )
     )
 
+
+async def on_startup(application: Application):
+    """Выполняется при старте бота"""
+    global db_pool
+    db_pool = await create_db_pool()
+    await init_db(db_pool)
+    print("✅ База данных инициализирована")
+
+    # Запускаем фоновую задачу
+    application.create_task(cleanup_task(application))
+
+
 def main():
-    app = Application.builder().token(BOT_TOKEN).post_init(post_init).build()
+    app = Application.builder().token(os.getenv("BOT_TOKEN")).post_init(post_init).build()
 
     # Подключаем меню
     setup_menu(app)
@@ -56,12 +70,12 @@ def main():
     # Обработчики
     app.add_handler(CommandHandler("start", start))
 
-    # Запускаем БД и фоновую задачу
-    app.add_post_init_task(lambda app: db.connect())
-    app.job_queue.run_once(lambda _: app.create_task(cleanup_task(app)), when=10)
+    # Запускаем инициализацию БД
+    app.add_startup_handler(on_startup)
 
     print("🚀 Бот запущен...")
     app.run_polling()
+
 
 if __name__ == "__main__":
     main()
