@@ -9,32 +9,45 @@ from telegram.ext import (
     CommandHandler,
     CallbackQueryHandler,
     TypeHandler,
+    MessageHandler,
+    filters,
 )
 
 # Импортируем БД
-from database import create_db_pool, init_db, add_or_update_user, delete_inactive_users
-from features.menu import setup as setup_menu
+from database import (
+    create_db_pool,
+    init_db,
+    add_or_update_user,
+    delete_inactive_users,
+    log_command_usage,
+)
+from loguru import logger
 
-# Импортируем новые фичи
+# Импортируем фичи
+from features.menu import setup as setup_menu
+from features.admin import setup_admin_handlers
 from features.roles import setup_role_handlers
 from features.referrals import setup_referral_handlers
 from features.premium import setup_premium_handlers
 
-# Логи
-from loguru import logger
-
-# Глобальный пул БД
+# Глобальный пул (для track_user_activity)
 db_pool = None
 
 
 # --- Отслеживание активности ---
 async def track_user_activity(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
-    Обновляет last_seen при любом взаимодействии: /start, кнопка, сообщение и т.д.
+    Обновляет last_seen при любом взаимодействии.
+    Логирует команды.
     """
     user = update.effective_user
     if user:
         await add_or_update_user(db_pool, user)
+
+    # Логируем команду
+    if update.message and update.message.text and update.message.text.startswith('/'):
+        command = update.message.text.split()[0]  # /start, /menu и т.д.
+        await log_command_usage(db_pool, user.id, command)
 
 
 # --- Клавиатура после /start ---
@@ -50,12 +63,18 @@ def get_start_keyboard():
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
 
-    # Сохраняем/обновляем пользователя
-    await add_or_update_user(db_pool, user)
+    # Обработка реферальной ссылки
+    if context.args and context.args[0].startswith("ref"):
+        referrer_id = int(context.args[0][3:])
+        if referrer_id != user.id:
+            await register_referral(db_pool, referrer_id, user.id)
 
-    # Показываем приветствие
+    role = await get_user_role(db_pool, user.id)
+    role_text = {"user": "👤 Обычный", "premium": "💎 Премиум", "admin": "👮‍♂️ Админ"}.get(role, "👤 Обычный")
+
     await update.message.reply_html(
         text=f"👋 <b>Добро пожаловать, {user.first_name}!</b>\n\n"
+             f"🔹 Ваш статус: <b>{role_text}</b>\n\n"
              f"Выберите способ взаимодействия:",
         reply_markup=get_start_keyboard()
     )
@@ -75,7 +94,7 @@ async def on_post_init(application: Application):
     await init_db(db_pool)
     logger.info("✅ База данных инициализирована")
 
-    # Сохраняем пул в bot_data, а не в bot
+    # Сохраняем пул в bot_data, чтобы фичи могли к нему обращаться
     application.bot_data['db_pool'] = db_pool
 
     # Устанавливаем кнопку (≡)
@@ -95,6 +114,7 @@ async def on_post_init(application: Application):
     )
     logger.info("⏰ Фоновая задача: очистка неактивных — запущена")
 
+
 # --- Главная ---
 def main():
     app = (
@@ -107,15 +127,14 @@ def main():
     # Самый первый обработчик — отслеживание активности
     app.add_handler(TypeHandler(Update, track_user_activity), group=-1)
 
-    # Подключаем меню
+    # Подключаем фичи
     setup_menu(app)
-
-    # Подключаем модули
+    setup_admin_handlers(app)
     setup_role_handlers(app)
     setup_referral_handlers(app)
     setup_premium_handlers(app)
 
-    # Обработчики команд
+    # Команды
     app.add_handler(CommandHandler("start", start))
 
     logger.info("🚀 Бот запущен...")
