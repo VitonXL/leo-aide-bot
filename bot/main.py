@@ -1,37 +1,34 @@
 # bot/main.py
 
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
+from features.menu import menu_command, handle_menu_buttons  # ← импорт
 import os
-from telegram import Update, WebAppInfo, MenuButtonWebApp
-from telegram.ext import Application, CommandHandler, ContextTypes
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-WEB_APP_URL = "https://web-production-b74ea.up.railway.app"
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user = update.effective_user
     await update.message.reply_html(
-        text=f"Привет, <b>{user.first_name}</b>! 👋\n\n"
-             f"Панель управления доступна в меню (≡) — нажми 🌐 Открыть панель.",
+        "Привет! 👋\n\n"
+        "Нажми /menu, чтобы открыть главное меню.",
         reply_markup=None
     )
 
-async def post_init(application: Application):
-    print("✅ post_init: старт")
-    await application.bot.set_my_commands([("start", "Запустить бота")])
-    print("✅ Команды установлены")
-
+async def post_init(application):
     await application.bot.set_chat_menu_button(
         menu_button=MenuButtonWebApp(
             text="🌐 Панель",
-            web_app=WebAppInfo(url=WEB_APP_URL)
+            web_app=WebAppInfo(url="https://web-production-b74ea.up.railway.app")
         )
     )
-    print("✅ Меню '🌐 Панель' установлено")
 
 def main():
     app = Application.builder().token(BOT_TOKEN).post_init(post_init).build()
+
     app.add_handler(CommandHandler("start", start))
-    print("🚀 Бот запущен...")
+    app.add_handler(CommandHandler("menu", menu_command))  # ← добавляем /menu
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_menu_buttons))  # ← обработка кнопок
+
+    print("Бот запущен...")
     app.run_polling()
 
 if __name__ == "__main__":
