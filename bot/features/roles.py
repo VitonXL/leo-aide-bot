@@ -3,16 +3,12 @@
 from telegram import Update
 from telegram.ext import ContextTypes, CommandHandler
 
-# ❌ Было: from ..database import ...
-# ✅ Стало:
 from database import get_user_role, set_user_role, is_admin
 
 
 async def cmd_role(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
-
-    # Используем db_pool через bot
-    pool = update.get_bot().bot.db_pool
+    pool = context.application.bot_data['db_pool']  # ✅ Правильный доступ
 
     if not await is_admin(pool, user_id):
         await update.message.reply_text("❌ Доступ запрещён")
