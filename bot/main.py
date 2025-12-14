@@ -3,7 +3,7 @@
 import os
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton, MenuButtonWebApp, WebAppInfo
 from telegram.ext import Application, ContextTypes, CommandHandler, CallbackQueryHandler
-from .database import create_db_pool, init_db, add_or_update_user, delete_inactive_users
+from database import create_db_pool, init_db, add_or_update_user, delete_inactive_users
 from features.menu import setup as setup_menu
 import asyncio
 
