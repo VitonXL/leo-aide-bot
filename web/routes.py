@@ -3,14 +3,15 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 import urllib.parse
 import os
-import httpx
 from .utils import verify_webapp_data, verify_cabinet_link
+
+# ✅ Импортируем функцию получения данных пользователя
+from .api import get_user_data
 
 router = APIRouter()
 templates = Jinja2Templates(directory="web/templates")
 
-# Получаем URL бота из переменной окружения
-BOT_API_URL = os.getenv("BOT_API_URL", "https://mmuzs4kv.up.railway.app")
+# Убрали BOT_API_URL — больше не нужен для /cabinet
 
 
 @router.get("/", response_class=HTMLResponse)
@@ -55,7 +56,7 @@ async def handle_webapp(
     )
 
 
-# ✅ Роут: Личный кабинет по безопасной ссылке
+# ✅ Обновлённый роут: Личный кабинет — использует локальные данные
 @router.get("/cabinet", response_class=HTMLResponse)
 async def cabinet(request: Request):
     user_id = request.query_params.get("user_id")
@@ -74,27 +75,22 @@ async def cabinet(request: Request):
     if not verify_cabinet_link(user_id, hash_param):
         raise HTTPException(status_code=403, detail="Invalid signature")
 
-    # Запрос данных из бота
-    async with httpx.AsyncClient(timeout=10.0) as client:
-        try:
-            api_url = f"{BOT_API_URL.strip('/')}/api/user/{user_id}"
-            response = await client.get(api_url)
-            if response.status_code == 200:
-                user_data = response.json()
-            else:
-                user_data = {}
-        except Exception:
-            user_data = {}
+    # ✅ Запрашиваем данные напрямую из БД через api.py
+    user_data = await get_user_data(user_id)
 
-    # Дефолтные значения
-    user_data.setdefault("role", "user")
-    user_data.setdefault("premium_expires", None)
-    user_data.setdefault("language", "ru")
-    user_data.setdefault("theme", "light")
-    user_data.setdefault("first_name", "Пользователь")
-    user_data.setdefault("username", "unknown")
-    user_data.setdefault("referrals", 0)
-    user_data["id"] = user_id
+    if not user_data:
+        # Дефолтные данные, если не найден
+        user_data = {
+            "id": user_id,
+            "first_name": "Пользователь",
+            "username": "unknown",
+            "role": "user",
+            "premium_expires": None,
+            "is_premium": False,
+            "language": "ru",
+            "theme": "light",
+            "referrals": 0
+        }
 
     return templates.TemplateResponse(
         "cabinet.html",
