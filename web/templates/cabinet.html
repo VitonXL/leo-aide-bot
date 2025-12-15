@@ -1,1 +1,51 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="{{ 'dark' if user.theme == 'dark' else 'light' }}">
+<head>
+  <meta charset="UTF-8" />
+  <title>{{ title }}</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+  <div class="container cabinet">
+    <header>
+      <h1>🔐 Личный кабинет</h1>
+      <a href="/" class="btn btn-secondary">← Назад</a>
+    </header>
 
+    <main>
+      <div class="profile-card">
+        <div class="avatar">
+          {{ user.first_name[0] }}
+        </div>
+        <h2>{{ user.first_name }}</h2>
+        <p>@{{ user.username }}</p>
+        <div class="status">
+          {% if user.role == 'premium' %}
+            <span class="badge success">💎 Премиум</span>
+            <small>до {{ user.premium_expires[:10] }}</small>
+          {% else %}
+            <span class="badge">👤 Обычный</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="info-grid">
+        <div class="info-item"><strong>Язык</strong> <span>{{ 'Русский' if user.language == 'ru' else 'English' }}</span></div>
+        <div class="info-item"><strong>Тема</strong> <span>{{ 'Светлая' if user.theme == 'light' else 'Тёмная' }}</span></div>
+        <div class="info-item"><strong>Рефералы</strong> <span>{{ user.referrals }}</span></div>
+        <div class="info-item"><strong>ID</strong> <span>{{ user.id }}</span></div>
+      </div>
+
+      <div class="actions">
+        {% if user.role != 'premium' %}
+          <a href="/premium?user_id={{ user.id }}" class="btn">💳 Купить премиум</a>
+        {% endif %}
+        <a href="https://t.me/Leo_aide_bot" target="_blank" class="btn btn-outline">
+          💬 Написать в поддержку
+        </a>
+      </div>
+    </main>
+  </div>
+</body>
+</html>
