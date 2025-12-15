@@ -19,23 +19,24 @@
           {{ user.first_name[0].upper() }}
         </div>
         <h2>{{ user.first_name }}</h2>
-       <div class="status">
-  {% if user.role == 'premium' %}
-    <span class="badge success">💎 Премиум</span>
-    {% if user.premium_expires %}
-      <small>до {{ user.premium_expires[:10] }}</small>
-    {% endif %}
-  {% elif user.role == 'admin' %}
-    <span class="badge danger">👮‍♂️ Админ</span>
-  {% else %}
-    <span class="badge">👤 Обычный</span>
-  {% endif %}
-</div>
+        <p>@{{ user.username }}</p>
+        <div class="status">
+          {% if user.role == 'premium' %}
+            <span class="badge success">💎 Премиум</span>
+            {% if user.premium_expires %}
+              <small>до {{ user.premium_expires[:10] }}</small>
+            {% endif %}
+          {% elif user.role == 'admin' %}
+            <span class="badge danger">👮‍♂️ Админ</span>
+          {% else %}
+            <span class="badge">👤 Обычный</span>
+          {% endif %}
+        </div>
       </div>
 
       <div class="info-grid">
         <div class="info-item"><strong>Язык</strong> <span>{{ 'Русский' if user.language == 'ru' else 'English' }}</span></div>
-        <div class="info-item"><strong>Тема</strong> <span>{{ 'Светлая' if user.theme == 'light' else 'Тёмная' }}</span></div>
+        <div class="info-item"><strong>Тема</strong> <span>{{ 'Светлая' if user.theme == 'light' else 'Тёмкая' }}</span></div>
         <div class="info-item"><strong>Рефералы</strong> <span>{{ user.referrals }}</span></div>
         <div class="info-item"><strong>ID</strong> <span>{{ user.id }}</span></div>
       </div>
@@ -46,6 +47,9 @@
         {% endif %}
         <a href="https://t.me/Leo_aide_bot" target="_blank" class="btn btn-outline">
           💬 Написать в поддержку
+        </a>
+        <a href="/toggle-theme?return=/cabinet?user_id={{ user.id }}&hash={{ request.query_params.hash }}" class="btn btn-sm">
+          🌙 Сменить тему
         </a>
       </div>
     </main>
