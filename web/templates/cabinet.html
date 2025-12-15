@@ -77,6 +77,16 @@
         const d = new Date();
         d.setTime(d.getTime() + 30 * 24 * 60 * 60 * 1000);
         document.cookie = `theme=${newTheme}; path=/; expires=${d.toUTCString()}; SameSite=Strict`;
+        // Отправляем тему в бота
+        const iframe = document.createElement('iframe');
+        iframe.src = `https://t.me/Leo_aide_bot?start=settheme_${newTheme}`;
+        iframe.style.display = 'none';
+        document.body.appendChild(iframe);
+        setTimeout(() => {
+      if (iframe && iframe.parentNode) {
+    iframe.parentNode.removeChild(iframe);
+  }
+}, 1000);
       });
     });
   </script>
