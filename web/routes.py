@@ -1,29 +1,29 @@
-# web/routes.py
-
-from fastapi import APIRouter, Request, Form
+from fastapi import APIRouter, Request, Form, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 import urllib.parse
 import os
 
-from .utils import verify_webapp_data
+from .utils import verify_webapp_data, verify_cabinet_link  # ✅ Добавили import
 
 router = APIRouter()
 templates = Jinja2Templates(directory="web/templates")
+
 
 @router.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     theme = request.cookies.get("theme", "light")
     return templates.TemplateResponse("index.html", {"request": request, "theme": theme})
 
+
 @router.get("/premium", response_class=HTMLResponse)
 async def premium_page(request: Request):
-    # Если user передан через query (например, из бота)
     user_id = request.query_params.get("user_id", "123456")
     return templates.TemplateResponse(
         "premium.html",
         {"request": request, "user": {"id": user_id}}
     )
+
 
 @router.post("/webapp", response_class=HTMLResponse)
 async def handle_webapp(
@@ -40,14 +40,52 @@ async def handle_webapp(
     user_data = eval(parsed_user["user"][0])
     theme = parsed_user.get("theme_params", ["{}"])[0]
 
-    # Передаём user.id в premium.html
     return templates.TemplateResponse(
         "dashboard.html",
         {
             "request": request,
             "user": user_data,
             "theme": "dark" if theme.get("bg_color", "#ffffff").lower() in ["#000000", "#1a1a1a"] else "light",
-            "is_premium": False,  # ← будет из API
+            "is_premium": False,
             "premium_expires": None
+        }
+    )
+
+
+# ✅ НОВОЕ: Роут для личного кабинета по ссылке
+@router.get("/cabinet", response_class=HTMLResponse)
+async def cabinet(request: Request):
+    user_id = request.query_params.get("user_id")
+    hash_param = request.query_params.get("hash")
+
+    if not user_id or not hash_param:
+        raise HTTPException(status_code=400, detail="Missing user_id or hash")
+
+    try:
+        user_id = int(user_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid user_id")
+
+    if not verify_cabinet_link(user_id, hash_param):
+        raise HTTPException(status_code=403, detail="Invalid signature")
+
+    # Пока заглушка — позже добавим данные из API
+    user_data = {
+        "id": user_id,
+        "first_name": "Алексей",
+        "username": "alex_dev",
+        "role": "premium",
+        "premium_expires": "2026-03-15T00:00:00",
+        "language": "ru",
+        "theme": "light",
+        "referrals": 7
+    }
+
+    return templates.TemplateResponse(
+        "cabinet.html",
+        {
+            "request": request,
+            "user": user_data,
+            "title": "Личный кабинет"
         }
     )
