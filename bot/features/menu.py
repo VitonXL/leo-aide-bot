@@ -86,10 +86,28 @@ async def handle_menu_callbacks(update: Update, context: ContextTypes.DEFAULT_TY
 
     # --- Личный кабинет ---
     elif data == "menu_profile":
+    # Генерируем ссылку
+    user_id = query.from_user.id
+    try:
+        from utils import generate_cabinet_link
+        link = generate_cabinet_link(user_id)
         await query.edit_message_text(
-            "🧑‍💼 *Личный кабинет*\n\nУправляй своим аккаунтом:",
+            "🔐 <b>Личный кабинет</b>\n\n"
+            "Откройте полный интерфейс управления:\n"
+            f"<a href='{link}'>Перейти в кабинет</a>\n\n"
+            "Тут вы можете:\n"
+            "• Проверить подписку\n"
+            "• Управлять рефералами\n"
+            "• Сменить тему\n"
+            "• Подключить GigaChat",
             reply_markup=get_profile_menu(),
-            parse_mode='Markdown'
+            parse_mode='HTML',
+            disable_web_page_preview=False
+        )
+    except Exception as e:
+        await query.edit_message_text(
+            f"❌ Ошибка: {e}",
+            reply_markup=get_profile_menu()
         )
 
     elif data == "profile_premium":
