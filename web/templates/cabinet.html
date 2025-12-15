@@ -36,7 +36,7 @@
 
       <div class="info-grid">
         <div class="info-item"><strong>Язык</strong> <span>{{ 'Русский' if user.language == 'ru' else 'English' }}</span></div>
-        <div class="info-item"><strong>Тема</strong> <span>{{ 'Светлая' if user.theme == 'light' else 'Тёмкая' }}</span></div>
+        <div class="info-item"><strong>Тема</strong> <span>{{ 'Тёмная' if theme == 'dark' else 'Светлая' }}</span></div>
         <div class="info-item"><strong>Рефералы</strong> <span>{{ user.referrals }}</span></div>
         <div class="info-item"><strong>ID</strong> <span>{{ user.id }}</span></div>
       </div>
@@ -49,11 +49,36 @@
           💬 Написать в поддержку
         </a>
         <button id="theme-toggle" class="btn btn-sm">
-  {{ '☀️ Светлая' if theme == 'dark' else '🌙 Тёмная' }}
-</button>
-        </a>
+          {{ '☀️ Светлая' if theme == 'dark' else '🌙 Тёмная' }}
+        </button>
       </div>
     </main>
   </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const themeBtn = document.getElementById("theme-toggle");
+      if (!themeBtn) return;
+
+      themeBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+
+        const html = document.documentElement;
+        const currentTheme = html.getAttribute("data-theme");
+        const newTheme = currentTheme === "light" ? "dark" : "light";
+
+        // Меняем тему
+        html.setAttribute("data-theme", newTheme);
+
+        // Обновляем текст кнопки
+        themeBtn.textContent = newTheme === "light" ? "☀️ Светлая" : "🌙 Тёмная";
+
+        // Сохраняем в куки (30 дней)
+        const d = new Date();
+        d.setTime(d.getTime() + 30 * 24 * 60 * 60 * 1000);
+        document.cookie = `theme=${newTheme}; path=/; expires=${d.toUTCString()}; SameSite=Strict`;
+      });
+    });
+  </script>
 </body>
 </html>
