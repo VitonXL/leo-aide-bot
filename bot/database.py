@@ -14,7 +14,13 @@ async def create_db_pool():
     """
     Создаёт пул подключений к PostgreSQL.
     """
-    return await asyncpg.create_pool(DATABASE_URL)
+    try:
+        pool = await asyncpg.create_pool(DATABASE_URL)
+        logger.info("✅ Пул подключений к БД создан")
+        return pool
+    except Exception as e:
+        logger.critical(f"❌ Не удалось создать пул БД: {e}")
+        raise
 
 
 async def init_db(pool):
@@ -34,7 +40,9 @@ async def init_db(pool):
                 role TEXT NOT NULL DEFAULT 'user',
                 created_at TIMESTAMPTZ DEFAULT NOW(),
                 last_seen TIMESTAMPTZ DEFAULT NOW(),
-                premium_expires TIMESTAMPTZ
+                premium_expires TIMESTAMPTZ,
+                theme TEXT DEFAULT 'light',           -- НОВОЕ: тема
+                language TEXT DEFAULT 'ru'            -- НОВОЕ: интерфейсный язык
             );
         ''')
 
@@ -70,8 +78,10 @@ async def init_db(pool):
             );
         ''')
 
-        # --- Миграции — добавляем колонки, если отсутствуют ---
+        # --- Миграции — расширения ---
         migrations = [
+            ('theme', "TEXT DEFAULT 'light'"),
+            ('language', "TEXT DEFAULT 'ru'"),
             ('last_name', 'TEXT'),
             ('language_code', 'TEXT'),
             ('is_bot', 'BOOLEAN'),
@@ -88,7 +98,7 @@ async def init_db(pool):
                 ''')
                 logger.info(f"✅ Колонка {column} добавлена (если отсутствовала)")
             except Exception as e:
-                logger.warning(f"⚠️ Колонка {column} уже существует или ошибка: {e}")
+                logger.warning(f"⚠️ Ошибка при добавлении колонки {column}: {e}")
 
     logger.info("✅ Все таблицы и миграции применены")
 
@@ -101,11 +111,16 @@ async def add_or_update_user(pool, user):
     async with pool.acquire() as conn:
         await conn.execute('''
             INSERT INTO users (
-                id, username, first_name, last_name, language_code, is_bot, last_seen, created_at
+                id, username, first_name, last_name, language_code, is_bot, last_seen, created_at, language
             )
-            VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+            VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW(), $5)
             ON CONFLICT (id)
-            DO UPDATE SET last_seen = NOW();
+            DO UPDATE SET 
+                username = EXCLUDED.username,
+                first_name = EXCLUDED.first_name,
+                last_name = EXCLUDED.last_name,
+                language_code = EXCLUDED.language_code,
+                last_seen = NOW();
         ''', 
         user.id,
         user.username,
@@ -153,6 +168,47 @@ async def is_premium_or_admin(pool, user_id: int) -> bool:
     """
     role = await get_user_role(pool, user_id)
     return role in ['premium', 'admin']
+
+
+# --- НОВОЕ: Работа с настройками интерфейса ---
+async def get_user_settings(pool, user_id: int) -> dict:
+    """
+    Возвращает настройки пользователя: тема, язык.
+    """
+    async with pool.acquire() as conn:
+        row = await conn.fetchrow('''
+            SELECT theme, language FROM users WHERE id = $1
+        ''', user_id)
+        if row:
+            return {
+                "theme": row["theme"] or "light",
+                "language": row["language"] or "ru"
+            }
+        return {"theme": "light", "language": "ru"}
+
+
+async def update_user_theme(pool, user_id: int, theme: str):
+    """
+    Обновляет тему пользователя.
+    """
+    if theme not in ["light", "dark"]:
+        raise ValueError("Тема должна быть 'light' или 'dark'")
+
+    async with pool.acquire() as conn:
+        await conn.execute('UPDATE users SET theme = $1 WHERE id = $2', theme, user_id)
+    logger.info(f"🎨 Пользователь {user_id} сменил тему: {theme}")
+
+
+async def update_user_language(pool, user_id: int, lang: str):
+    """
+    Обновляет язык интерфейса пользователя.
+    """
+    if lang not in ["ru", "en"]:
+        raise ValueError("Язык должен быть 'ru' или 'en'")
+
+    async with pool.acquire() as conn:
+        await conn.execute('UPDATE users SET language = $1 WHERE id = $2', lang, user_id)
+    logger.info(f"🌐 Пользователь {user_id} сменил язык: {lang}")
 
 
 # --- Рефералы ---
