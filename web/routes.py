@@ -82,12 +82,16 @@ async def cabinet(request: Request):
             "referrals": 0
         }
 
+      # Приоритет: кука > данные из БД
+    theme = request.cookies.get("theme", user_data.get("theme", "light"))
+
     return templates.TemplateResponse(
         "cabinet.html",
         {
             "request": request,
             "user": user_data,
-            "title": "Личный кабинет"
+            "title": "Личный кабинет",
+            "theme": theme  # ← передаём в шаблон
         }
     )
 
