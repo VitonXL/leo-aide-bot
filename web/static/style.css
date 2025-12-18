@@ -1,3 +1,5 @@
+/* web/static/style.css — Полная версия */
+
 :root {
   --bg: #FFFFFF;
   --text: #333333;
@@ -40,6 +42,7 @@ body {
   overflow-x: hidden;
 }
 
+/* === ЭКРАНЫ === */
 .screen {
   display: none;
   opacity: 0;
@@ -115,6 +118,7 @@ body {
   box-shadow: var(--hover-glow);
 }
 
+/* === HEADER === */
 header {
   display: flex;
   align-items: center;
@@ -147,6 +151,7 @@ header {
   font-size: 14px;
 }
 
+/* === ОСНОВНОЙ КОНТЕНТ === */
 main {
   flex: 1;
   padding: 30px 20px;
@@ -217,6 +222,7 @@ main {
   font-weight: 500;
 }
 
+/* === САЙДБАР === */
 .sidebar {
   position: fixed;
   left: -300px;
@@ -258,6 +264,7 @@ main {
   color: white;
 }
 
+/* === OVERLAY === */
 .overlay {
   position: fixed;
   top: 0;
@@ -273,6 +280,7 @@ main {
   display: block;
 }
 
+/* === TOOLTIP (QR) === */
 .tooltip {
   position: relative;
   display: inline-block;
@@ -301,6 +309,7 @@ main {
   opacity: 1;
 }
 
+/* === FAB === */
 .fab {
   position: fixed;
   bottom: 30px;
@@ -326,6 +335,7 @@ main {
   box-shadow: 0 6px 16px rgba(76, 175, 80, 0.6);
 }
 
+/* === OFFLINE BAR === */
 .offline-bar {
   position: fixed;
   top: 0;
@@ -340,6 +350,7 @@ main {
   display: none;
 }
 
+/* === MODAL (QR) === */
 .modal {
   display: none;
   position: fixed;
@@ -371,6 +382,7 @@ main {
   color: var(--text);
 }
 
+/* === Адаптив === */
 @media (max-width: 768px) {
   .title { font-size: 18px; }
   .btn { padding: 12px 24px; }
