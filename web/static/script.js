@@ -1,5 +1,9 @@
 // web/static/script.js
 
+// === Глобальные переменные ===
+let USER_DATA = null;
+
+// === Навигация между экранами ===
 function navigateTo(screen) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   setTimeout(() => {
@@ -11,46 +15,57 @@ function navigateTo(screen) {
 
 function navigateBack() { navigateTo('dashboard'); }
 
-function toggleSidebar() {
-  const sidebar = document.getElementById('sidebar');
-  const overlay = document.querySelector('.overlay');
-  if (sidebar.classList.contains('open')) {
-    sidebar.classList.remove('open');
-    overlay.classList.remove('active');
-  } else {
-    sidebar.classList.add('open');
-    overlay.classList.add('active');
+// === Старт авторизации ===
+function startAuth() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const user_id = urlParams.get('user_id');
+  const hash = urlParams.get('hash');
+
+  if (!user_id || !hash) {
+    alert('❌ Неверная ссылка. Пожалуйста, перейдите из бота.');
+    return;
   }
+
+  // Проверяем подпись
+  fetch(`/api/user/${user_id}`)
+    .then(res => res.json())
+    .then(data => {
+      USER_DATA = data;
+      document.getElementById('user-name').textContent = data.first_name;
+      document.getElementById('user-username').textContent = data.username ? '@' + data.username : 'не указан';
+      document.getElementById('user-id').textContent = data.id;
+      document.getElementById('referrals').textContent = data.referrals;
+      document.getElementById('profile-photo').textContent = data.first_name[0]?.toUpperCase() || '?';
+
+      // Тема
+      const theme = data.theme || 'light';
+      document.documentElement.setAttribute('data-theme', theme);
+      document.getElementById('current-theme').textContent = theme === 'light' ? 'Светлая' : 'Тёмкая';
+
+      // Подписка
+      document.getElementById('premium-status').textContent = data.is_premium ? 'Премиум' : 'Базовая';
+      document.getElementById('premium-status').style.color = data.is_premium ? '#DAA520' : '#333';
+
+      // Переход
+      navigateTo('dashboard');
+    })
+    .catch(err => {
+      console.error(err);
+      alert('❌ Ошибка загрузки данных');
+    });
 }
 
-function openQRModal() { document.getElementById('qr-modal').style.display = 'flex'; }
-function closeQRModal() { document.getElementById('qr-modal').style.display = 'none'; }
-
-function setLang(lang) {
-  alert('Язык будет изменён на: ' + lang);
-  // Можно добавить /api/set-lang позже
-}
-
-// --- Синхронизация темы ---
-const themeToggle = document.createElement('button');
-themeToggle.className = 'btn primary';
-themeToggle.style.marginTop = '20px';
-
-function updateThemeButton() {
-  const currentTheme = document.documentElement.getAttribute('data-theme');
-  themeToggle.textContent = currentTheme === 'light' ? '🌙 Включить тёмную' : '☀️ Включить светлую';
-}
-
+// === Смена темы ===
 function toggleTheme() {
   const currentTheme = document.documentElement.getAttribute('data-theme');
   const newTheme = currentTheme === 'light' ? 'dark' : 'light';
   document.documentElement.setAttribute('data-theme', newTheme);
-  updateThemeButton();
+  document.getElementById('current-theme').textContent = newTheme === 'light' ? 'Светлая' : 'Тёмкая';
 
-  // Сохраняем в куку
+  // В куку
   document.cookie = `theme=${newTheme}; path=/; max-age=31536000`;
 
-  // Обновляем в БД
+  // В БД
   const urlParams = new URLSearchParams(window.location.search);
   const user_id = urlParams.get('user_id');
   const hash = urlParams.get('hash');
@@ -59,37 +74,49 @@ function toggleTheme() {
     fetch('/api/set-theme', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user_id: parseInt(user_id), theme: newTheme, hash })
+      body: JSON.stringify({ user_id: +user_id, theme: newTheme, hash })
     }).catch(console.warn);
   }
 }
 
-themeToggle.addEventListener('click', toggleTheme);
-
-// Добавляем кнопку в профиль
+// === Добавляем кнопку "Сменить тему" ===
 document.addEventListener('DOMContentLoaded', () => {
-  updateThemeButton();
   const profileMain = document.querySelector('.profile-main');
-  if (profileMain) profileMain.appendChild(themeToggle);
+  const themeBtn = document.createElement('button');
+  themeBtn.className = 'btn primary';
+  themeBtn.style.marginTop = '20px';
+  themeBtn.textContent = '🌙 Сменить тему';
+  themeBtn.onclick = toggleTheme;
+  profileMain.appendChild(themeBtn);
 
-  const savedTheme = getCookie('theme') || document.documentElement.getAttribute('data-theme');
-  document.documentElement.setAttribute('data-theme', savedTheme);
-  document.getElementById('current-theme').textContent = savedTheme;
-  updateThemeButton();
+  // Если уже есть user_id — можно сразу стартовать (для тестов)
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('auto') === '1') {
+    startAuth();
+  }
 });
 
-function getCookie(name) {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop().split(';').shift();
+// === Прочие функции ===
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.querySelector('.overlay');
+  sidebar.classList.toggle('open');
+  overlay.classList.toggle('active');
 }
 
-// --- Оффлайн ---
-const offlineBar = document.getElementById('offline-bar');
-window.addEventListener('offline', () => offlineBar.style.display = 'block');
-window.addEventListener('online',  () => offlineBar.style.display = 'none');
-window.onload = () => { if (!navigator.onLine) offlineBar.style.display = 'block'; };
+function openQRModal() { document.getElementById('qr-modal').style.display = 'flex'; }
+function closeQRModal() { document.getElementById('qr-modal').style.display = 'none'; }
+
+function setLang(lang) {
+  alert(`Язык: ${lang}. Функция в разработке.`);
+}
 
 function buyPremium() {
-  alert("💎 Премиум скоро! Ожидайте интеграцию с платежами.");
+  alert("💳 Премиум скоро! Ожидайте интеграцию.");
 }
+
+// === Оффлайн ===
+const offlineBar = document.getElementById('offline-bar');
+window.addEventListener('offline', () => offlineBar.style.display = 'block');
+window.addEventListener('online', () => offlineBar.style.display = 'none');
+window.onload = () => { if (!navigator.onLine) offlineBar.style.display = 'block'; };
