@@ -1,80 +1,103 @@
 // web/static/script.js
 
-let USER_DATA = null;
+// Ждём, пока DOM полностью загрузится
+document.addEventListener('DOMContentLoaded', function () {
+  console.log('✅ DOM загружен, script.js работает');
 
-// === Навигация ===
-function navigateTo(screen) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  setTimeout(() => {
-    document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
-    document.getElementById(screen + '-screen').style.display = 'flex';
-    setTimeout(() => document.getElementById(screen + '-screen').classList.add('active'), 10);
-  }, 300);
-}
+  let USER_DATA = null;
 
-function navigateBack() { navigateTo('dashboard'); }
-
-function toggleSidebar() {
-  const sidebar = document.getElementById('sidebar');
-  const overlay = document.querySelector('.overlay');
-  sidebar.classList.toggle('open');
-  overlay.classList.toggle('active');
-}
-
-function openQRModal() { document.getElementById('qr-modal').style.display = 'flex'; }
-function closeQRModal() { document.getElementById('qr-modal').style.display = 'none'; }
-
-function setLang(lang) {
-  alert('Язык изменён на: ' + lang);
-}
-
-function buyPremium() {
-  alert("💳 Премиум скоро! Ожидайте интеграцию.");
-}
-
-// === Старт авторизации ===
-function startAuth() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const user_id = urlParams.get('user_id');
-  const hash = urlParams.get('hash');
-
-  if (!user_id || !hash) {
-    alert('❌ Неверная ссылка. Откройте из бота.');
-    return;
+  function navigateTo(screen) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    setTimeout(() => {
+      document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
+      const screenElement = document.getElementById(screen + '-screen');
+      if (screenElement) {
+        screenElement.style.display = 'flex';
+        setTimeout(() => screenElement.classList.add('active'), 10);
+      }
+    }, 300);
   }
 
-  fetch(`/api/user/${user_id}`)
-    .then(res => res.json())
-    .then(data => {
-      USER_DATA = data;
+  function navigateBack() { navigateTo('dashboard'); }
 
-      // Теперь все элементы гарантированно существуют
-      document.getElementById('user-name').textContent = data.first_name;
-      document.getElementById('user-username').textContent = data.username ? '@' + data.username : 'не указан';
-      document.getElementById('user-id').textContent = data.id;
-      document.getElementById('referrals').textContent = data.referrals;
-      document.getElementById('profile-photo').textContent = data.first_name[0]?.toUpperCase() || '?';
+  function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.querySelector('.overlay');
+    if (sidebar && overlay) {
+      sidebar.classList.toggle('open');
+      overlay.classList.toggle('active');
+    }
+  }
 
-      const theme = data.theme || 'light';
-      document.documentElement.setAttribute('data-theme', theme);
+  function openQRModal() {
+    const modal = document.getElementById('qr-modal');
+    if (modal) modal.style.display = 'flex';
+  }
 
-      document.getElementById('premium-status').textContent = data.is_premium ? 'Премиум' : 'Базовая';
+  function closeQRModal() {
+    const modal = document.getElementById('qr-modal');
+    if (modal) modal.style.display = 'none';
+  }
 
-      navigateTo('dashboard');
-    })
-    .catch(err => {
-      console.error(err);
-      alert('❌ Ошибка загрузки данных');
-    });
-}
+  function setLang(lang) {
+    alert('Язык изменён на: ' + lang);
+  }
 
-// === Оффлайн ===
-const offlineBar = document.getElementById('offline-bar');
-window.addEventListener('offline', () => offlineBar.style.display = 'block');
-window.addEventListener('online', () => offlineBar.style.display = 'none');
-window.onload = () => { if (!navigator.onLine) offlineBar.style.display = 'block'; };
+  function buyPremium() {
+    alert("💳 Премиум скоро! Ожидайте интеграцию.");
+  }
 
-// === Защита от раннего выполнения ===
-document.addEventListener('DOMContentLoaded', () => {
-  console.log('✅ Скрипт загружен, DOM готов');
+  // === Старт авторизации ===
+  window.startAuth = function () {
+    const urlParams = new URLSearchParams(window.location.search);
+    const user_id = urlParams.get('user_id');
+    const hash = urlParams.get('hash');
+
+    if (!user_id || !hash) {
+      alert('❌ Неверная ссылка. Откройте из бота.');
+      return;
+    }
+
+    fetch(`/api/user/${user_id}`)
+      .then(res => res.json())
+      .then(data => {
+        USER_DATA = data;
+
+        // Безопасное обновление элементов
+        const updateElement = (id, value) => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = value;
+        };
+
+        updateElement('user-name', data.first_name);
+        updateElement('user-username', data.username ? '@' + data.username : 'не указан');
+        updateElement('user-id', data.id);
+        updateElement('referrals', data.referrals);
+        updateElement('premium-status', data.is_premium ? 'Премиум' : 'Базовая');
+
+        const photo = document.getElementById('profile-photo');
+        if (photo) {
+          photo.textContent = data.first_name[0]?.toUpperCase() || '?';
+        }
+
+        const theme = data.theme || 'light';
+        document.documentElement.setAttribute('data-theme', theme);
+
+        navigateTo('dashboard');
+      })
+      .catch(err => {
+        console.error('❌ Ошибка загрузки данных:', err);
+        alert('❌ Ошибка: не удалось загрузить данные');
+      });
+  };
+
+  // === Оффлайн-бар ===
+  const offlineBar = document.getElementById('offline-bar');
+  if (offlineBar) {
+    window.addEventListener('offline', () => offlineBar.style.display = 'block');
+    window.addEventListener('online',  () => offlineBar.style.display = 'none');
+    if (!navigator.onLine) offlineBar.style.display = 'block';
+  }
+
+  console.log('✅ startAuth доступна глобально');
 });
