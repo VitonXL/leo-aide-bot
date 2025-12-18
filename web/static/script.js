@@ -1,8 +1,7 @@
-// web/static/script.js — РАБОЧАЯ ВЕРСИЯ (UTF-8)
+// web/static/script.js — РАБОЧАЯ UTF-8 ВЕРСИЯ
 
-// Ждём полной загрузки DOM
 document.addEventListener('DOMContentLoaded', function () {
-  console.log('✅ script.js: DOM загружен');
+  console.log('✅ DOM загружен, script.js работает');
 
   // === Навигация ===
   window.navigateTo = function (screen) {
@@ -77,13 +76,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
   themeToggle.addEventListener('click', toggleTheme);
 
-  // Добавляем кнопку в профиль
   const profileMain = document.querySelector('.profile-main');
   if (profileMain) {
     profileMain.appendChild(themeToggle);
   }
 
-  // Восстанавливаем тему
   const savedTheme = getCookie('theme') || document.documentElement.getAttribute('data-theme');
   document.documentElement.setAttribute('data-theme', savedTheme);
   updateThemeButton();
