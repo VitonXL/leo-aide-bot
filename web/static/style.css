@@ -1,3 +1,5 @@
+/* web/static/style.css */
+
 :root {
   --bg: #f4f6f8;
   --card-bg: white;
@@ -74,37 +76,6 @@ main {
   text-align: left;
 }
 
-.status {
-  font-weight: 500;
-}
-
-.btn {
-  display: inline-block;
-  padding: 14px 28px;
-  background: var(--accent);
-  color: white;
-  text-decoration: none;
-  border-radius: 8px;
-  font-weight: bold;
-  font-size: 16px;
-  margin-top: 10px;
-  transition: background 0.2s;
-}
-
-.btn:hover {
-  background: #006699;
-}
-
-.btn-secondary {
-  background: #6c757d;
-}
-
-.btn-sm {
-  padding: 8px 16px;
-  font-size: 14px;
-  background: #6c757d;
-}
-
 .badge {
   padding: 4px 12px;
   border-radius: 12px;
@@ -117,7 +88,14 @@ main {
   background: #28a745;
 }
 
-.badge.danger {
-  background: #7b1fa2;
+.btn {
+  display: inline-block;
+  padding: 14px 28px;
+  background: var(--accent);
   color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 16px;
+  margin-top: 10px;
 }
