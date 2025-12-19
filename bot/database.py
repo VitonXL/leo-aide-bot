@@ -303,6 +303,22 @@ async def delete_inactive_users(pool, days=90):
             logger.debug("✅ Нет неактивных для удаления")
 
         return count
+    
+    # --- Очистка старых тикетов поддержки ---
+async def cleanup_support_tickets(pool, days=7):
+    """
+    Удаляет тикеты, закрытые более `days` дней назад.
+    """
+    async with pool.acquire() as conn:
+        count = await conn.fetchval("""
+            DELETE FROM support_tickets
+            WHERE status = 'resolved'
+              AND updated_at < NOW() - INTERVAL '$1 days'
+            RETURNING COUNT(*);
+        """, days)
+        if count:
+            logger.info(f"🧹 Очищено {count} старых тикетов поддержки")
+        return count or 0
 
 
 # === Глобальный пул подключений ===
