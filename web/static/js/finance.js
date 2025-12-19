@@ -2,6 +2,23 @@
 
 document.addEventListener('DOMContentLoaded', function () {
   console.log('✅ finance.js загружен');
+
+  // Получаем текущий профиль
+  const profileSelect = document.getElementById('profile-select');
+  const operationsList = document.getElementById('operations-list');
+
+  if (!profileSelect || !operationsList) {
+    console.error('❌ Элементы не найдены на странице');
+    return;
+  }
+
+  // При смене профиля — обновляем список
+  profileSelect.addEventListener('change', function () {
+    renderFinanceOperations(this.value);
+  });
+
+  // При загрузке — рендерим текущий профиль
+  renderFinanceOperations(profileSelect.value);
 });
 
 window.addFinanceOperation = function () {
@@ -28,14 +45,22 @@ window.addFinanceOperation = function () {
   operations.push(operation);
   localStorage.setItem('financeOperations', JSON.stringify(operations));
 
+  // Обновляем интерфейс
   renderFinanceOperations(profile);
 
+  // Сбрасываем форму
   document.getElementById('amount-input').value = '';
   document.getElementById('comment-input').value = '';
+  document.getElementById('time-input').value = '';
 };
 
 function renderFinanceOperations(currentProfile) {
   const list = document.getElementById('operations-list');
+  if (!list) {
+    console.error('❌ #operations-list не найден');
+    return;
+  }
+
   const operations = JSON.parse(localStorage.getItem('financeOperations') || '[]');
   const filtered = operations.filter(op => op.profile === currentProfile);
 
