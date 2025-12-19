@@ -110,7 +110,7 @@ async def set_user_theme(user_id: int, theme: str, hash: str):
     API для смены темы пользователя. Вызывается с фронтенда.
     """
     if theme not in ["light", "dark"]:
-        raise HTTPException(status_code: 400, detail="Theme must be 'light' or 'dark'")
+        raise HTTPException(status_code=400, detail="Theme must be 'light' or 'dark'")
     
     from .utils import verify_cabinet_link
     if not verify_cabinet_link(user_id, hash):
@@ -137,7 +137,6 @@ async def get_admin_stats():
     async with pool.acquire() as conn:
         total = await conn.fetchval("SELECT COUNT(*) FROM users")
         premium = await conn.fetchval("SELECT COUNT(*) FROM users WHERE role = 'premium'")
-        # Исправлено: таблица usage_stats → активность за сегодня
         active_today = await conn.fetchval("""
             SELECT COUNT(*) FROM usage_stats 
             WHERE timestamp >= CURRENT_DATE
@@ -202,7 +201,6 @@ async def api_grant_premium(user_id: int):
             WHERE id = $1
         """, user_id)
         
-        # Проверяем, был ли обновлён пользователь
         if result == "UPDATE 0":
             raise HTTPException(status_code=404, detail="User not found")
 
