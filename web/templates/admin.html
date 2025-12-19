@@ -73,11 +73,16 @@
     </main>
   </div>
 
+  <!-- 🔥 ВАЖНО: Chart.js подключён ДО основного скрипта -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Основной JavaScript -->
   <script>
     let statsData = {};
     let currentChart = null;
 
     document.addEventListener('DOMContentLoaded', async () => {
+      console.log('✅ DOM загружен');
       await loadStats();
       changeViewMode('cards');
     });
@@ -89,12 +94,15 @@
         renderStatsCards();
       } catch (e) {
         document.getElementById('stats-container').innerHTML = '<p class="text-danger">Ошибка загрузки</p>';
-        console.error(e);
+        console.error('❌ Ошибка загрузки статистики:', e);
       }
     }
 
     function changeViewMode(mode) {
-      if (currentChart) { currentChart.destroy(); currentChart = null; }
+      if (currentChart) {
+        currentChart.destroy();
+        currentChart = null;
+      }
       const container = document.getElementById('stats-container');
 
       if (mode === 'cards') renderStatsCards();
@@ -137,72 +145,131 @@
 
     function renderActivityChart() {
       document.getElementById('stats-container').innerHTML = '<canvas id="chart"></canvas>';
-      fetch('/api/admin/activity-by-day').then(r => r.json()).then(data => {
-        const ctx = document.getElementById('chart').getContext('2d');
-        currentChart = new Chart(ctx, {
-          type: 'line',
-          data: { labels: data.dates, datasets: [{ label: 'Активность', data: data.counts, borderColor: '#4CAF50', tension: 0.3 }] },
-          options: { responsive: true }
+      fetch('/api/admin/activity-by-day')
+        .then(r => r.json())
+        .then(data => {
+          const ctx = document.getElementById('chart').getContext('2d');
+          currentChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: data.dates,
+              datasets: [{
+                label: 'Активность (по дням)',
+                data: data.counts,
+                borderColor: '#4CAF50',
+                backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                fill: true,
+                tension: 0.3
+              }]
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                legend: { display: true }
+              }
+            }
+          });
+        })
+        .catch(e => {
+          document.getElementById('stats-container').innerHTML = '<p class="text-danger">Ошибка графика</p>';
+          console.error(e);
         });
-      });
     }
 
     function renderCommandsChart() {
       document.getElementById('stats-container').innerHTML = '<canvas id="chart"></canvas>';
-      fetch('/api/admin/top-commands').then(r => r.json()).then(data => {
-        const ctx = document.getElementById('chart').getContext('2d');
-        currentChart = new Chart(ctx, {
-          type: 'bar',
-          data: { labels: data.commands, datasets: [{ label: 'Использовано', data: data.counts, backgroundColor: '#66BB6A' }] },
-          options: { responsive: true, indexAxis: 'y' }
+      fetch('/api/admin/top-commands')
+        .then(r => r.json())
+        .then(data => {
+          const ctx = document.getElementById('chart').getContext('2d');
+          currentChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: data.commands,
+              datasets: [{
+                label: 'Использовано',
+                data: data.counts,
+                backgroundColor: '#66BB6A'
+              }]
+            },
+            options: {
+              responsive: true,
+              indexAxis: 'y'
+            }
+          });
+        })
+        .catch(e => {
+          document.getElementById('stats-container').innerHTML = '<p class="text-danger">Ошибка столбцов</p>';
+          console.error(e);
         });
-      });
     }
 
     async function searchUser() {
       const q = document.getElementById('search-user').value.trim();
       if (!q) return;
-      const res = await fetch(`/api/admin/user?query=${encodeURIComponent(q)}`);
-      const user = await res.json();
-      if (user) {
-        document.getElementById('found-user').textContent = `@${user.username} (ID: ${user.id})`;
-        document.getElementById('user-actions').style.display = 'block';
-        window.user = user;
-      } else {
-        alert('Не найден');
+      try {
+        const res = await fetch(`/api/admin/user?query=${encodeURIComponent(q)}`);
+        const user = await res.json();
+        if (user) {
+          document.getElementById('found-user').textContent = `@${user.username} (ID: ${user.id})`;
+          document.getElementById('user-actions').style.display = 'block';
+          window.user = user;
+        } else {
+          alert('Пользователь не найден');
+        }
+      } catch (e) {
+        alert('Ошибка поиска');
+        console.error(e);
       }
     }
 
     async function grantPremium() {
       if (!window.user) return;
-      await fetch('/api/admin/grant-premium', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: window.user.id })
-      });
-      alert('✅ Выдано');
+      if (!confirm(`Выдать премиум ${window.user.first_name}?`)) return;
+
+      try {
+        await fetch('/api/admin/grant-premium', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: window.user.id })
+        });
+        alert('✅ Премиум выдан на 30 дней');
+      } catch (e) {
+        alert('Ошибка выдачи');
+      }
     }
 
     async function revokePremium() {
       if (!window.user) return;
-      await fetch('/api/admin/revoke-premium', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: window.user.id })
-      });
-      alert('✅ Снято');
+      if (!confirm(`Снять премиум у ${window.user.first_name}?`)) return;
+
+      try {
+        await fetch('/api/admin/revoke-premium', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: window.user.id })
+        });
+        alert('✅ Премиум снят');
+      } catch (e) {
+        alert('Ошибка снятия');
+      }
     }
 
     async function blockUser() {
       if (!window.user) return;
-      await fetch('/api/admin/block-user', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: window.user.id })
-      });
-      alert('✅ Заблокирован');
+      if (!confirm(`Заблокировать ${window.user.first_name}?`)) return;
+
+      try {
+        await fetch('/api/admin/block-user', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: window.user.id })
+        });
+        alert('✅ Пользователь заблокирован');
+      } catch (e) {
+        alert('Ошибка блокировки');
+      }
     }
   </script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </body>
 </html>
