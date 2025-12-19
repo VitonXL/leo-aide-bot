@@ -1,9 +1,10 @@
 # web/api.py
 
-from fastapi import APIRouter, HTTPException, Body
-import asyncpg
 import os
+import asyncpg
+from fastapi import APIRouter, HTTPException, Body
 from typing import Dict, Any
+from loguru import logger
 
 router = APIRouter()
 
@@ -31,7 +32,6 @@ async def get_db_pool():
 
 async def get_user_data(user_id: int) -> Dict[str, Any]:
     print(f"🔍 Запрос данных для user_id = {user_id}")
-    
     try:
         pool = await get_db_pool()
         async with pool.acquire() as conn:
@@ -66,7 +66,7 @@ async def get_user_data(user_id: int) -> Dict[str, Any]:
                 "theme": row["theme"] or "light"
             }
     except Exception as e:
-        print(f"❌ Ошибка в get_user_data: {e}")
+        logger.error(f"❌ Ошибка в get_user_data: {e}")
         return None
 
 
@@ -90,7 +90,7 @@ async def get_user_status(user_id: int):
         print(f"🟢 Успешно: возвращаем данные {user_data['first_name']} (@{user_data['username']})")
         return user_data
     except Exception as e:
-        print(f"💥 Ошибка в /api/user/{user_id}: {e}")
+        logger.error(f"💥 Ошибка в /api/user/{user_id}: {e}")
         return {
             "role": "user",
             "is_premium": False,
@@ -103,15 +103,12 @@ async def get_user_status(user_id: int):
         }
 
 
-# === 🌙 ЭНДПОИНТ: обновление темы ===
+# === 🌙 Изменение темы ===
 @router.post("/set-theme")
 async def set_user_theme(user_id: int, theme: str, hash: str):
-    """
-    API для смены темы пользователя. Вызывается с фронтенда.
-    """
     if theme not in ["light", "dark"]:
         raise HTTPException(status_code=400, detail="Theme must be 'light' or 'dark'")
-    
+
     from .utils import verify_cabinet_link
     if not verify_cabinet_link(user_id, hash):
         raise HTTPException(status_code=403, detail="Invalid signature")
@@ -122,17 +119,13 @@ async def set_user_theme(user_id: int, theme: str, hash: str):
             await conn.execute("UPDATE users SET theme = $1 WHERE id = $2", theme, user_id)
         return {"status": "success", "theme": theme}
     except Exception as e:
-        print(f"❌ Ошибка обновления темы: {e}")
+        logger.error(f"❌ Ошибка обновления темы: {e}")
         raise HTTPException(status_code=500, detail="Internal error")
 
 
-# === 🔐 АДМИН-ПАНЕЛЬ ===
-
+# === 🔐 АДМИН-ПАНЕЛЬ: Статистика ===
 @router.get("/admin/stats")
 async def get_admin_stats():
-    """
-    Общая статистика: пользователи, премиум, активность.
-    """
     pool = await get_db_pool()
     async with pool.acquire() as conn:
         total = await conn.fetchval("SELECT COUNT(*) FROM users")
@@ -142,7 +135,6 @@ async def get_admin_stats():
             WHERE timestamp >= CURRENT_DATE
         """)
         referrals_count = await conn.fetchval("SELECT COUNT(*) FROM referrals")
-
     return {
         "total_users": total or 0,
         "premium_users": premium or 0,
@@ -153,9 +145,6 @@ async def get_admin_stats():
 
 @router.get("/admin/users")
 async def get_all_users():
-    """
-    Возвращает список всех пользователей (ограничение: 100 последних).
-    """
     pool = await get_db_pool()
     async with pool.acquire() as conn:
         rows = await conn.fetch("""
@@ -171,9 +160,6 @@ async def get_all_users():
 
 @router.get("/admin/user")
 async def get_single_user(query: str):
-    """
-    Поиск пользователя по ID или username.
-    """
     pool = await get_db_pool()
     async with pool.acquire() as conn:
         if query.startswith('@'):
@@ -187,11 +173,9 @@ async def get_single_user(query: str):
     return dict(user) if user else None
 
 
+# === Премиум ===
 @router.post("/admin/grant-premium")
 async def api_grant_premium(user_id: int):
-    """
-    Выдаёт пользователю премиум-доступ на 30 дней.
-    """
     pool = await get_db_pool()
     async with pool.acquire() as conn:
         result = await conn.execute("""
@@ -200,18 +184,27 @@ async def api_grant_premium(user_id: int):
                 premium_expires = NOW() + INTERVAL '30 days'
             WHERE id = $1
         """, user_id)
-        
         if result == "UPDATE 0":
             raise HTTPException(status_code=404, detail="User not found")
-
     return {"status": "success", "message": f"Премиум выдан пользователю {user_id}"}
 
 
+@router.post("/admin/revoke-premium")
+async def api_revoke_premium(user_id: int = Body(..., embed=True)):
+    pool = await get_db_pool()
+    async with pool.acquire() as conn:
+        await conn.execute("""
+            UPDATE users 
+            SET premium_expires = NULL,
+                role = CASE WHEN role = 'admin' THEN 'admin' ELSE 'user' END
+            WHERE id = $1
+        """, user_id)
+    return {"status": "success", "message": f"Премиум снят с {user_id}"}
+
+
+# === Активность ===
 @router.get("/admin/activity-by-day")
 async def get_activity_by_day():
-    """
-    Активность по дням за последние 30 дней.
-    """
     pool = await get_db_pool()
     async with pool.acquire() as conn:
         rows = await conn.fetch("""
@@ -231,9 +224,6 @@ async def get_activity_by_day():
 
 @router.get("/admin/top-commands")
 async def get_top_commands():
-    """
-    Топ-10 команд по использованию.
-    """
     pool = await get_db_pool()
     async with pool.acquire() as conn:
         rows = await conn.fetch("""
@@ -248,11 +238,10 @@ async def get_top_commands():
         "counts": [r["count"] for r in rows]
     }
 
+
+# === Отзывы ===
 @router.get("/admin/reviews")
 async def get_reviews():
-    """
-    Возвращает неподтверждённые или все отзывы для модерации.
-    """
     pool = await get_db_pool()
     async with pool.acquire() as conn:
         rows = await conn.fetch("""
@@ -267,26 +256,13 @@ async def get_reviews():
         """)
     return [dict(r) for r in rows]
 
-# === ЭНДПОИНТ: снятие премиум ===
-@router.post("/admin/revoke-premium")
-async def api_revoke_premium(user_id: int = Body(..., embed=True)):
-    pool = await get_db_pool()
-    async with pool.acquire() as conn:
-        await conn.execute("""
-            UPDATE users 
-            SET premium_expires = NULL,
-                role = CASE WHEN role = 'admin' THEN 'admin' ELSE 'user' END
-            WHERE id = $1
-        """, user_id)
-    return {"status": "success", "message": f"Премиум снят с {user_id}"}
 
-
-# === 🛠 ТЕХПОДДЕРЖКА ===
+# === 🛠 ТЕХПОДДЕРЖКА: Тикеты ===
 
 @router.get("/admin/support-tickets")
 async def get_support_tickets():
     """
-    Возвращает все нерешённые обращения.
+    Возвращает все открытые и в работе тикеты.
     """
     pool = await get_db_pool()
     async with pool.acquire() as conn:
@@ -296,7 +272,6 @@ async def get_support_tickets():
             WHERE status != 'resolved'
             ORDER BY created_at DESC
         """)
-
         return [
             {
                 "id": r["id"],
@@ -316,9 +291,13 @@ async def reply_support(
     ticket_id: int = Body(..., embed=True),
     reply_text: str = Body(..., embed=True)
 ):
+    """
+    Отправляет ответ пользователю и закрывает тикет.
+    """
     from database import get_db_pool
     pool = await get_db_pool()
-    
+
+    # Получаем данные тикета
     async with pool.acquire() as conn:
         ticket = await conn.fetchrow(
             "SELECT user_id, message FROM support_tickets WHERE id = $1", ticket_id
@@ -326,60 +305,43 @@ async def reply_support(
         if not ticket:
             raise HTTPException(status_code=404, detail="Тикет не найден")
 
-    # ✅ Импортируем бота правильно
+    # Получаем бота
     try:
-        from bot.main import bot
-        if bot is None:
-            raise RuntimeError("Бот не инициализирован")
+        from bot.main import application
+        if not application:
+            raise RuntimeError("❌ application не инициализирован")
+        bot = application.bot
     except Exception as e:
-        logger.error(f"❌ Не удалось получить доступ к боту: {e}")
+        logger.error(f"❌ Не удалось получить бота: {e}")
         raise HTTPException(status_code=500, detail="Сервис бота недоступен")
 
+    # Отправляем ответ
     try:
         await bot.send_message(
             ticket["user_id"],
             f"📬 Ответ от поддержки:\n\n{reply_text}\n\nСпасибо за обращение! ✅"
         )
-        # ✅ Обновляем статус
-        async with pool.acquire() as conn:
-            await conn.execute(
-                "UPDATE support_tickets SET status = 'resolved', updated_at = NOW() WHERE id = $1",
-                ticket_id
-            )
-        return {"status": "ok", "message": "Ответ отправлен"}
+        logger.info(f"✅ Ответ отправлен пользователю {ticket['user_id']} (тикет {ticket_id})")
     except Exception as e:
-        # 🔁 Обновляем статус, даже если ошибка
+        error_msg = str(e)
+        logger.error(f"❌ Ошибка отправки: {error_msg}")
+
         async with pool.acquire() as conn:
             await conn.execute(
                 "UPDATE support_tickets SET status = 'in_progress', updated_at = NOW() WHERE id = $1",
                 ticket_id
             )
-        logger.error(f"❌ Ошибка отправки тикета {ticket_id}: {e}")
-        raise HTTPException(status_code=500, detail=f"Не удалось отправить: {str(e)}")
-    
-@router.get("/admin/support-tickets")
-async def get_support_tickets():
-    """
-    Возвращает все нерешённые обращения.
-    """
-    pool = await get_db_pool()
-    async with pool.acquire() as conn:
-        rows = await conn.fetch("""
-            SELECT id, user_id, username, first_name, message, status, created_at
-            FROM support_tickets
-            WHERE status != 'resolved'
-            ORDER BY created_at DESC
-        """)
+        if "blocked" in error_msg.lower() or "not found" in error_msg.lower():
+            raise HTTPException(status_code=500, detail="❌ Пользователь заблокировал бота")
+        else:
+            raise HTTPException(status_code=500, detail=f"❌ Ошибка отправки: {error_msg}")
 
-        return [
-            {
-                "id": r["id"],
-                "user_id": r["user_id"],
-                "username": r["username"] or "unknown",
-                "first_name": r["first_name"] or "Пользователь",
-                "message": r["message"],
-                "status": r["status"],
-                "created_at": r["created_at"].isoformat()
-            }
-            for r in rows
-        ]
+    # Закрываем тикет
+    async with pool.acquire() as conn:
+        await conn.execute(
+            "UPDATE support_tickets SET status = 'resolved', updated_at = NOW() WHERE id = $1",
+            ticket_id
+        )
+    logger.info(f"✅ Тикет {ticket_id} успешно закрыт")
+
+    return {"status": "ok", "message": "Ответ отправлен, тикет закрыт"}
