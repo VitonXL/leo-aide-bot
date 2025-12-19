@@ -349,3 +349,30 @@ async def reply_support(
             raise HTTPException(status_code=500, detail=f"Не удалось отправить: {str(e)}")
 
         return {"status": "ok"}
+    
+@router.get("/admin/support-tickets")
+async def get_support_tickets():
+    """
+    Возвращает все нерешённые обращения.
+    """
+    pool = await get_db_pool()
+    async with pool.acquire() as conn:
+        rows = await conn.fetch("""
+            SELECT id, user_id, username, first_name, message, status, created_at
+            FROM support_tickets
+            WHERE status != 'resolved'
+            ORDER BY created_at DESC
+        """)
+
+        return [
+            {
+                "id": r["id"],
+                "user_id": r["user_id"],
+                "username": r["username"] or "unknown",
+                "first_name": r["first_name"] or "Пользователь",
+                "message": r["message"],
+                "status": r["status"],
+                "created_at": r["created_at"].isoformat()
+            }
+            for r in rows
+        ]
