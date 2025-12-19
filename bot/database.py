@@ -308,16 +308,27 @@ async def delete_inactive_users(pool, days=90):
 async def cleanup_support_tickets(pool, days=7):
     """
     Удаляет тикеты, закрытые более `days` дней назад.
+    Возвращает количество удалённых записей.
     """
     async with pool.acquire() as conn:
+        # Сначала считаем, сколько удалим
         count = await conn.fetchval("""
-            DELETE FROM support_tickets
+            SELECT COUNT(*) FROM support_tickets
             WHERE status = 'resolved'
-              AND updated_at < NOW() - INTERVAL '$1 days'
-            RETURNING COUNT(*);
+              AND updated_at < NOW() - $1 * INTERVAL '1 day';
         """, days)
-        if count:
+
+        if count > 0:
+            # Теперь удаляем
+            await conn.execute("""
+                DELETE FROM support_tickets
+                WHERE status = 'resolved'
+                  AND updated_at < NOW() - $1 * INTERVAL '1 day';
+            """, days)
             logger.info(f"🧹 Очищено {count} старых тикетов поддержки")
+        else:
+            logger.debug("✅ Нет старых тикетов для удаления")
+
         return count or 0
 
 
