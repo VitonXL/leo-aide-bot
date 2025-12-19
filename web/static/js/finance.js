@@ -1,25 +1,8 @@
 // web/static/js/finance.js
 
 document.addEventListener('DOMContentLoaded', function () {
-  // Инициализация при загрузке
-  const financeScreen = document.getElementById('finance-screen');
-  if (financeScreen) {
-    initFinanceModule();
-  }
+  console.log('✅ finance.js загружен');
 });
-
-function initFinanceModule() {
-  // Привязка событий
-  document.getElementById('profile-select')?.addEventListener('change', function () {
-    renderFinanceOperations(this.value);
-  });
-
-  // Обновление при открытии экрана
-  document.getElementById('finance-screen')?.addEventListener('click', function () {
-    const profile = document.getElementById('profile-select').value;
-    renderFinanceOperations(profile);
-  });
-}
 
 window.addFinanceOperation = function () {
   const profile = document.getElementById('profile-select').value;
@@ -47,10 +30,9 @@ window.addFinanceOperation = function () {
 
   renderFinanceOperations(profile);
 
-  // Сброс формы
   document.getElementById('amount-input').value = '';
   document.getElementById('comment-input').value = '';
-}
+};
 
 function renderFinanceOperations(currentProfile) {
   const list = document.getElementById('operations-list');
