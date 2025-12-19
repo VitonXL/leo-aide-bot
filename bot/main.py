@@ -100,6 +100,7 @@ async def cleanup_task(context: ContextTypes.DEFAULT_TYPE):
 # --- Инициализация ---
 async def on_post_init(application: Application):
     global db_pool
+    bot = application.bot
     logger.info("🔧 Инициализация БД...")
     db_pool = await create_db_pool()
     await init_db(db_pool)
