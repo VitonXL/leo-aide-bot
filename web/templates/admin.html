@@ -26,12 +26,6 @@
     }
     .btn.primary { background: #4CAF50; color: white; }
     .text-danger { color: #D32F2F; }
-    #stats-container canvas {
-      max-width: 80%;
-      height: 300px !important;
-      margin: 20px auto;
-      display: block;
-    }
     .section { margin-top: 20px; }
   </style>
 </head>
@@ -106,7 +100,7 @@
     </main>
   </div>
 
-  <!-- 🔥 ВАЖНО: Chart.js — ДО основного скрипта -->
+  <!-- 🔥 Chart.js — подключаем ДО основного скрипта -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <script>
@@ -177,17 +171,18 @@
     }
 
     function renderActivityChart() {
-      // Уничтожаем предыдущий график
       if (currentChart) {
         currentChart.destroy();
         currentChart = null;
       }
 
-      // Очищаем контейнер и вставляем canvas с уникальным id
       const container = document.getElementById('stats-container');
-      container.innerHTML = '<div style="text-align: center;"><canvas id="activityChart" height="300"></canvas></div>';
+      container.innerHTML = `
+        <div style="display: flex; justify-content: center; margin: 20px 0;">
+          <canvas id="activityChart" width="600" height="300"></canvas>
+        </div>
+      `;
 
-      // Даём время на обновление DOM
       setTimeout(() => {
         try {
           const ctx = document.getElementById('activityChart').getContext('2d');
@@ -208,8 +203,12 @@
                   }]
                 },
                 options: {
-                  responsive: true,
-                  maintainAspectRatio: false,
+                  responsive: false,
+                  maintainAspectRatio: true,
+                  animation: {
+                    duration: 500,
+                    easing: 'easeOutCubic'
+                  },
                   plugins: {
                     legend: { display: true }
                   }
@@ -217,28 +216,29 @@
               });
             })
             .catch(err => {
-              container.innerHTML = '<p class="text-danger">Не удалось загрузить график</p>';
-              console.error('❌ Ошибка данных графика:', err);
+              container.innerHTML = '<p class="text-danger">Ошибка загрузки данных</p>';
+              console.error(err);
             });
         } catch (err) {
-          container.innerHTML = '<p class="text-danger">Ошибка рендеринга</p>';
-          console.error('❌ Ошибка рисования графика:', err);
+          container.innerHTML = '<p class="text-danger">Ошибка рендеринга графика</p>';
+          console.error(err);
         }
-      }, 100); // Даем время на рендер
+      }, 100);
     }
 
     function renderCommandsChart() {
-      // Уничтожаем предыдущий график
       if (currentChart) {
         currentChart.destroy();
         currentChart = null;
       }
 
-      // Очищаем и вставляем новый canvas
       const container = document.getElementById('stats-container');
-      container.innerHTML = '<div style="text-align: center;"><canvas id="commandsChart" height="300"></canvas></div>';
+      container.innerHTML = `
+        <div style="display: flex; justify-content: center; margin: 20px 0;">
+          <canvas id="commandsChart" width="600" height="300"></canvas>
+        </div>
+      `;
 
-      // Даём время
       setTimeout(() => {
         try {
           const ctx = document.getElementById('commandsChart').getContext('2d');
@@ -256,8 +256,12 @@
                   }]
                 },
                 options: {
-                  responsive: true,
-                  maintainAspectRatio: false,
+                  responsive: false,
+                  maintainAspectRatio: true,
+                  animation: {
+                    duration: 500,
+                    easing: 'easeOutCubic'
+                  },
                   indexAxis: 'y',
                   plugins: {
                     legend: { display: true }
@@ -266,12 +270,12 @@
               });
             })
             .catch(err => {
-              container.innerHTML = '<p class="text-danger">Не удалось загрузить диаграмму</p>';
-              console.error('❌ Ошибка данных столбцов:', err);
+              container.innerHTML = '<p class="text-danger">Ошибка загрузки данных</p>';
+              console.error(err);
             });
         } catch (err) {
-          container.innerHTML = '<p class="text-danger">Ошибка рендеринга</p>';
-          console.error('❌ Ошибка рисования диаграммы:', err);
+          container.innerHTML = '<p class="text-danger">Ошибка рендеринга диаграммы</p>';
+          console.error(err);
         }
       }, 100);
     }
