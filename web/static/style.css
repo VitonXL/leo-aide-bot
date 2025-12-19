@@ -40,6 +40,7 @@ body {
   overflow-x: hidden;
 }
 
+/* Все экраны — скрыты по умолчанию */
 .screen {
   display: none;
   opacity: 0;
@@ -50,18 +51,20 @@ body {
   width: 100%;
 }
 
+/* Активный экран — показывается */
 .screen.active {
   display: flex;
   opacity: 1;
   transform: translateX(0);
 }
 
-/* Убираем height: 100vh с welcome-screen — он дублирует min-height */
+/* УБРАНО: display: flex !important */
+/* Теперь управление — только через .screen и .active */
 #welcome-screen {
-  display: flex !important;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  min-height: 100vh;
   text-align: center;
   padding: 20px;
   position: relative;
@@ -148,7 +151,6 @@ header {
   font-size: 14px;
 }
 
-/* Основной контент — улучшено */
 main {
   flex: 1;
   padding: 20px;
@@ -159,17 +161,13 @@ main {
   overflow-y: auto;
 }
 
-/* Прижимаем контент к низу: карточка вверху, кнопка внизу */
+/* Прижимаем карточку вверх, кнопку — вниз */
 main.full-height {
   justify-content: space-between;
   padding-bottom: 30px;
 }
 
-/* Для профиля — центрируем, но с отступом снизу */
-main.profile-main {
-  justify-content: flex-start;
-}
-
+/* Для профиля — тоже вниз кнопку */
 main.profile-main.full-height {
   justify-content: space-between;
 }
