@@ -69,9 +69,8 @@
     <a href="#" onclick="alert('🌐 Обход')">🌐 Обход</a>
     <a href="#" onclick="alert('🛡️ Антивирус')">🛡️ Антивирус</a>
     <a href="#" onclick="navigateTo('settings'); toggleSidebar()">⚙️ Настройки</a>
-    <!-- Ссылка на финансы -->
-    <a href="/finance?user_id={{ user.id }}&hash={{ request.query_params.hash }}" 
-       onclick="navigateTo('finance'); return false;">
+    <!-- ✅ ИСПРАВЛЕНО: убран onclick, теперь просто переход на страницу -->
+    <a href="/finance?user_id={{ user.id }}&hash={{ request.query_params.hash }}">
        💰 Финансы
     </a>
   </div>
