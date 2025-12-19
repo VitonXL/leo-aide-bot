@@ -47,6 +47,7 @@ body {
   transition: opacity 0.4s ease, transform 0.4s ease;
   flex-direction: column;
   min-height: 100vh;
+  width: 100%;
 }
 
 .screen.active {
@@ -55,12 +56,12 @@ body {
   transform: translateX(0);
 }
 
+/* Убираем height: 100vh с welcome-screen — он дублирует min-height */
 #welcome-screen {
   display: flex !important;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100vh;
   text-align: center;
   padding: 20px;
   position: relative;
@@ -147,21 +148,30 @@ header {
   font-size: 14px;
 }
 
+/* Основной контент — улучшено */
 main {
   flex: 1;
   padding: 20px;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start; /* или space-between, если хочешь "прижать вниз" */
   align-items: center;
-  overflow-y: auto;
   width: 100%;
+  overflow-y: auto;
 }
 
-/* Если хочешь, чтобы кнопки были ВНИЗУ экрана */
+/* Прижимаем контент к низу: карточка вверху, кнопка внизу */
 main.full-height {
   justify-content: space-between;
   padding-bottom: 30px;
+}
+
+/* Для профиля — центрируем, но с отступом снизу */
+main.profile-main {
+  justify-content: flex-start;
+}
+
+main.profile-main.full-height {
+  justify-content: space-between;
 }
 
 .card {
@@ -184,10 +194,6 @@ main.full-height {
   color: var(--accent);
   margin-bottom: 16px;
   font-size: 22px;
-}
-
-.profile-main {
-  text-align: center;
 }
 
 .avatar {
