@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ru" data-theme="{{ theme }}">
+<html lang="ru" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>{{ title }}</title>
+  <title>Финансы — Лео Помощник</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/css/main.css" />
   <link rel="stylesheet" href="/static/css/finance.css" />
@@ -19,52 +19,56 @@
     <main style="padding: 20px;">
       <h2>💰 Калькулятор прибыли и убытков</h2>
 
-      <!-- Профиль -->
+      <!-- Выбор профиля -->
       <div style="margin: 20px 0;">
         <label><strong>Активный профиль:</strong></label>
-        <select id="profile-select">
+        <select id="profile-select" style="width: 100%; padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--border);">
           <option value="personal">Личный</option>
           <option value="family">Семейный</option>
           <option value="business">Бизнес</option>
         </select>
       </div>
 
-      <!-- Форма -->
-      <div class="finance-form">
+      <!-- Форма ввода -->
+      <div style="margin: 20px 0; display: flex; flex-direction: column; gap: 12px;">
         <div style="display: flex; gap: 10px;">
           <div style="flex: 1;">
-            <label>Сумма</label>
-            <input type="number" id="amount-input" placeholder="0.00">
+            <label><strong>Сумма:</strong></label>
+            <input type="number" id="amount-input" placeholder="0.00" style="width: 100%; padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--border);">
           </div>
           <div style="flex: 1;">
-            <label>Категория</label>
-            <select id="category-select">
+            <label><strong>Категория:</strong></label>
+            <select id="category-select" style="width: 100%; padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--border);">
               <option value="income">Доход</option>
               <option value="expense">Расход</option>
             </select>
           </div>
         </div>
+
         <div>
-          <label>Цель</label>
-          <input type="text" id="comment-input" placeholder="Зарплата, Кафе">
+          <label><strong>Цель:</strong></label>
+          <input type="text" id="comment-input" placeholder="Например: Зарплата" style="width: 100%; padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--border);">
         </div>
+
         <div>
-          <label>Время</label>
-          <input type="datetime-local" id="time-input">
+          <label><strong>Время операции:</strong></label>
+          <input type="datetime-local" id="time-input" style="width: 100%; padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--border);">
         </div>
-        <button class="btn primary" onclick="addFinanceOperation()">➕ Добавить</button>
+
+        <button class="btn primary" style="width: 100%;" onclick="addFinanceOperation()">➕ Добавить операцию</button>
       </div>
 
-      <!-- История -->
-      <div class="finance-card">
+      <!-- История операций -->
+      <div class="card">
         <h3>📜 История операций</h3>
-        <div id="operations-list">
-          <p style="color: #888;">Пока нет операций</p>
+        <div id="operations-list" style="margin-top: 15px; max-height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;">
+          <p style="color: #888; font-size: 14px;">Пока нет операций</p>
         </div>
       </div>
     </main>
   </div>
 
+  <!-- Скрипты -->
   <script src="/static/js/main.js"></script>
   <script src="/static/js/finance.js"></script>
 </body>
