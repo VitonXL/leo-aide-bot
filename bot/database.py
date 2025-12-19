@@ -77,6 +77,18 @@ async def init_db(pool):
                 timestamp TIMESTAMPTZ DEFAULT NOW()
             );
         ''')
+        # В функции init_db, после других таблиц:
+
+        await conn.execute('''
+            CREATE TABLE IF NOT EXISTS reviews (
+                id SERIAL PRIMARY KEY,
+                user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                text TEXT NOT NULL,
+                rating INT CHECK (rating >= 1 AND rating <= 5),
+                created_at TIMESTAMPTZ DEFAULT NOW(),
+                is_approved BOOLEAN DEFAULT TRUE
+            );
+        ''')
 
         # --- Миграции — расширения ---
         migrations = [
