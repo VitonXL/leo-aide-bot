@@ -14,15 +14,15 @@ from telegram.ext import (
     filters,
 )
 
-# Импортируем БД с нужными функциями
+# Импортируем БД
 from database import (
     create_db_pool,
     init_db,
     add_or_update_user,
     delete_inactive_users,
     log_command_usage,
-    get_user_role,         # ← добавлено: для отображения роли
-    register_referral,     # ← добавлено: для рефералов
+    get_user_role,
+    register_referral,
 )
 
 # Импортируем фичи
@@ -31,8 +31,8 @@ from features.admin import setup_admin_handlers
 from features.roles import setup_role_handlers
 from features.referrals import setup_referral_handlers
 from features.premium import setup_premium_handlers
+from bot.features.help import setup as help_setup  # ✅ Убедился, что путь правильный
 
-# Логи
 from loguru import logger
 
 # Глобальный пул БД
@@ -41,17 +41,12 @@ db_pool = None
 
 # --- Отслеживание активности ---
 async def track_user_activity(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """
-    Обновляет last_seen при любом взаимодействии.
-    Логирует команды.
-    """
     user = update.effective_user
     if user:
         await add_or_update_user(db_pool, user)
 
-    # Логируем команду
     if update.message and update.message.text and update.message.text.startswith('/'):
-        command = update.message.text.split()[0]  # /start, /menu и т.д.
+        command = update.message.text.split()[0]
         await log_command_usage(db_pool, user.id, command)
 
 
@@ -68,16 +63,15 @@ def get_start_keyboard():
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
 
-    # Сохраняем/обновляем пользователя
     await add_or_update_user(db_pool, user)
 
-    # Обработка реферальной ссылки
+    # Обработка реферала
     if context.args and context.args[0].startswith("ref"):
-        referrer_id = int(context.args[0][3:])  # ref123 → 123
+        referrer_id = int(context.args[0][3:])
         if referrer_id != user.id:
             await register_referral(db_pool, referrer_id, user.id)
 
-    # Получаем роль
+    # Роль
     role = await get_user_role(db_pool, user.id)
     role_text = {"user": "👤 Обычный", "premium": "💎 Премиум", "admin": "👮‍♂️ Админ"}.get(role, "👤 Обычный")
 
@@ -89,21 +83,15 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
+# --- Фоновая очистка ---
 async def cleanup_task(context: ContextTypes.DEFAULT_TYPE):
-    """
-    Фоновая задача: очистка раз в 24 часа.
-    """
     if not db_pool:
         return
-
-    # Удаляем неактивных пользователей (90+ дней)
     await delete_inactive_users(db_pool, days=90)
-
-    # Удаляем старые тикеты (закрытые >7 дней назад)
     await cleanup_support_tickets(db_pool, days=7)
 
 
-# --- Инициализация при старте ---
+# --- Инициализация ---
 async def on_post_init(application: Application):
     global db_pool
     logger.info("🔧 Инициализация БД...")
@@ -111,7 +99,6 @@ async def on_post_init(application: Application):
     await init_db(db_pool)
     logger.info("✅ База данных инициализирована")
 
-    # Сохраняем пул в bot_data, чтобы фичи могли к нему обращаться
     application.bot_data['db_pool'] = db_pool
 
     # Устанавливаем кнопку (≡)
@@ -123,13 +110,21 @@ async def on_post_init(application: Application):
     )
     logger.info("🚀 Меню (≡) установлено")
 
-    # Запускаем фоновую задачу каждые 24 часа
+    # Устанавливаем команды
+    await application.bot.set_my_commands([
+        ("start", "🚀 Начать"),
+        ("menu", "🏠 Открыть меню"),
+        ("help", "🔧 Помощь и поддержка"),
+    ])
+    logger.info("✅ Команды бота установлены")
+
+    # Фоновая задача
     application.job_queue.run_repeating(
         cleanup_task,
         interval=24 * 3600,
         first=10
     )
-    logger.info("⏰ Фоновая задача: очистка неактивных — запущена")
+    logger.info("⏰ Фоновая задача: очистка — запущена")
 
 
 # --- Главная ---
@@ -141,7 +136,7 @@ def main():
         .build()
     )
 
-    # Самый первый обработчик — отслеживание активности
+    # Самый первый — отслеживаем активность
     app.add_handler(TypeHandler(Update, track_user_activity), group=-1)
 
     # Подключаем фичи
@@ -150,8 +145,9 @@ def main():
     setup_role_handlers(app)
     setup_referral_handlers(app)
     setup_premium_handlers(app)
+    help_setup(app)  # ✅ Подключаем систему поддержки
 
-    # Обработчики команд
+    # Команда /start
     app.add_handler(CommandHandler("start", start))
 
     logger.info("🚀 Бот запущен...")
