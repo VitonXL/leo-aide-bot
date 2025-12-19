@@ -149,10 +149,19 @@ header {
 
 main {
   flex: 1;
-  padding: 30px 20px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
+  justify-content: flex-start; /* или space-between, если хочешь "прижать вниз" */
   align-items: center;
+  overflow-y: auto;
+  width: 100%;
+}
+
+/* Если хочешь, чтобы кнопки были ВНИЗУ экрана */
+main.full-height {
+  justify-content: space-between;
+  padding-bottom: 30px;
 }
 
 .card {
