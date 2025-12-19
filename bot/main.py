@@ -30,12 +30,13 @@ from features.admin import setup_admin_handlers
 from features.roles import setup_role_handlers
 from features.referrals import setup_referral_handlers
 from features.premium import setup_premium_handlers
-from features.help import setup as help_setup  # Убедись, что путь правильный
+from features.help import setup as help_setup  # ✅ Без "bot."
 
 from loguru import logger
 
-# Глобальный пул БД
+# Глобальные переменные
 db_pool = None
+application = None  # ✅ Добавлено: для доступа из web-админки
 
 
 # --- Дебаг: логируем ВСЕ входящие сообщения ---
@@ -98,9 +99,9 @@ async def cleanup_task(context: ContextTypes.DEFAULT_TYPE):
 
 
 # --- Инициализация ---
-async def on_post_init(application: Application):
-    global db_pool
-    bot = application.bot
+async def on_post_init(app: Application):
+    global db_pool, application
+    application = app  # ✅ Сохраняем глобально!
     logger.info("🔧 Инициализация БД...")
     db_pool = await create_db_pool()
     await init_db(db_pool)
@@ -144,9 +145,7 @@ async def on_post_init(application: Application):
 
 # --- Главная ---
 def main():
-    # ⚠️ ВАЖНО: ЗАПУСКАЙ ТОЛЬКО ОДИН ЭКЗЕМПЛЯР БОТА!
-    # Ошибка Conflict: terminated by other getUpdates — значит, запущено несколько
-
+    # ⚠️ ЗАПУСКАЙ ТОЛЬКО ОДИН ЭКЗЕМПЛЯР БОТА!
     app = (
         Application.builder()
         .token(os.getenv("BOT_TOKEN"))
@@ -154,24 +153,23 @@ def main():
         .build()
     )
 
-    # Группа -2: дебаг — логируем ВСЁ
+    # Группа -2: дебаг
     app.add_handler(MessageHandler(filters.ALL, debug_all_messages), group=-2)
 
-    # Группа -1: отслеживание активности
+    # Группа -1: активность
     app.add_handler(TypeHandler(Update, track_user_activity), group=-1)
 
-    # === КЛЮЧЕВОЕ: help_setup — ПЕРВЫМ ===
-    # Чтобы MessageHandler из help перехватывал сообщения до других
-    help_setup(app)  # ✅ Должен быть ДО всех остальных
+    # === Важно: help_setup — ПЕРВЫМ ===
+    help_setup(app)
 
-    # Подключаем остальные фичи
+    # Остальные фичи
     setup_menu(app)
     setup_admin_handlers(app)
     setup_role_handlers(app)
     setup_referral_handlers(app)
     setup_premium_handlers(app)
 
-    # Обработчик /start
+    # Команда /start
     app.add_handler(CommandHandler("start", start))
 
     logger.info("🚀 Бот запущен...")
