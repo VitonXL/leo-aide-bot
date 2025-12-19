@@ -413,6 +413,15 @@
           <div style="padding: 10px; border-bottom: 1px solid #eee;">
             <strong>@${t.username}</strong> (${t.first_name})
             <p style="margin: 8px 0; font-size: 14px; white-space: pre-wrap;">${t.message}</p>
+<span style="
+    font-size: 12px;
+    padding: 3px 8px;
+    border-radius: 10px;
+    background: ${t.status === 'open' ? '#ffebee' : t.status === 'in_progress' ? '#fff8e1' : '#e8f5e8'};
+    color: ${t.status === 'open' ? '#c62828' : t.status === 'in_progress' ? '#f57f17' : '#2e7d32'};
+">
+    ${t.status === 'open' ? '🔴 Открыт' : t.status === 'in_progress' ? '🟡 В работе' : '🟢 Закрыт'}
+</span>
             <small>${new Date(t.created_at).toLocaleString()}</small>
             <div style="margin-top: 8px;">
               <button class="btn" style="background: #2196F3; padding: 5px 10px;"
