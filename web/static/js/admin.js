@@ -2,15 +2,14 @@
 
 let statsData = {};
 let usersList = [];
-let activityChart = null;
-let commandsChart = null;
+let currentChart = null; // Для уничтожения предыдущего графика
 
 document.addEventListener('DOMContentLoaded', async () => {
   console.log('✅ admin.js: загружен');
 
   await loadStats();
   await loadUsersList();
-  changeViewMode('cards'); // по умолчанию
+  changeViewMode('cards'); // По умолчанию
 });
 
 // === Загрузка статистики ===
@@ -19,7 +18,7 @@ async function loadStats() {
     const res = await fetch('/api/admin/stats');
     statsData = await res.json();
 
-    renderStatsCards();
+    updateStatsDisplay();
   } catch (e) {
     console.error('❌ Ошибка загрузки статистики:', e);
     document.getElementById('stats-container').innerHTML = '<p class="text-danger">Не удалось загрузить данные</p>';
@@ -33,34 +32,56 @@ async function loadUsersList() {
     usersList = await res.json();
 
     const tbody = document.getElementById('users-table-body');
-    tbody.innerHTML = usersList.map(u => `
-      <tr>
-        <td>${u.id}</td>
-        <td>${u.first_name || '—'}</td>
-        <td>@${u.username || '—'}</td>
-        <td><span class="badge bg-${u.role === 'admin' ? 'danger' : u.role === 'premium' ? 'success' : 'secondary'}">${u.role}</span></td>
-        <td>${u.language || 'ru'}</td>
-        <td>${u.premium_expires ? new Date(u.premium_expires).toLocaleDateString() : '—'}</td>
-        <td>${new Date(u.last_seen).toLocaleString()}</td>
-        <td>
-          <button class="btn btn-sm btn-outline-primary" onclick="inspectUser(${u.id})">👁️</button>
-        </td>
-      </tr>
-    `).join('');
+    if (tbody) {
+      tbody.innerHTML = usersList.map(u => `
+        <tr>
+          <td>${u.id}</td>
+          <td>${u.first_name || '—'}</td>
+          <td>@${u.username || '—'}</td>
+          <td><span class="badge bg-${u.role === 'admin' ? 'danger' : u.role === 'premium' ? 'success' : 'secondary'}">${u.role}</span></td>
+          <td>${u.language || 'ru'}</td>
+          <td>${u.premium_expires ? new Date(u.premium_expires).toLocaleDateString() : '—'}</td>
+          <td>${new Date(u.last_seen).toLocaleString()}</td>
+          <td>
+            <button class="btn btn-sm btn-outline-primary" onclick="inspectUser(${u.id})">👁️</button>
+          </td>
+        </tr>
+      `).join('');
+    }
   } catch (e) {
     console.error('❌ Ошибка загрузки пользователей:', e);
   }
 }
 
-// === Режимы отображения ===
+// === Обновление отображения в текущем режиме ===
+function updateStatsDisplay() {
+  const mode = document.getElementById('view-mode').value;
+  changeViewMode(mode);
+}
+
+// === Переключение режимов ===
 function changeViewMode(mode) {
   const container = document.getElementById('stats-container');
-  container.className = 'view-' + mode;
 
-  if (mode === 'cards') renderStatsCards();
-  else if (mode === 'table') renderStatsTable();
-  else if (mode === 'chart') renderActivityChart();
-  else if (mode === 'bars') renderCommandsChart();
+  // Уничтожаем предыдущий график
+  if (currentChart) {
+    currentChart.destroy();
+    currentChart = null;
+  }
+
+  // Скрываем таблицу
+  const usersTable = document.getElementById('users-table-container');
+  if (usersTable) usersTable.classList.add('d-none');
+
+  if (mode === 'cards') {
+    renderStatsCards();
+  } else if (mode === 'table') {
+    renderStatsTable();
+  } else if (mode === 'chart') {
+    renderActivityChart();
+  } else if (mode === 'bars') {
+    renderCommandsChart();
+  }
 }
 
 function renderStatsCards() {
@@ -98,8 +119,7 @@ function renderStatsCards() {
 
 function renderStatsTable() {
   document.getElementById('users-table-container').classList.add('d-none');
-  const container = document.getElementById('stats-container');
-  container.innerHTML = `
+  document.getElementById('stats-container').innerHTML = `
     <table class="table table-bordered">
       <tr><td><strong>Пользователи</strong></td><td>${statsData.total_users || 0}</td></tr>
       <tr><td><strong>Премиум</strong></td><td>${statsData.premium_users || 0}</td></tr>
@@ -111,40 +131,48 @@ function renderStatsTable() {
 
 function renderActivityChart() {
   document.getElementById('users-table-container').classList.add('d-none');
-  document.getElementById('stats-container').innerHTML = '<canvas id="activityChart" height="300"></canvas>';
-
-  if (activityChart) activityChart.destroy();
+  document.getElementById('stats-container').innerHTML = '<canvas id="activityChart"></canvas>';
 
   fetch('/api/admin/activity-by-day')
     .then(res => res.json())
     .then(data => {
       const ctx = document.getElementById('activityChart').getContext('2d');
-      activityChart = new Chart(ctx, {
+      currentChart = new Chart(ctx, {
         type: 'line',
         data: {
           labels: data.dates,
           datasets: [{
-            label: 'Активность',
+            label: 'Активность (по дням)',
             data: data.counts,
             borderColor: '#4CAF50',
+            backgroundColor: 'rgba(76, 175, 80, 0.1)',
+            fill: true,
             tension: 0.3
           }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: true }
+          }
         }
       });
+    })
+    .catch(e => {
+      document.getElementById('stats-container').innerHTML = '<p class="text-danger">Ошибка графика активности</p>';
+      console.error(e);
     });
 }
 
 function renderCommandsChart() {
   document.getElementById('users-table-container').classList.add('d-none');
-  document.getElementById('stats-container').innerHTML = '<canvas id="commandsChart" height="300"></canvas>';
-
-  if (commandsChart) commandsChart.destroy();
+  document.getElementById('stats-container').innerHTML = '<canvas id="commandsChart"></canvas>';
 
   fetch('/api/admin/top-commands')
     .then(res => res.json())
     .then(data => {
       const ctx = document.getElementById('commandsChart').getContext('2d');
-      commandsChart = new Chart(ctx, {
+      currentChart = new Chart(ctx, {
         type: 'bar',
         data: {
           labels: data.commands,
@@ -153,8 +181,16 @@ function renderCommandsChart() {
             data: data.counts,
             backgroundColor: '#66BB6A'
           }]
+        },
+        options: {
+          responsive: true,
+          indexAxis: 'y'
         }
       });
+    })
+    .catch(e => {
+      document.getElementById('stats-container').innerHTML = '<p class="text-danger">Ошибка столбчатого графика</p>';
+      console.error(e);
     });
 }
 
@@ -169,7 +205,7 @@ async function searchUser() {
 
     if (user) {
       document.getElementById('found-user').textContent = `@${user.username} (ID: ${user.id})`;
-      document.getElementById('user-actions').classList.remove('d-none');
+      document.getElementById('user-actions').style.display = 'block';
       window.currentFoundUser = user;
     } else {
       alert('Пользователь не найден');
@@ -193,6 +229,14 @@ async function grantPremium() {
   alert('✅ Премиум выдан на 30 дней');
 }
 
+function blockUser() {
+  alert('Функция в разработке');
+}
+
+function resetUser() {
+  alert('Функция в разработке');
+}
+
 function inspectUser(userId) {
-  alert(`Просмотр пользователя: ${userId}\n(можно расширить)`);
+  alert(`Инспекция пользователя: ${userId}`);
 }
