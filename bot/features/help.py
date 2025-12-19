@@ -52,3 +52,27 @@ def setup(application):
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CallbackQueryHandler(start_support_chat, pattern="^help_support$"))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_support_message))
+
+    # bot/features/help.py
+
+async def handle_support_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.effective_user
+    if user.id not in SUPPORT_WAITING:
+        return
+
+    text = update.message.text.strip()
+    if len(text) < 5:
+        await update.message.reply_text("Пожалуйста, опишите проблему подробнее.")
+        return
+
+    pool = await get_db_pool()
+    async with pool.acquire() as conn:
+        await conn.execute("""
+            INSERT INTO support_tickets (user_id, username, first_name, message)
+            VALUES ($1, $2, $3, $4)
+        """, user.id, user.username, user.first_name, text)
+
+    logger.info(f"📬 Тикет от {user.id} (@{user.username}) успешно сохранён в БД")  # ← ДОБАВЬ ЭТО
+
+    await update.message.reply_text("✅ Ваше сообщение отправлено! Мы ответим в ближайшее время.")
+    SUPPORT_WAITING.discard(user.id)
