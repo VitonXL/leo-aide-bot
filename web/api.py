@@ -295,3 +295,72 @@ async def get_support_tickets():
         {"id": 1, "user_id": 123, "username": "anna", "subject": "Ошибка", "message": "Не работает кнопка", "status": "open", "created_at": "2025-04-05T10:00:00"},
         {"id": 2, "user_id": 789, "username": "max", "subject": "Предложение", "message": "Добавьте календарь", "status": "open", "created_at": "2025-04-04T16:20:00"}
     ]
+
+# === 🛠 ТЕХПОДДЕРЖКА ===
+
+@router.get("/admin/support-tickets")
+async def get_support_tickets():
+    """
+    Возвращает все нерешённые обращения.
+    """
+    pool = await get_db_pool()
+    async with pool.acquire() as conn:
+        rows = await conn.fetch("""
+            SELECT id, user_id, username, first_name, message, status, created_at
+            FROM support_tickets
+            WHERE status != 'resolved'
+            ORDER BY created_at DESC
+        """)
+
+        return [
+            {
+                "id": r["id"],
+                "user_id": r["user_id"],
+                "username": r["username"] or "unknown",
+                "first_name": r["first_name"] or "Пользователь",
+                "message": r["message"],
+                "status": r["status"],
+                "created_at": r["created_at"].isoformat()
+            }
+            for r in rows
+        ]
+
+
+@router.post("/admin/reply-support")
+async def reply_support(
+    ticket_id: int = Body(..., embed=True),
+    reply_text: str = Body(..., embed=True)
+):
+    """
+    Отправляет ответ пользователю и закрывает тикет.
+    """
+    pool = await get_db_pool()
+    async with pool.acquire() as conn:
+        # Получаем данные
+        ticket = await conn.fetchrow(
+            "SELECT user_id, message FROM support_tickets WHERE id = $1", ticket_id
+        )
+        if not ticket:
+            raise HTTPException(status_code=404, detail="Тикет не найден")
+
+        # Получаем бота
+        from bot.main import bot
+
+        try:
+            await bot.send_message(
+                ticket["user_id"],
+                f"📬 Ответ от поддержки:\n\n{reply_text}\n\nСпасибо за обращение! ✅"
+            )
+            # Закрываем тикет
+            await conn.execute(
+                "UPDATE support_tickets SET status = 'resolved', updated_at = NOW() WHERE id = $1",
+                ticket_id
+            )
+        except Exception as e:
+            await conn.execute(
+                "UPDATE support_tickets SET status = 'in_progress' WHERE id = $1",
+                ticket_id
+            )
+            raise HTTPException(status_code=500, detail=f"Не удалось отправить: {str(e)}")
+
+        return {"status": "ok"}
