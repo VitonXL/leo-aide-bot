@@ -12,13 +12,13 @@
 
   <div class="screen active">
     <header>
-      <button class="back-btn" onclick="history.back()">← Назад</button>
+      <button class="back-btn" type="button" onclick="history.back()">← Назад</button>
       <div class="title">Админ-панель</div>
       <span class="admin-badge" title="Администратор">👑</span>
     </header>
 
     <main style="padding: 20px; max-width: 1200px; margin: 0 auto;">
-      <!-- Переключатель режима отображения -->
+      <!-- Переключатель режима -->
       <div style="margin-bottom: 20px; text-align: right;">
         <label><strong>Режим:</strong></label>
         <select id="view-mode" onchange="changeViewMode(this.value)">
@@ -65,12 +65,12 @@
         </div>
       </div>
 
-      <!-- Управление рекламой -->
+      <!-- Управление рекламой (временно) -->
       <div class="card" style="margin-top: 20px;">
         <h3>📢 Реклама</h3>
-        <button class="btn" onclick="createAd()">➕ Создать объявление</button>
+        <!-- <button class="btn" onclick="createAd()">➕ Создать объявление</button> -->
         <div id="ads-list" style="margin-top: 15px;">
-          <p>Загрузка...</p>
+          <p>🛠 Функция в разработке</p>
         </div>
       </div>
     </main>
@@ -78,6 +78,7 @@
 
   <!-- Скрипты -->
   <script src="/static/js/main.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="/static/js/admin.js"></script>
 </body>
 </html>
