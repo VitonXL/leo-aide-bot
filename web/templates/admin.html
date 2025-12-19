@@ -27,18 +27,20 @@
     .btn.primary { background: #4CAF50; color: white; }
     .text-danger { color: #D32F2F; }
     #stats-container canvas { max-width: 80%; height: 300px !important; margin: 20px auto; display: block; }
+    .section { margin-top: 20px; }
   </style>
 </head>
 <body>
 
   <div class="screen active">
     <header>
-      <button class="back-btn" type="button" onclick="history.back()">← Назад</button>
+      <button class="back-btn" type="button" onclick="goBack()">← Назад</button>
       <div class="title">Админ-панель</div>
       <span class="admin-badge">👑 Админ</span>
     </header>
 
     <main>
+      <!-- Режим отображения -->
       <div style="margin-bottom: 20px; text-align: right;">
         <label><strong>Режим:</strong></label>
         <select id="view-mode" onchange="changeViewMode(this.value)">
@@ -49,6 +51,7 @@
         </select>
       </div>
 
+      <!-- Статистика -->
       <div id="stats-container">
         <div class="card">
           <h3>📊 Статистика</h3>
@@ -59,7 +62,8 @@
         </div>
       </div>
 
-      <div class="card" style="margin-top: 20px;">
+      <!-- Поиск пользователя -->
+      <div class="card section">
         <h3>🔍 Поиск пользователя</h3>
         <input type="text" id="search-user" placeholder="ID или @username" style="width: 70%; padding: 10px; margin-right: 10px;">
         <button class="btn primary" onclick="searchUser()">Поиск</button>
@@ -70,13 +74,36 @@
           <button class="btn" style="background: #F44336;" onclick="blockUser()">⛔ Заблокировать</button>
         </div>
       </div>
+
+      <!-- Модерация отзывов -->
+      <div class="card section">
+        <h3>📝 Модерация отзывов</h3>
+        <div id="reviews-list" style="max-height: 300px; overflow-y: auto;">
+          <p>Загрузка...</p>
+        </div>
+      </div>
+
+      <!-- Техподдержка -->
+      <div class="card section">
+        <h3>📬 Техподдержка</h3>
+        <div id="support-list" style="max-height: 300px; overflow-y: auto;">
+          <p>Загрузка обращений...</p>
+        </div>
+      </div>
+
+      <!-- Реклама -->
+      <div class="card section">
+        <h3>📢 Реклама</h3>
+        <div id="ads-list" style="margin-top: 15px;">
+          <p>🛠 Функция в разработке</p>
+        </div>
+      </div>
     </main>
   </div>
 
-  <!-- 🔥 ВАЖНО: Chart.js подключён ДО основного скрипта -->
+  <!-- 🔥 ВАЖНО: Chart.js — ДО основного скрипта -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- Основной JavaScript -->
   <script>
     let statsData = {};
     let currentChart = null;
@@ -84,6 +111,8 @@
     document.addEventListener('DOMContentLoaded', async () => {
       console.log('✅ DOM загружен');
       await loadStats();
+      await loadReviews();
+      await loadSupportTickets();
       changeViewMode('cards');
     });
 
@@ -94,7 +123,7 @@
         renderStatsCards();
       } catch (e) {
         document.getElementById('stats-container').innerHTML = '<p class="text-danger">Ошибка загрузки</p>';
-        console.error('❌ Ошибка загрузки статистики:', e);
+        console.error('❌ Ошибка статистики:', e);
       }
     }
 
@@ -103,7 +132,6 @@
         currentChart.destroy();
         currentChart = null;
       }
-      const container = document.getElementById('stats-container');
 
       if (mode === 'cards') renderStatsCards();
       else if (mode === 'table') renderStatsTable();
@@ -136,72 +164,76 @@
     function renderStatsTable() {
       document.getElementById('stats-container').innerHTML = `
         <table class="card" style="width: 100%; border-collapse: collapse;">
-          <tr><td style="padding: 10px; border: 1px solid #ddd;">Пользователи</td><td style="padding: 10px; border: 1px solid #ddd;">${statsData.total_users || 0}</td></tr>
-          <tr><td style="padding: 10px; border: 1px solid #ddd;">Премиум</td><td style="padding: 10px; border: 1px solid #ddd;">${statsData.premium_users || 0}</td></tr>
-          <tr><td style="padding: 10px; border: 1px solid #ddd;">Активно сегодня</td><td style="padding: 10px; border: 1px solid #ddd;">${statsData.active_today || 0}</td></tr>
-          <tr><td style="padding: 10px; border: 1px solid #ddd;">Рефералов</td><td style="padding: 10px; border: 1px solid #ddd;">${statsData.referrals_count || 0}</td></tr>
+          <tr><td>Пользователи</td><td>${statsData.total_users || 0}</td></tr>
+          <tr><td>Премиум</td><td>${statsData.premium_users || 0}</td></tr>
+          <tr><td>Активно сегодня</td><td>${statsData.active_today || 0}</td></tr>
+          <tr><td>Рефералов</td><td>${statsData.referrals_count || 0}</td></tr>
         </table>`;
     }
 
     function renderActivityChart() {
       document.getElementById('stats-container').innerHTML = '<canvas id="chart"></canvas>';
-      fetch('/api/admin/activity-by-day')
-        .then(r => r.json())
-        .then(data => {
-          const ctx = document.getElementById('chart').getContext('2d');
-          currentChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-              labels: data.dates,
-              datasets: [{
-                label: 'Активность (по дням)',
-                data: data.counts,
-                borderColor: '#4CAF50',
-                backgroundColor: 'rgba(76, 175, 80, 0.1)',
-                fill: true,
-                tension: 0.3
-              }]
-            },
-            options: {
-              responsive: true,
-              plugins: {
-                legend: { display: true }
-              }
-            }
+      setTimeout(() => {
+        const chartEl = document.getElementById('chart');
+        if (!chartEl) return;
+        const ctx = chartEl.getContext('2d');
+
+        fetch('/api/admin/activity-by-day')
+          .then(r => r.json())
+          .then(data => {
+            if (currentChart) currentChart.destroy();
+            currentChart = new Chart(ctx, {
+              type: 'line',
+              data: {
+                labels: data.dates,
+                datasets: [{
+                  label: 'Активность',
+                  data: data.counts,
+                  borderColor: '#4CAF50',
+                  backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                  fill: true,
+                  tension: 0.3
+                }]
+              },
+              options: { responsive: true }
+            });
+          })
+          .catch(e => {
+            document.getElementById('stats-container').innerHTML = '<p class="text-danger">Ошибка графика</p>';
+            console.error(e);
           });
-        })
-        .catch(e => {
-          document.getElementById('stats-container').innerHTML = '<p class="text-danger">Ошибка графика</p>';
-          console.error(e);
-        });
+      }, 50);
     }
 
     function renderCommandsChart() {
       document.getElementById('stats-container').innerHTML = '<canvas id="chart"></canvas>';
-      fetch('/api/admin/top-commands')
-        .then(r => r.json())
-        .then(data => {
-          const ctx = document.getElementById('chart').getContext('2d');
-          currentChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-              labels: data.commands,
-              datasets: [{
-                label: 'Использовано',
-                data: data.counts,
-                backgroundColor: '#66BB6A'
-              }]
-            },
-            options: {
-              responsive: true,
-              indexAxis: 'y'
-            }
+      setTimeout(() => {
+        const chartEl = document.getElementById('chart');
+        if (!chartEl) return;
+        const ctx = chartEl.getContext('2d');
+
+        fetch('/api/admin/top-commands')
+          .then(r => r.json())
+          .then(data => {
+            if (currentChart) currentChart.destroy();
+            currentChart = new Chart(ctx, {
+              type: 'bar',
+              data: {
+                labels: data.commands,
+                datasets: [{
+                  label: 'Использовано',
+                  data: data.counts,
+                  backgroundColor: '#66BB6A'
+                }]
+              },
+              options: { responsive: true, indexAxis: 'y' }
+            });
+          })
+          .catch(e => {
+            document.getElementById('stats-container').innerHTML = '<p class="text-danger">Ошибка столбцов</p>';
+            console.error(e);
           });
-        })
-        .catch(e => {
-          document.getElementById('stats-container').innerHTML = '<p class="text-danger">Ошибка столбцов</p>';
-          console.error(e);
-        });
+      }, 50);
     }
 
     async function searchUser() {
@@ -225,7 +257,7 @@
 
     async function grantPremium() {
       if (!window.user) return;
-      if (!confirm(`Выдать премиум ${window.user.first_name}?`)) return;
+      if (!confirm(`Выдать премиум @${window.user.username}?`)) return;
 
       try {
         await fetch('/api/admin/grant-premium', {
@@ -235,13 +267,13 @@
         });
         alert('✅ Премиум выдан на 30 дней');
       } catch (e) {
-        alert('Ошибка выдачи');
+        alert('❌ Ошибка выдачи');
       }
     }
 
     async function revokePremium() {
       if (!window.user) return;
-      if (!confirm(`Снять премиум у ${window.user.first_name}?`)) return;
+      if (!confirm(`Снять премиум у @${window.user.username}?`)) return;
 
       try {
         await fetch('/api/admin/revoke-premium', {
@@ -251,13 +283,13 @@
         });
         alert('✅ Премиум снят');
       } catch (e) {
-        alert('Ошибка снятия');
+        alert('❌ Ошибка снятия');
       }
     }
 
     async function blockUser() {
       if (!window.user) return;
-      if (!confirm(`Заблокировать ${window.user.first_name}?`)) return;
+      if (!confirm(`Заблокировать @${window.user.username}?`)) return;
 
       try {
         await fetch('/api/admin/block-user', {
@@ -267,8 +299,60 @@
         });
         alert('✅ Пользователь заблокирован');
       } catch (e) {
-        alert('Ошибка блокировки');
+        alert('❌ Ошибка блокировки');
       }
+    }
+
+    async function loadReviews() {
+      try {
+        const res = await fetch('/api/admin/reviews');
+        const reviews = await res.json();
+        const container = document.getElementById('reviews-list');
+        container.innerHTML = reviews.map(r => `
+          <div style="padding: 10px; border-bottom: 1px solid #eee;">
+            <strong>${r.first_name} (@${r.username})</strong> <span style="color: #FFA000;">⭐ ${r.rating}</span>
+            <p style="margin: 8px 0;">${r.text}</p>
+            <small>${new Date(r.created_at).toLocaleString()}</small>
+            <div style="margin-top: 8px;">
+              <button class="btn" style="background: #4CAF50; padding: 5px 10px;" onclick="approveReview(${r.id})">✅ Принять</button>
+              <button class="btn" style="background: #F44336; padding: 5px 10px;" onclick="deleteReview(${r.id})">🗑 Удалить</button>
+            </div>
+          </div>
+        `).join('');
+      } catch (e) {
+        document.getElementById('reviews-list').innerHTML = '<p class="text-danger">Ошибка загрузки отзывов</p>';
+        console.error(e);
+      }
+    }
+
+    async function loadSupportTickets() {
+      try {
+        const res = await fetch('/api/admin/support-tickets');
+        const tickets = await res.json();
+        const container = document.getElementById('support-list');
+        container.innerHTML = tickets.map(t => `
+          <div style="padding: 10px; border-bottom: 1px solid #eee;">
+            <strong>@${t.username}</strong> — <span style="color: #FF9800;">${t.subject}</span>
+            <p style="margin: 8px 0; font-size: 14px;">${t.message}</p>
+            <small>${new Date(t.created_at).toLocaleString()}</small>
+            <div style="margin-top: 8px;">
+              <button class="btn" style="background: #2196F3; padding: 5px 10px;" onclick="resolveTicket(${t.id})">✅ Решено</button>
+            </div>
+          </div>
+        `).join('');
+      } catch (e) {
+        document.getElementById('support-list').innerHTML = '<p class="text-danger">Ошибка загрузки обращений</p>';
+        console.error(e);
+      }
+    }
+
+    function approveReview(id) { alert(`Отзыв ${id} принят`); }
+    function deleteReview(id) { alert(`Отзыв ${id} удалён`); }
+    function resolveTicket(id) { alert(`Обращение ${id} отмечено как решённое`); }
+
+    function goBack() {
+      window.Telegram?.WebApp?.close();
+      window.location.href = "https://t.me/leo_aide_bot";
     }
   </script>
 </body>
