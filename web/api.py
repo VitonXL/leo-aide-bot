@@ -1,15 +1,8 @@
 # web/api.py
 
-import sys
-import os
-
-# ✅ Добавляем путь к bot/
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", "bot"))
-
 from fastapi import APIRouter, HTTPException, Body
 from loguru import logger
-from database import get_db_pool  # ✅ Теперь работает
-
+from database import get_db_pool, ensure_support_table_exists  # ✅ Из корня
 import asyncpg
 import os
 from typing import Dict, Any
@@ -23,22 +16,6 @@ if not DATABASE_URL:
 print(f"✅ DATABASE_URL: {DATABASE_URL[:30]}...")
 
 # Остальной код остаётся как есть
-
-db_pool = None
-
-
-async def get_db_pool():
-    global db_pool
-    if db_pool is None:
-        print("🔧 Создаём пул подключений к БД...")
-        try:
-            db_pool = await asyncpg.create_pool(DATABASE_URL, command_timeout=60)
-            print("✅ Пул БД создан")
-        except Exception as e:
-            print(f"❌ Ошибка создания пула: {e}")
-            raise
-    return db_pool
-
 
 async def get_user_data(user_id: int) -> Dict[str, Any]:
     print(f"🔍 Запрос данных для user_id = {user_id}")
@@ -295,8 +272,6 @@ async def get_support_tickets():
             for r in rows
         ]
     
-    # Добавляем путь к папке bot
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", "bot"))
 
     #Теперь можно импортировать
 from database import get_db_pool, ensure_support_table_exists
