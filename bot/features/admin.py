@@ -10,14 +10,13 @@ from telegram.ext import (
 )
 from loguru import logger
 
-from bot.database import (
+from database import (
     get_user_role,
     set_user_role,
     is_admin,
     get_referral_stats,
     log_command_usage,
 )
-
 # Состояние: кто в режиме поиска
 user_search_state = {}
 
