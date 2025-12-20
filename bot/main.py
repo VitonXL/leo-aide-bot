@@ -1,16 +1,13 @@
 # bot/main.py
 
+# Отладка — ДО импортов
+import sys
 import os
-from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton, MenuButtonWebApp, WebAppInfo
-from telegram.ext import (
-    Application,
-    ContextTypes,
-    CommandHandler,
-    CallbackQueryHandler,
-    TypeHandler,
-    MessageHandler,
-    filters,
-)
+
+print("🔧 Запуск бота...")
+print("📂 Текущая директория:", os.getcwd())
+print("📦 Содержимое:", os.listdir("."))
+print("🔍 sys.path:", sys.path)
 
 # Импортируем глобальные переменные
 from bot.instance import application as global_app, bot as global_bot
@@ -42,12 +39,10 @@ from loguru import logger
 # Глобальная переменная пула
 db_pool = None
 
-
 # --- Дебаг: логируем ВСЕ входящие сообщения ---
 async def debug_all_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.message and update.message.text:
         logger.debug(f"📨 DEBUG: Входящее сообщение: '{update.message.text}' от user_id={update.effective_user.id}")
-
 
 # --- Отслеживание активности ---
 async def track_user_activity(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -60,7 +55,6 @@ async def track_user_activity(update: Update, context: ContextTypes.DEFAULT_TYPE
         command = update.message.text.split()[0]
         await log_command_usage(db_pool, user.id, command)
 
-
 # --- Клавиатура после /start ---
 def get_start_keyboard():
     keyboard = [
@@ -68,7 +62,6 @@ def get_start_keyboard():
         [InlineKeyboardButton("🌐 Mini App", url="https://leo-aide.online/")]
     ]
     return InlineKeyboardMarkup(keyboard)
-
 
 # --- Обработчик /start ---
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -93,14 +86,12 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=get_start_keyboard()
     )
 
-
 # --- Фоновая задача: очистка ---
 async def cleanup_task(context: ContextTypes.DEFAULT_TYPE):
     if not db_pool:
         return
     await delete_inactive_users(db_pool, days=90)
     await cleanup_support_tickets(db_pool, days=7)
-
 
 # --- Инициализация ---
 async def on_post_init(app: Application):
@@ -118,9 +109,7 @@ async def on_post_init(app: Application):
     app.bot_data['db_pool'] = db_pool
 
     # Сохраняем в bot.instance
-    global_app.__class__ = Application  # чтобы PyCharm не ругался
     global_app = app
-    global_bot.__class__ = app.bot.__class__
     global_bot = app.bot
     logger.info("✅ Бот и application сохранены в bot.instance")
 
@@ -147,7 +136,6 @@ async def on_post_init(app: Application):
     # Фоновая задача
     app.job_queue.run_repeating(cleanup_task, interval=24 * 3600, first=10)
     logger.info("⏰ Фоновая задача: очистка — запущена")
-
 
 # --- Главная ---
 def main():
@@ -179,7 +167,6 @@ def main():
 
     logger.info("🚀 Бот запущен...")
     app.run_polling()
-
 
 if __name__ == "__main__":
     main()
