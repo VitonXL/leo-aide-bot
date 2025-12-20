@@ -12,6 +12,7 @@ from database import (
     log_command_usage,
 )
 
+# Состояние: кто в режиме поиска
 user_search_state = {}
 
 
@@ -75,61 +76,137 @@ async def admin_callback_handler(update: Update, context: ContextTypes.DEFAULT_T
         text = f"📊 <b>Статистика</b>\n\n👥 Всего: <b>{total_users}</b>\n🟢 Активны: <b>{active_24h}</b>\n💎 Премиум: <b>{premium_users}</b>"
         await query.edit_message_text(text, parse_mode='HTML')
 
+    elif data == "admin_users":
+        keyboard = [
+            [InlineKeyboardButton("🔍 Найти", callback_data="admin_search_user")],
+            [InlineKeyboardButton("⬅️ Назад", callback_data="admin_back")]
+        ]
+        await query.edit_message_text("👥 Управление", reply_markup=InlineKeyboardMarkup(keyboard))
+
+    elif data == "admin_search_user":
+        await query.edit_message_text("🆔 Введите ID:")
+        user_search_state[query.from_user.id] = 'awaiting_id'
+
     elif data == "admin_back":
         await cmd_admin(update, context)
 
     elif data == "admin_support_tickets":
-        tickets = await pool.fetch('''
-            SELECT ticket_id, username, first_name, message, created_at
-            FROM support_tickets
-            WHERE status = 'open'
-            ORDER BY created_at DESC
-            LIMIT 10
-        ''')
+        await admin_support_tickets_with_buttons(update, context)
 
-        if not tickets:
-            await query.edit_message_text("📭 Нет открытых тикетов")
-            return
 
-        text = "📬 <b>Открытые тикеты:</b>\n\n"
-        for t in tickets:
-            username = f"@{t['username']}" if t['username'] else t['first_name']
-            created = t['created_at'].strftime('%d.%m %H:%M')
-            text += f"📌 <b>ID: {t['ticket_id']}</b> | {username} | {created}\n"
-            text += f"💬 {t['message'][:60]}...\n\n"
-        text += "\n👆 Ответьте на это сообщение, чтобы отправить ответ пользователю."
+async def admin_support_tickets_with_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
 
-        await query.edit_message_text(text, parse_mode='HTML', disable_web_page_preview=True)
+    pool = context.application.bot_data['db_pool']
+    tickets = await pool.fetch('''
+        SELECT ticket_id, username, first_name, message, created_at, status
+        FROM support_tickets
+        WHERE status = 'open'
+        ORDER BY created_at DESC
+        LIMIT 10
+    ''')
+
+    if not tickets:
+        await query.edit_message_text("📭 Нет открытых тикетов")
+        return
+
+    for t in tickets:
+        username = f"@{t['username']}" if t['username'] else t['first_name']
+        created = t['created_at'].strftime('%d.%m %H:%M')
+        text = f"📌 <b>ID: {t['ticket_id']}</b> | {username} | {created}\n\n💬 {t['message']}"
+
+        keyboard = [
+            [
+                InlineKeyboardButton("💬 Ответить", callback_data=f"reply_{t['ticket_id']}"),
+                InlineKeyboardButton("✅ Закрыть", callback_data=f"close_{t['ticket_id']}")
+            ]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+
+        await context.bot.send_message(
+            chat_id=query.message.chat_id,
+            text=text,
+            reply_markup=reply_markup,
+            parse_mode='HTML'
+        )
+
+    await context.bot.send_message(
+        chat_id=query.message.chat_id,
+        text="👆 Используйте кнопки под каждым тикетом",
+        reply_markup=InlineKeyboardMarkup([[
+            InlineKeyboardButton("⬅️ Назад", callback_data="admin_back")
+        ]])
+    )
+
+    try:
+        await query.delete_message()
+    except:
+        pass
+
+
+async def admin_ticket_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+
+    data = query.data
+    if not (data.startswith("reply_") or data.startswith("close_")):
+        return
+
+    ticket_id = data.split("_", 1)[1]
+    pool = context.application.bot_data['db_pool']
+
+    row = await pool.fetchrow("SELECT user_id, username, message FROM support_tickets WHERE ticket_id = $1", ticket_id)
+    if not row:
+        await query.edit_message_text("❌ Тикет не найден")
+        return
+
+    if data.startswith("reply_"):
+        username = f"@{row['username']}" if row['username'] else "Пользователь"
+        await query.edit_message_text(
+            f"📝 Ответ пользователю {username}\n\n💬 {row['message']}\n\nВведите текст ответа:",
+            reply_markup=InlineKeyboardMarkup([[
+                InlineKeyboardButton("⬅️ Назад", callback_data="admin_support_tickets")
+            ]])
+        )
+        context.user_data['awaiting_reply_to_ticket'] = ticket_id
+
+    elif data.startswith("close_"):
+        await pool.execute("UPDATE support_tickets SET status = 'closed' WHERE ticket_id = $1", ticket_id)
+        username = f"@{row['username']}" if row['username'] else "Пользователь"
+        try:
+            await context.bot.send_message(
+                chat_id=row['user_id'],
+                text=f"🎫 Ваш тикет <code>{ticket_id}</code> закрыт.\n\nСпасибо за обращение!",
+                parse_mode='HTML'
+            )
+        except Exception as e:
+            logger.error(f"Не удалось отправить уведомление о закрытии: {e}")
+        await query.edit_message_text(f"✅ Тикет <code>{ticket_id}</code> закрыт", parse_mode='HTML')
 
 
 async def forward_admin_reply(update: Update, context: ContextTypes.DEFAULT_TYPE):
     logger.info("📩 forward_admin_reply: вызван")
 
-    if not update.message or not update.message.reply_to_message:
+    if not update.message:
         return
-    if not update.message.reply_to_message.text:
+
+    # Проверяем, ждём ли мы ответ на тикет
+    ticket_id = context.user_data.get('awaiting_reply_to_ticket')
+    if not ticket_id:
         return
-    if "ID: TICKET-" not in update.message.reply_to_message.text:
+
+    pool = context.application.bot_data['db_pool']
+    row = await pool.fetchrow("SELECT user_id, username FROM support_tickets WHERE ticket_id = $1", ticket_id)
+    if not row:
+        await update.message.reply_text("❌ Тикет не найден")
+        context.user_data.pop('awaiting_reply_to_ticket', None)
         return
+
+    user_id = row['user_id']
+    username = f"@{row['username']}" if row['username'] else "Пользователь"
 
     try:
-        lines = update.message.reply_to_message.text.splitlines()
-        ticket_line = next(line for line in lines if line.startswith("📌 ID:"))
-        ticket_id = ticket_line.split("ID:")[1].split("|")[0].strip()
-        logger.info(f"🔍 Обработка тикета: {ticket_id}")
-
-        pool = context.application.bot_data['db_pool']
-        logger.info(f"🔍 Поиск тикета в БД: {ticket_id}")
-        row = await pool.fetchrow("SELECT user_id, username FROM support_tickets WHERE ticket_id = $1", ticket_id)
-        if not row:
-            logger.error(f"❌ Тикет {ticket_id} не найден в БД")
-            await update.message.reply_text("❌ Тикет не найден в базе данных")
-            return
-
-        user_id = row['user_id']
-        username = f"@{row['username']}" if row['username'] else "Пользователь"
-        logger.info(f"🎯 Найден пользователь: {user_id} ({username})")
-
         if update.message.text:
             await context.bot.send_message(
                 chat_id=user_id,
@@ -154,10 +231,13 @@ async def forward_admin_reply(update: Update, context: ContextTypes.DEFAULT_TYPE
             )
 
         await update.message.reply_text(f"✅ Ответ отправлен {username}")
+        logger.info(f"✅ Ответ отправлен {user_id}")
 
     except Exception as e:
-        logger.exception(f"❌ Ошибка: {e}")
-        await update.message.reply_text(f"❌ Ошибка: {e}")
+        logger.exception(f"❌ Ошибка при отправке: {e}")
+        await update.message.reply_text(f"❌ Не удалось отправить: {e}")
+    finally:
+        context.user_data.pop('awaiting_reply_to_ticket', None)
 
 
 async def handle_message_from_admin(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -217,22 +297,23 @@ async def grant_callback_handler(update: Update, context: ContextTypes.DEFAULT_T
 
 
 def setup_admin_handlers(app):
-    # Сначала — ответы на тикеты (высокий приоритет)
+    # Высокий приоритет — group=40
+    app.add_handler(CommandHandler("admin", cmd_admin), group=40)
+    app.add_handler(CallbackQueryHandler(admin_callback_handler, pattern="^admin_"), group=40)
+    app.add_handler(CallbackQueryHandler(grant_callback_handler, pattern="^grant_"), group=40)
+    app.add_handler(CallbackQueryHandler(admin_ticket_action, pattern="^(reply|close)_"), group=40)
+
+    # Сначала — ответы
     app.add_handler(
         MessageHandler(
-            filters.REPLY & (filters.TEXT | filters.PHOTO | filters.Document.ALL) & ~filters.COMMAND,
+            filters.TEXT & ~filters.COMMAND,
             forward_admin_reply
         ),
         group=40
     )
 
-    # Потом — поиск пользователей
+    # Потом — поиск
     app.add_handler(
         MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message_from_admin),
         group=40
     )
-
-    # Команды и кнопки
-    app.add_handler(CommandHandler("admin", cmd_admin), group=40)
-    app.add_handler(CallbackQueryHandler(admin_callback_handler, pattern="^admin_"), group=40)
-    app.add_handler(CallbackQueryHandler(grant_callback_handler, pattern="^grant_"), group=40)
