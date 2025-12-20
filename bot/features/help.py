@@ -1,7 +1,13 @@
 # bot/features/help.py
 
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
-from telegram.ext import ContextTypes
+from telegram.ext import (
+    ContextTypes,
+    CommandHandler,
+    CallbackQueryHandler,
+    MessageHandler,
+    filters,
+)
 from database import get_db_pool
 from loguru import logger
 import random
@@ -32,7 +38,7 @@ async def start_support_chat(update: Update, context: ContextTypes.DEFAULT_TYPE)
 async def handle_support_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     if user.id not in SUPPORT_WAITING:
-        return  # пропускаем, чтобы FAQ мог сработать
+        return
 
     text = update.message.text.strip()
     if len(text) < 5:
@@ -46,14 +52,12 @@ async def handle_support_message(update: Update, context: ContextTypes.DEFAULT_T
         async with pool.acquire() as conn:
             # Генерируем ticket_id
             ticket_id = f"TICKET-{1000 + user.id % 10000:04d}-{random.randint(10, 99)}"
-            
-            # Сохраняем
+
             await conn.execute("""
                 INSERT INTO support_tickets (user_id, username, first_name, message, ticket_id)
                 VALUES ($1, $2, $3, $4, $5)
             """, user.id, user.username, user.first_name, text, ticket_id)
 
-        # ✅ Ответ пользователю
         await update.message.reply_text(
             f"📩 Ваше обращение **{ticket_id}** принято!\n\n"
             "✅ Мы уже работаем над ним.\n"
