@@ -12,8 +12,6 @@ SUPPORT_WAITING = set()
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     logger.debug(f"🔧 help_command вызван пользователем {update.effective_user.id}")
-
-    # 🔒 Гарантируем, что это message
     if not update.message:
         logger.warning("⚠️ update.message is None in /help")
         return
@@ -42,8 +40,11 @@ async def start_support_chat(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 async def handle_support_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
+    if not update.message:
+        logger.warning(f"⚠️ update.message is None от {user.id}")
+        return
     if user.id not in SUPPORT_WAITING:
-        return  # ← не блокируем, просто выходим
+        return
 
     text = update.message.text.strip()
     if len(text) < 5:
@@ -79,7 +80,6 @@ async def handle_support_message(update: Update, context: ContextTypes.DEFAULT_T
 
 
 def setup(application):
-    # Только команды и callback'и
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CallbackQueryHandler(start_support_chat, pattern="^help_support$"))
-    # ❌ Больше НЕ добавляем MessageHandler — пусть FAQ ловит
+    # ❌ Больше НЕ добавляем MessageHandler — он в main.py
