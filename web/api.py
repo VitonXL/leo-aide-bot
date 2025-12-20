@@ -2,18 +2,21 @@
 
 import sys
 import os
+from typing import Dict, Any
 
 # Добавляем путь к папке bot
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "bot"))
 
 from fastapi import APIRouter, HTTPException, Body
 from loguru import logger
-from database import get_db_pool, ensure_support_table_exists  # ✅ Теперь найдёт
-from bot.instance import get_bot
+from database import (
+    get_db_pool,
+    ensure_support_table_exists,
+)
+from bot.instance import bot as global_bot  # Импортируем переменную bot
 
 import asyncpg
-import os
-from typing import Dict, Any
+from telegram.ext import Application
 
 router = APIRouter()
 
@@ -23,8 +26,8 @@ if not DATABASE_URL:
 
 print(f"✅ DATABASE_URL: {DATABASE_URL[:30]}...")
 
-# Остальной код остаётся как есть
 
+# === 🔍 Получение данных пользователя ===
 async def get_user_data(user_id: int) -> Dict[str, Any]:
     print(f"🔍 Запрос данных для user_id = {user_id}")
     try:
@@ -64,12 +67,8 @@ async def get_user_data(user_id: int) -> Dict[str, Any]:
         logger.error(f"❌ Ошибка в get_user_data: {e}")
         return None
 
-async def reply_support(...):
-    try:
-        bot = get_bot()
-    except RuntimeError:
-        raise HTTPException(status_code=500, detail="Бот не запущен")
 
+# === 🌐 API: Получение статуса пользователя ===
 @router.get("/user/{user_id}")
 async def get_user_status(user_id: int):
     print(f"🌐 API: Получен запрос /api/user/{user_id}")
@@ -105,13 +104,18 @@ async def get_user_status(user_id: int):
 
 # === 🌙 Изменение темы ===
 @router.post("/set-theme")
-async def set_user_theme(user_id: int, theme: str, hash: str):
+async def set_user_theme(user_id: int, theme: str = Body(...), hash: str = Body(...)):
     if theme not in ["light", "dark"]:
         raise HTTPException(status_code=400, detail="Theme must be 'light' or 'dark'")
 
-    from .utils import verify_cabinet_link
-    if not verify_cabinet_link(user_id, hash):
-        raise HTTPException(status_code=403, detail="Invalid signature")
+    # Импортируем утилиту проверки
+    try:
+        from .utils import verify_cabinet_link
+        if not verify_cabinet_link(user_id, hash):
+            raise HTTPException(status_code=403, detail="Invalid signature")
+    except ImportError:
+        logger.error("❌ Не удалось импортировать .utils.verify_cabinet_link")
+        raise HTTPException(status_code=500, detail="Сервис проверки хеша недоступен")
 
     try:
         pool = await get_db_pool()
@@ -284,12 +288,9 @@ async def get_support_tickets():
             }
             for r in rows
         ]
-    
-
-    #Теперь можно импортировать
-from bot.database import get_db_pool, ensure_support_table_exists
 
 
+# === 📩 Ответ на тикет ===
 @router.post("/admin/reply-support")
 async def reply_support(
     ticket_id: int = Body(..., embed=True),
@@ -298,7 +299,6 @@ async def reply_support(
     """
     Отправляет ответ пользователю и закрывает тикет.
     """
-    from bot.database import get_db_pool
     pool = await get_db_pool()
 
     # Получаем данные тикета
@@ -309,19 +309,25 @@ async def reply_support(
         if not ticket:
             raise HTTPException(status_code=404, detail="Тикет не найден")
 
-  # Временное решение: создаём бота для отправки
-try:
-    token = os.getenv("BOT_TOKEN")
-    if not token:
-        raise RuntimeError("❌ BOT_TOKEN не задан")
-
-    from telegram.ext import Application
-    bot = Application.builder().token(token).build().bot
-    await bot.initialize()
-    logger.info("🤖 Бот временно инициализирован для отправки")
-except Exception as e:
-    logger.error(f"❌ Не удалось создать бота: {e}")
-    raise HTTPException(status_code=500, detail="Не удалось отправить ответ")
+    # Получаем бота
+    try:
+        if global_bot is None:
+            raise RuntimeError("❌ Бот не инициализирован в bot.instance")
+        bot = global_bot
+        logger.info("✅ Бот получен из bot.instance")
+    except Exception as e:
+        logger.error(f"❌ Не удалось получить бота: {e}")
+        # Резерв: создаём временный бот
+        try:
+            token = os.getenv("BOT_TOKEN")
+            if not token:
+                raise ValueError("❌ BOT_TOKEN не задан")
+            bot = Application.builder().token(token).build().bot
+            await bot.initialize()
+            logger.info("🤖 Временный бот инициализирован для ответа")
+        except Exception as e2:
+            logger.error(f"❌ Не удалось инициализировать временного бота: {e2}")
+            raise HTTPException(status_code=500, detail="Сервис бота недоступен")
 
     # Отправляем ответ
     try:
@@ -331,18 +337,20 @@ except Exception as e:
         )
         logger.info(f"✅ Ответ отправлен пользователю {ticket['user_id']} (тикет {ticket_id})")
     except Exception as e:
-        error_msg = str(e)
-        logger.error(f"❌ Ошибка отправки: {error_msg}")
+        error_msg = str(e).lower()
+        logger.error(f"❌ Ошибка отправки: {e}")
 
+        # Обновляем статус тикета
         async with pool.acquire() as conn:
             await conn.execute(
                 "UPDATE support_tickets SET status = 'in_progress', updated_at = NOW() WHERE id = $1",
                 ticket_id
             )
-        if "blocked" in error_msg.lower() or "not found" in error_msg.lower():
+
+        if "blocked" in error_msg or "not found" in error_msg or "chat not found" in error_msg:
             raise HTTPException(status_code=500, detail="❌ Пользователь заблокировал бота")
         else:
-            raise HTTPException(status_code=500, detail=f"❌ Ошибка отправки: {error_msg}")
+            raise HTTPException(status_code=500, detail=f"❌ Ошибка отправки: {str(e)}")
 
     # Закрываем тикет
     async with pool.acquire() as conn:
