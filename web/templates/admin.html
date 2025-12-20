@@ -95,6 +95,21 @@
         </div>
       </div>
 
+      <div class="templates">
+  <h4>📝 Шаблоны ответов:</h4>
+  <button onclick="useTemplate('Спасибо за обращение! ✅')">Спасибо</button>
+  <button onclick="useTemplate('Ошибка исправлена в последней версии. Обновите страницу.')">Исправлено</button>
+  <button onclick="useTemplate('Убедитесь, что вы вошли в аккаунт и обновили страницу.')">Проверьте</button>
+  <button onclick="useTemplate('Подробная инструкция: https://leo-aide.online/faq')">Инструкция</button>
+  <button onclick="useTemplate('Мы получили ваше обращение и уже работаем над ним.')">Обработка</button>
+</div>
+
+<script>
+function useTemplate(text) {
+  document.getElementById('reply-text').value = text;
+}
+</script>
+
       <!-- Реклама -->
       <div class="card section">
         <h3>📢 Реклама</h3>
@@ -495,6 +510,8 @@
       window.Telegram?.WebApp?.close();
       window.location.href = "https://t.me/leo_aide_bot";
     }
+
+    
   </script>
 </body>
 </html>
