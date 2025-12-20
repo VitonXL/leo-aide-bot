@@ -121,7 +121,6 @@ async def init_db(pool):
             ('is_bot', 'BOOLEAN'),
             ('last_seen', 'TIMESTAMPTZ DEFAULT NOW()'),
             ('premium_expires', 'TIMESTAMPTZ'),
-            ('ticket_id', 'TEXT UNIQUE'),  # ✅ Миграция: добавляет колонку, если её нет
         ]
 
         for column, type_def in migrations:
@@ -129,16 +128,31 @@ async def init_db(pool):
                 await conn.execute(f'''
                     ALTER TABLE users 
                     ADD COLUMN IF NOT EXISTS {column} {type_def};
-                ''') if column != 'ticket_id' else await conn.execute(f'''
-                    ALTER TABLE support_tickets 
-                    ADD COLUMN IF NOT EXISTS {column} {type_def};
                 ''')
                 logger.info(f"✅ Колонка {column} добавлена (если отсутствовала)")
             except Exception as e:
                 logger.warning(f"⚠️ Ошибка при добавлении колонки {column}: {e}")
 
-    logger.info("✅ Все таблицы и миграции применены")
+        # ✅ Миграция: добавляем ticket_id в support_tickets
+        try:
+            await conn.execute('''
+                ALTER TABLE support_tickets 
+                ADD COLUMN IF NOT EXISTS ticket_id TEXT UNIQUE;
+            ''')
+            logger.info("✅ Колонка ticket_id добавлена в support_tickets (если отсутствовала)")
+        except Exception as e:
+            logger.warning(f"⚠️ Ошибка при добавлении ticket_id: {e}")
 
+        # ✅ Теперь создаём индекс
+        try:
+            await conn.execute('''
+                CREATE INDEX IF NOT EXISTS idx_support_ticket_id ON support_tickets(ticket_id);
+            ''')
+            logger.info("✅ Индекс idx_support_ticket_id создан")
+        except Exception as e:
+            logger.warning(f"⚠️ Ошибка при создании индекса ticket_id: {e}")
+
+    logger.info("✅ Все таблицы и миграции применены")
 
 # --- Работа с пользователями ---
 async def add_or_update_user(pool, user):
