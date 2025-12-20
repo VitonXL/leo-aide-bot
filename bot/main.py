@@ -187,10 +187,8 @@ def main():
     # Группа -1: активность
     app.add_handler(TypeHandler(Update, track_user_activity), group=-1)
 
-    # help_setup — должен быть первым
+    # Основные фичи — группа 0
     help_setup(app)
-
-    # Остальные фичи
     setup_menu(app)
     setup_admin_handlers(app)
     setup_role_handlers(app)
@@ -198,10 +196,13 @@ def main():
     setup_premium_handlers(app)
 
     # Команда /start
-    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("start", start), group=0)
 
-    # 🔥 ВАЖНО: FAQ — ДОБАВЛЯЕМ САМЫМ ПОСЛЕДНИМ!
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_support_faq))
+    # 🔥 FAQ — САМЫЙ ПОСЛЕДНИЙ, группа 100
+    app.add_handler(
+        MessageHandler(filters.TEXT & ~filters.COMMAND, handle_support_faq),
+        group=100
+    )
 
     logger.info("🚀 Бот запущен...")
     app.run_polling()
