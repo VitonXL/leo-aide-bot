@@ -1,18 +1,21 @@
 # bot/main.py
 
-# Отладка — ДО импортов
+# 🔧 ДО всех импортов — добавляем корень в путь
 import sys
 import os
+
+# Добавляем корень проекта: /app
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 print("🔧 Запуск бота...")
 print("📂 Текущая директория:", os.getcwd())
 print("📦 Содержимое:", os.listdir("."))
-print("🔍 sys.path:", sys.path)
+print("🔍 Новый sys.path:", sys.path)
 
-# Импортируем глобальные переменные
+# Теперь можно импортировать
 from bot.instance import application as global_app, bot as global_bot
 
-# Импортируем БД
+# Остальные импорты
 from database import (
     create_db_pool,
     init_db,
@@ -26,7 +29,6 @@ from database import (
     get_db_pool,
 )
 
-# Импортируем фичи
 from features.menu import setup as setup_menu
 from features.admin import setup_admin_handlers
 from features.roles import setup_role_handlers
@@ -34,7 +36,19 @@ from features.referrals import setup_referral_handlers
 from features.premium import setup_premium_handlers
 from features.help import setup as help_setup
 
+from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton, MenuButtonWebApp, WebAppInfo
+from telegram.ext import (
+    Application,
+    ContextTypes,
+    CommandHandler,
+    CallbackQueryHandler,
+    TypeHandler,
+    MessageHandler,
+    filters,
+)
 from loguru import logger
+
+import os
 
 # Глобальная переменная пула
 db_pool = None
@@ -109,7 +123,9 @@ async def on_post_init(app: Application):
     app.bot_data['db_pool'] = db_pool
 
     # Сохраняем в bot.instance
+    global_app.__class__ = Application
     global_app = app
+    global_bot.__class__ = app.bot.__class__
     global_bot = app.bot
     logger.info("✅ Бот и application сохранены в bot.instance")
 
