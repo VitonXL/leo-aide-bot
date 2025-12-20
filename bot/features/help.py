@@ -12,15 +12,24 @@ SUPPORT_WAITING = set()
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     logger.debug(f"🔧 help_command вызван пользователем {update.effective_user.id}")
-    
+
+    # 🔒 Гарантируем, что это message
+    if not update.message:
+        logger.warning("⚠️ update.message is None in /help")
+        return
+
     keyboard = [[InlineKeyboardButton("📬 Написать в поддержку", callback_data="help_support")]]
-    await update.message.reply_text(
-        "🔧 Доступные команды:\n"
-        "/start — начать\n"
-        "/menu — главное меню\n\n"
-        "Если нужна помощь — напишите в поддержку!",
-        reply_markup=InlineKeyboardMarkup(keyboard)
-    )
+    try:
+        await update.message.reply_text(
+            "🔧 Доступные команды:\n"
+            "/start — начать\n"
+            "/menu — главное меню\n\n"
+            "Если нужна помощь — напишите в поддержку!",
+            reply_markup=InlineKeyboardMarkup(keyboard)
+        )
+        logger.info("✅ /help: сообщение отправлено")
+    except Exception as e:
+        logger.error(f"❌ Ошибка при отправке /help: {e}", exc_info=True)
 
 
 async def start_support_chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
