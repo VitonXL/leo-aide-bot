@@ -37,6 +37,7 @@ from features.roles import setup_role_handlers
 from features.referrals import setup_referral_handlers
 from features.premium import setup_premium_handlers
 from features.help import setup as help_setup
+from features.help import handle_support_message  # ✅ Импорт для MessageHandler
 
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton, MenuButtonWebApp, WebAppInfo
 from telegram.ext import (
@@ -187,22 +188,24 @@ def main():
     # Группа -1: активность
     app.add_handler(TypeHandler(Update, track_user_activity), group=-1)
 
-    # === ГРУППА 0: КОМАНДЫ И ФИЧИ, КОТОРЫЕ ДОЛЖНЫ БЫТЬ РАНЬШЕ ===
-
-    # Сначала — команды и callback'и
-    help_setup(app)            # /help, callback'и
-    setup_menu(app)            # /menu, callback'и
-    setup_admin_handlers(app)  # /admin, callback'и
+    # Основные фичи — группа 0
+    help_setup(app)
+    setup_menu(app)
+    setup_admin_handlers(app)
     setup_role_handlers(app)
     setup_referral_handlers(app)
     setup_premium_handlers(app)
 
-    # /start — тоже команда, должна быть в группе 0
+    # Команда /start
     app.add_handler(CommandHandler("start", start), group=0)
 
-    # === ГРУППА 100: ТЕКСТОВЫЕ СООБЩЕНИЯ ПОСЛЕ ВСЕГО ===
+    # 🔥 Режим поддержки — группа 50
+    app.add_handler(
+        MessageHandler(filters.TEXT & ~filters.COMMAND, handle_support_message),
+        group=50
+    )
 
-    # FAQ — только если никто другой не отреагировал
+    # 🔥 FAQ — САМЫЙ ПОСЛЕДНИЙ, группа 100
     app.add_handler(
         MessageHandler(filters.TEXT & ~filters.COMMAND, handle_support_faq),
         group=100
