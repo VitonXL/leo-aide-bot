@@ -1,4 +1,4 @@
-# /app/database.py
+# database.py
 import asyncpg
 import os
 from loguru import logger
@@ -178,7 +178,7 @@ async def is_premium_or_admin(pool, user_id: int) -> bool:
     role = await get_user_role(pool, user_id)
     return role in ['premium', 'admin']
 
-# --- НОВОЕ: Работа с настройками интерфейса ---
+# --- Работа с настройками интерфейса ---
 async def get_user_settings(pool, user_id: int) -> dict:
     async with pool.acquire() as conn:
         row = await conn.fetchrow('''
