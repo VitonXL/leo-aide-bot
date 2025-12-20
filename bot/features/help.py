@@ -1,13 +1,7 @@
 # bot/features/help.py
 
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
-from telegram.ext import (
-    ContextTypes,
-    CommandHandler,
-    CallbackQueryHandler,
-    MessageHandler,
-    filters,
-)
+from telegram.ext import ContextTypes, CommandHandler, CallbackQueryHandler
 from database import get_db_pool
 from loguru import logger
 import random
@@ -38,7 +32,7 @@ async def start_support_chat(update: Update, context: ContextTypes.DEFAULT_TYPE)
 async def handle_support_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     if user.id not in SUPPORT_WAITING:
-        return
+        return  # ← не блокируем, просто выходим
 
     text = update.message.text.strip()
     if len(text) < 5:
@@ -50,9 +44,7 @@ async def handle_support_message(update: Update, context: ContextTypes.DEFAULT_T
     try:
         pool = await get_db_pool()
         async with pool.acquire() as conn:
-            # Генерируем ticket_id
             ticket_id = f"TICKET-{1000 + user.id % 10000:04d}-{random.randint(10, 99)}"
-
             await conn.execute("""
                 INSERT INTO support_tickets (user_id, username, first_name, message, ticket_id)
                 VALUES ($1, $2, $3, $4, $5)
@@ -64,7 +56,6 @@ async def handle_support_message(update: Update, context: ContextTypes.DEFAULT_T
             "⏳ Администратор ответит в течение 24 часов.",
             parse_mode="Markdown"
         )
-
         logger.info(f"✅ Тикет {ticket_id} сохранён для {user.id}")
 
     except Exception as e:
@@ -77,6 +68,7 @@ async def handle_support_message(update: Update, context: ContextTypes.DEFAULT_T
 
 
 def setup(application):
+    # Только команды и callback'и
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CallbackQueryHandler(start_support_chat, pattern="^help_support$"))
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_support_message))
+    # ❌ Больше НЕ добавляем MessageHandler — пусть FAQ ловит
