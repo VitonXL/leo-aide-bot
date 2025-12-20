@@ -9,6 +9,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "..", "bot"))
 from fastapi import APIRouter, HTTPException, Body
 from loguru import logger
 from database import get_db_pool, ensure_support_table_exists  # ✅ Теперь найдёт
+from bot.instance import get_bot
 
 import asyncpg
 import os
@@ -63,6 +64,11 @@ async def get_user_data(user_id: int) -> Dict[str, Any]:
         logger.error(f"❌ Ошибка в get_user_data: {e}")
         return None
 
+async def reply_support(...):
+    try:
+        bot = get_bot()
+    except RuntimeError:
+        raise HTTPException(status_code=500, detail="Бот не запущен")
 
 @router.get("/user/{user_id}")
 async def get_user_status(user_id: int):
@@ -303,15 +309,19 @@ async def reply_support(
         if not ticket:
             raise HTTPException(status_code=404, detail="Тикет не найден")
 
-    # Получаем бота
-    try:
-        from bot.main import application
-        if not application:
-            raise RuntimeError("❌ application не инициализирован")
-        bot = application.bot
-    except Exception as e:
-        logger.error(f"❌ Не удалось получить бота: {e}")
-        raise HTTPException(status_code=500, detail="Сервис бота недоступен")
+  # Временное решение: создаём бота для отправки
+try:
+    token = os.getenv("BOT_TOKEN")
+    if not token:
+        raise RuntimeError("❌ BOT_TOKEN не задан")
+
+    from telegram.ext import Application
+    bot = Application.builder().token(token).build().bot
+    await bot.initialize()
+    logger.info("🤖 Бот временно инициализирован для отправки")
+except Exception as e:
+    logger.error(f"❌ Не удалось создать бота: {e}")
+    raise HTTPException(status_code=500, detail="Не удалось отправить ответ")
 
     # Отправляем ответ
     try:
