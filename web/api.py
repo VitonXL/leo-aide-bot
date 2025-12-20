@@ -361,3 +361,15 @@ async def reply_support(
     logger.info(f"✅ Тикет {ticket_id} успешно закрыт")
 
     return {"status": "ok", "message": "Ответ отправлен, тикет закрыт"}
+
+@router.get("/admin/reply-templates")
+async def get_reply_templates():
+    return {
+        "templates": [
+            {"id": "thanks", "title": "Спасибо", "text": "Спасибо за обращение! ✅"},
+            {"id": "fixed", "title": "Исправлено", "text": "Ошибка исправлена в последней версии. Обновите страницу."},
+            {"id": "check", "title": "Проверьте", "text": "Убедитесь, что вы вошли в аккаунт и обновили страницу."},
+            {"id": "info", "title": "Информация", "text": "Подробная инструкция: https://leo-aide.online/faq"},
+            {"id": "delay", "title": "Обработка", "text": "Мы получили ваше обращение и уже работаем над ним."}
+        ]
+    }
