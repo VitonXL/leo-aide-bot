@@ -5,7 +5,7 @@ import os
 from typing import Dict, Any
 
 # Добавляем путь к папке bot
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", "bot"))
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))  # Добавляем корень: /app
 
 from fastapi import APIRouter, HTTPException, Body
 from loguru import logger
