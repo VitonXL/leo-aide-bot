@@ -1,8 +1,7 @@
-/* === Дизайн-система Лео Помощник === */
 :root {
   --bg: #FFFFFF;
   --text: #212121;
-  --text-secondary: #757575;
+  --text-light: #757575;
   --accent-light: #B2FF59;
   --accent-dark: #4CAF50;
   --gold: #DAA520;
@@ -18,14 +17,13 @@
 }
 
 body {
-  font-family: 'Roboto', sans-serif;
+  font-family: 'Inter', sans-serif;
   background: var(--bg);
   color: var(--text);
   transition: var(--transition);
-  line-height: 1.6;
 }
 
-/* ===== САЙДБАР ===== */
+/* Сайдбар */
 .sidebar {
   position: fixed;
   left: 0;
@@ -54,7 +52,6 @@ body {
   font-weight: 700;
   color: var(--accent-dark);
   border-bottom: 2px solid var(--accent-light);
-  margin-bottom: 20px;
 }
 
 .logo-icon {
@@ -80,18 +77,12 @@ nav .nav-link:hover {
   color: var(--accent-dark);
 }
 
-nav .nav-link.active {
-  background: var(--accent-light);
-  color: var(--accent-dark);
-  font-weight: 500;
-}
-
-/* ===== ШАПКА ===== */
+/* Хедер */
 header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 0 20px;
+  padding: 16px 16px 20px;
   border-bottom: 1px solid #eee;
   margin-bottom: 20px;
 }
@@ -99,12 +90,12 @@ header {
 .hamburger {
   font-size: 24px;
   cursor: pointer;
-  padding: 8px;
   color: var(--accent-dark);
+  padding: 6px;
 }
 
-h1 {
-  font-size: 22px;
+header > div {
+  font-size: 18px;
   font-weight: 500;
   color: var(--accent-dark);
 }
@@ -112,13 +103,13 @@ h1 {
 .header-icons {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
 }
 
 .material-icons {
-  cursor: pointer;
-  color: var(--text-secondary);
   font-size: 20px;
+  color: var(--text-light);
+  cursor: pointer;
 }
 
 .avatar {
@@ -134,13 +125,14 @@ h1 {
   font-size: 16px;
 }
 
-/* ===== КОНТЕЙНЕР ===== */
+/* Контент */
 .container {
   max-width: 1200px;
   margin: 0 auto;
+  padding: 0 16px;
 }
 
-/* ===== КАРТОЧКИ ===== */
+/* Карточки */
 .card {
   background: var(--bg);
   border-radius: var(--border-radius);
@@ -148,19 +140,11 @@ h1 {
   box-shadow: var(--shadow);
   margin-bottom: 24px;
   border: 1px solid #f0f0f0;
-  transition: var(--transition);
 }
 
-.card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-}
-
-/* Премиум-хайлайт */
 .card.highlight {
   background: linear-gradient(135deg, var(--accent-light), #CCFF90);
   position: relative;
-  overflow: hidden;
 }
 
 .card.highlight::before {
@@ -173,15 +157,6 @@ h1 {
   background: var(--gold);
 }
 
-.card.highlight h2 {
-  color: var(--accent-dark);
-}
-
-.card.highlight p {
-  color: var(--text-secondary);
-}
-
-/* ===== ПОДПИСКА ===== */
 .subscription-badge {
   display: inline-block;
   padding: 4px 12px;
@@ -189,64 +164,10 @@ h1 {
   font-size: 12px;
   font-weight: 500;
   color: white;
-  background: var(--accent-dark);
   margin-bottom: 12px;
 }
 
-.subscription-badge.premium {
-  background: var(--gold);
-}
-
-/* ===== ПРОГРЕСС-БАР (Поддержка бота) ===== */
-.progress-bar {
-  height: 8px;
-  background: #eee;
-  border-radius: 4px;
-  overflow: hidden;
-  margin: 12px 0 16px;
-}
-
-.progress {
-  height: 100%;
-  background: var(--accent-dark);
-  width: 0;
-  transition: width 0.8s ease;
-}
-
-/* ===== КНОПКИ ===== */
-.btn-primary {
-  background: var(--accent-dark);
-  color: white;
-  border: none;
-  padding: 12px 20px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: var(--transition);
-}
-
-.btn-primary:hover {
-  background: #388E3C;
-  transform: translateY(-1px);
-}
-
-.btn-sm {
-  background: var(--gold);
-  color: white;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 12px;
-  cursor: pointer;
-  transition: var(--transition);
-}
-
-.btn-sm:hover {
-  background: #C8A415;
-}
-
-/* ===== БЫСТРЫЕ ДЕЙСТВИЯ ===== */
+/* Быстрые действия */
 .button-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
@@ -282,40 +203,69 @@ h1 {
   font-weight: 500;
 }
 
-/* ===== РЕФЕРАЛЬНАЯ ССЫЛКА ===== */
-.referral-code {
-  display: flex;
-  gap: 10px;
-  margin-top: 12px;
+/* Виджеты внизу */
+.widget-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 16px;
+  margin-bottom: 40px;
 }
 
-#ref-link {
-  flex: 1;
-  background: #f9f9f9;
-  border: 1px dashed #ddd;
-  padding: 10px;
-  border-radius: 6px;
+.widget {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  box-shadow: var(--shadow);
+  border: 1px solid #f0f0f0;
+  transition: var(--transition);
+}
+
+.widget:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.widget-icon {
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+
+.widget-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-light);
+}
+
+.widget-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--accent-dark);
+}
+
+.widget-sub {
   font-size: 12px;
-  color: var(--text-secondary);
-  overflow: hidden;
-  text-overflow: ellipsis;
+  color: var(--text-light);
 }
 
-.copy-btn {
+/* Кнопки */
+.btn-primary {
   background: var(--accent-dark);
   color: white;
   border: none;
-  padding: 0 12px;
-  border-radius: 6px;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
   transition: var(--transition);
 }
 
-.copy-btn:hover {
+.btn-primary:hover {
   background: #388E3C;
 }
 
-/* ===== FAB (плавающая кнопка) ===== */
+/* FAB */
 .fab {
   position: fixed;
   bottom: 30px;
@@ -330,43 +280,45 @@ h1 {
   box-shadow: var(--shadow);
   cursor: pointer;
   z-index: 100;
-  transition: var(--transition);
   display: flex;
   align-items: center;
   justify-content: center;
+  animation: pulse 2s infinite;
 }
 
-.fab:hover {
-  transform: scale(1.1);
-  background: #388E3C;
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
 }
 
-/* ===== ЗОЛОТОЙ СТАТУС (Премиум) ===== */
-.premium-tag {
-  background: var(--gold);
-  color: white;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 500;
+/* Оверлей */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  display: none;
 }
 
-/* ===== АДАПТИВНОСТЬ ===== */
-@media (min-width: 768px) {
-  .main-content {
-    margin-left: 250px;
-  }
-  .overlay {
-    display: none;
-  }
-}
-
-/* На маленьких экранах */
+/* Адаптив */
 @media (max-width: 767px) {
   .main-content {
-    padding: 16px;
+    padding: 0;
+  }
+  .container {
+    padding: 0 16px;
   }
   .card {
     padding: 20px;
+  }
+  .widget-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .button-grid {
+    grid-template-columns: 1fr 1fr;
   }
 }
