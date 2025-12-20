@@ -1,10 +1,18 @@
 # web/api.py
 
+import sys
 import os
-import asyncpg
+
+# ✅ Добавляем путь к bot/
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "bot"))
+
 from fastapi import APIRouter, HTTPException, Body
-from typing import Dict, Any
 from loguru import logger
+from database import get_db_pool  # ✅ Теперь работает
+
+import asyncpg
+import os
+from typing import Dict, Any
 
 router = APIRouter()
 
@@ -13,6 +21,8 @@ if not DATABASE_URL:
     raise RuntimeError("❌ DATABASE_URL не задана")
 
 print(f"✅ DATABASE_URL: {DATABASE_URL[:30]}...")
+
+# Остальной код остаётся как есть
 
 db_pool = None
 
@@ -284,6 +294,12 @@ async def get_support_tickets():
             }
             for r in rows
         ]
+    
+    # Добавляем путь к папке bot
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "bot"))
+
+    #Теперь можно импортировать
+from database import get_db_pool, ensure_support_table_exists
 
 
 @router.post("/admin/reply-support")
