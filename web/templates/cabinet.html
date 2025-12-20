@@ -7,11 +7,11 @@
   <link rel="shortcut icon" href="/static/favicon.ico" type="image/x-icon">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <link rel="stylesheet" href="/static/css/main.css?v=9" />
+  <link rel="stylesheet" href="/static/css/main.css?v=10" />
 </head>
 <body>
 
-  <!-- Сайдбар (раскрывается) -->
+  <!-- Сайдбар -->
   <div class="sidebar" id="sidebar">
     <div class="logo">
       <span class="logo-icon">🌱</span>
@@ -61,7 +61,7 @@
 
     <div class="container">
 
-      <!-- Приветственный блок -->
+      <!-- Приветствие -->
       <div class="card highlight" id="welcome-card">
         <div class="subscription-badge" id="sub-badge">Базовая</div>
         <h2>🌱 Добро пожаловать в Лео</h2>
@@ -92,34 +92,26 @@
         </a>
       </div>
 
-      <!-- Виджеты: погода, курсы, чат, напоминания -->
+      <!-- Виджеты -->
       <div class="widget-grid">
-        
-        <!-- Погода -->
         <div class="widget weather-widget">
           <div class="widget-icon">🌤</div>
           <div class="widget-title">Погода</div>
           <div class="widget-value"><span id="current-temp">+12°C</span></div>
           <div class="widget-sub">в Москве</div>
         </div>
-
-        <!-- Курсы валют -->
         <div class="widget currency-widget">
           <div class="widget-icon">💵</div>
           <div class="widget-title">Курс USD</div>
           <div class="widget-value"><span id="usd-rate">98.50</span> ₽</div>
           <div class="widget-sub">на сегодня</div>
         </div>
-
-        <!-- GigaChat -->
         <div class="widget chat-widget">
           <div class="widget-icon">🤖</div>
           <div class="widget-title">GigaChat</div>
           <div class="widget-value">{{ user.gigachat_requests or 0 }}/10</div>
           <div class="widget-sub">запросов</div>
         </div>
-
-        <!-- Напоминания -->
         <div class="widget reminder-widget">
           <div class="widget-icon">🛎</div>
           <div class="widget-title">Напоминания</div>
@@ -128,13 +120,9 @@
         </div>
       </div>
 
-      <!-- Лента новостей -->
+      <!-- Новости -->
       <div class="section-title">📰 Новости дня</div>
-      <div class="news-feed" id="news-feed">
-        <!-- Новости загрузятся через JS -->
-      </div>
-
-      <!-- Кнопка "Ещё" -->
+      <div class="news-feed" id="news-feed"></div>
       <div class="news-footer">
         <button class="btn-sm" onclick="loadMoreNews()">Ещё новости</button>
       </div>
@@ -149,9 +137,8 @@
   <div class="overlay" onclick="toggleSidebar()"></div>
 
   <!-- Скрипты -->
-  <script src="/static/js/main.js?v=9"></script>
+  <script src="/static/js/main.js?v=10"></script>
   <script>
-    // Данные пользователя
     const userData = {
       id: {{ user.id if user.id else 'null' }},
       firstName: "{{ user.first_name|default('Пользователь', true) }}",
@@ -161,7 +148,6 @@
       reminders: {{ user.reminders if user.reminders else 2 }}
     };
 
-    // Приветствие по времени
     function updateGreeting() {
       const hour = new Date().getHours();
       const map = { 5: "Доброе утро", 12: "Добрый день", 18: "Добрый вечер", 22: "Доброй ночи" };
@@ -172,19 +158,16 @@
       document.getElementById('mood-icon').textContent = i;
     }
 
-    // Статус подписки
     const badge = document.getElementById('sub-badge');
     if (badge) {
       if (userData.isPremium) {
         badge.textContent = 'Премиум';
-        badge.style.background = '#DAA520';
+        badge.classList.add('premium');
       } else {
         badge.textContent = 'Базовая';
-        badge.style.background = '#4CAF50';
       }
     }
 
-    // Показ админки
     if (userData.role === 'admin' && document.getElementById('admin-link')) {
       document.getElementById('admin-link').style.display = 'flex';
     }
@@ -203,7 +186,6 @@
       const container = document.getElementById('news-feed');
       if (!container) return;
       container.innerHTML = '';
-
       const toShow = mockNews.slice(0, count);
       toShow.forEach(news => {
         const item = document.createElement('div');
@@ -225,7 +207,6 @@
       renderNews(nextCount);
     }
 
-    // При загрузке
     document.addEventListener('DOMContentLoaded', () => {
       updateGreeting();
       renderNews(3);
