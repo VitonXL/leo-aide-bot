@@ -119,13 +119,16 @@ async def forward_admin_reply(update: Update, context: ContextTypes.DEFAULT_TYPE
         logger.info(f"🔍 Обработка тикета: {ticket_id}")
 
         pool = context.application.bot_data['db_pool']
+        logger.info(f"🔍 Поиск тикета в БД: {ticket_id}")
         row = await pool.fetchrow("SELECT user_id, username FROM support_tickets WHERE ticket_id = $1", ticket_id)
         if not row:
-            await update.message.reply_text("❌ Тикет не найден")
+            logger.error(f"❌ Тикет {ticket_id} не найден в БД")
+            await update.message.reply_text("❌ Тикет не найден в базе данных")
             return
 
         user_id = row['user_id']
         username = f"@{row['username']}" if row['username'] else "Пользователь"
+        logger.info(f"🎯 Найден пользователь: {user_id} ({username})")
 
         if update.message.text:
             await context.bot.send_message(
