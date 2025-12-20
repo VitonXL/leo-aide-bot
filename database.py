@@ -1,4 +1,4 @@
-# bot/database.py
+# /database.py
 
 import asyncpg
 import os
