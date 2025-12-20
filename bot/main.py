@@ -1,19 +1,22 @@
 # bot/main.py
 
-# 🔧 ДО всех импортов — добавляем корень в путь
+# 🔴 САМОЕ ПЕРВОЕ, ЧТО ДЕЛАЕТ ФАЙЛ — добавляем /app в путь
 import sys
 import os
 
-# Добавляем корень проекта: /app
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Получаем путь к корню: /app
+root_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if root_path not in sys.path:
+    sys.path.insert(0, root_path)
 
+# Теперь можно импортировать
+from bot.instance import application as global_app, bot as global_bot
+
+# Выводим отладку — уже после импортов
 print("🔧 Запуск бота...")
 print("📂 Текущая директория:", os.getcwd())
 print("📦 Содержимое:", os.listdir("."))
 print("🔍 Новый sys.path:", sys.path)
-
-# Теперь можно импортировать
-from bot.instance import application as global_app, bot as global_bot
 
 # Остальные импорты
 from database import (
@@ -123,9 +126,7 @@ async def on_post_init(app: Application):
     app.bot_data['db_pool'] = db_pool
 
     # Сохраняем в bot.instance
-    global_app.__class__ = Application
     global_app = app
-    global_bot.__class__ = app.bot.__class__
     global_bot = app.bot
     logger.info("✅ Бот и application сохранены в bot.instance")
 
