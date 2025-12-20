@@ -1,8 +1,15 @@
 # web/api.py
 
+import sys
+import os
+
+# Добавляем путь к папке bot
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "bot"))
+
 from fastapi import APIRouter, HTTPException, Body
 from loguru import logger
-from database import get_db_pool, ensure_support_table_exists  # ✅ Из корня
+from database import get_db_pool, ensure_support_table_exists  # ✅ Теперь найдёт
+
 import asyncpg
 import os
 from typing import Dict, Any
@@ -274,7 +281,7 @@ async def get_support_tickets():
     
 
     #Теперь можно импортировать
-from database import get_db_pool, ensure_support_table_exists
+from bot.database import get_db_pool, ensure_support_table_exists
 
 
 @router.post("/admin/reply-support")
@@ -285,7 +292,7 @@ async def reply_support(
     """
     Отправляет ответ пользователю и закрывает тикет.
     """
-    from database import get_db_pool
+    from bot.database import get_db_pool
     pool = await get_db_pool()
 
     # Получаем данные тикета
