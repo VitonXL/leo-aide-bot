@@ -2,6 +2,7 @@
 
 import os
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton, MenuButtonWebApp, WebAppInfo
+from bot.instance import application as bot_app, bot as bot_instance
 from telegram.ext import (
     Application,
     ContextTypes,
@@ -99,6 +100,12 @@ async def cleanup_task(context: ContextTypes.DEFAULT_TYPE):
     await delete_inactive_users(db_pool, days=90)
     await cleanup_support_tickets(db_pool, days=7)
 
+async def on_post_init(app: Application):
+    global db_pool
+    # Сохраняем глобально
+    bot_app = app  # ← сохраняем в instance
+    bot_instance = app.bot
+    # ... остальное
 
 # --- Инициализация ---
 async def on_post_init(app: Application):
