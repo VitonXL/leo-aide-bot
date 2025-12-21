@@ -5,6 +5,12 @@
 {% block content %}
   {% include "components/header.html" %}
 
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      setPageTitle("Главная");
+    });
+  </script>
+
   <div class="container" style="max-width: 800px; margin: 0 auto; padding: 40px 20px; text-align: center;">
     <script>
       document.addEventListener('DOMContentLoaded', () => {
