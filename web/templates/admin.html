@@ -1,128 +1,98 @@
 <!DOCTYPE html>
-<html lang="ru" data-theme="light">
+<html lang="ru" class="gradient-bg" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Админ-панель — Лео</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/css/main.css" />
-  <style>
-    body { font-family: Roboto, sans-serif; margin: 0; background: #f5f5f5; }
-    header {
-      display: flex; align-items: center; padding: 15px; background: white; border-bottom: 1px solid #ddd;
-      position: sticky; top: 0; z-index: 100;
-    }
-    .back-btn {
-      background: none; border: 1px solid #ddd; padding: 8px 16px; border-radius: 8px;
-      color: #4CAF50; cursor: pointer; font-size: 14px; font-family: inherit;
-    }
-    .back-btn:hover { background: #4CAF50; color: white; border-color: #4CAF50; }
-    .title { font-size: 18px; font-weight: 500; margin: 0 15px; }
-    .admin-badge { margin-left: auto; background: #8E24AA; color: white; padding: 6px 12px; border-radius: 12px; }
-    main { padding: 20px; max-width: 1200px; margin: 0 auto; }
-    .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-    .btn {
-      padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px;
-    }
-    .btn.primary { background: #4CAF50; color: white; }
-    .text-danger { color: #D32F2F; }
-    .section { margin-top: 20px; }
-    .chart-wrapper {
-      display: flex;
-      justify-content: center;
-      margin: 20px 0;
-    }
-  </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-
-  <div class="screen active">
-    <header>
-      <button class="back-btn" type="button" onclick="goBack()">← Назад</button>
-      <div class="title">Админ-панель</div>
-      <span class="admin-badge">👑 Админ</span>
+  <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 20px;">
+    
+    <!-- Хедер -->
+    <header style="display: flex; align-items: center; gap: 16px; margin-bottom: 30px;">
+      <button class="btn" onclick="goBack()" style="padding: 8px 16px; font-size: 14px;">← Назад</button>
+      <h1 style="margin: 0; color: var(--accent);">👮‍♂️ Админ-панель</h1>
+      <div style="margin-left: auto; background: #8E24AA; color: white; padding: 6px 12px; border-radius: 12px; font-size: 14px;">👑 Админ</div>
     </header>
 
-    <main>
-      <!-- Режим отображения -->
-      <div style="margin-bottom: 20px; text-align: right;">
-        <label><strong>Режим:</strong></label>
-        <select id="view-mode" onchange="changeViewMode(this.value)">
-          <option value="cards">Карточки</option>
-          <option value="table">Таблица</option>
-          <option value="chart">График</option>
-          <option value="bars">Столбцы</option>
-        </select>
-      </div>
+    <!-- Режим отображения -->
+    <div style="margin-bottom: 20px; text-align: right;">
+      <label style="color: var(--text-secondary);"><strong>Режим:</strong></label>
+      <select id="view-mode" onchange="changeViewMode(this.value)" style="padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--card-bg); color: var(--text);">
+        <option value="cards">Карточки</option>
+        <option value="table">Таблица</option>
+        <option value="chart">График</option>
+        <option value="bars">Столбцы</option>
+      </select>
+    </div>
 
-      <!-- Статистика -->
-      <div id="stats-container">
-        <div class="card">
-          <h3>📊 Статистика</h3>
-          <p><strong>Всего:</strong> <span id="total-users">–</span></p>
-          <p><strong>Премиум:</strong> <span id="premium-users">–</span></p>
-          <p><strong>Сегодня:</strong> <span id="active-today">–</span></p>
-          <p><strong>Рефералов:</strong> <span id="referrals-count">–</span></p>
-        </div>
-      </div>
+    <!-- Статистика -->
+    <div id="stats-container" class="card" style="margin-bottom: 30px;">
+      <h3>📊 Статистика</h3>
+      <p><strong>Всего:</strong> <span id="total-users">–</span></p>
+      <p><strong>Премиум:</strong> <span id="premium-users">–</span></p>
+      <p><strong>Сегодня:</strong> <span id="active-today">–</span></p>
+      <p><strong>Рефералов:</strong> <span id="referrals-count">–</span></p>
+    </div>
 
-      <!-- Поиск пользователя -->
-      <div class="card section">
-        <h3>🔍 Поиск пользователя</h3>
-        <input type="text" id="search-user" placeholder="ID или @username" style="width: 70%; padding: 10px; margin-right: 10px;">
-        <button class="btn primary" onclick="searchUser()">Поиск</button>
-        <div id="user-actions" style="display: none; margin-top: 15px;">
-          <p><strong>Найден:</strong> <span id="found-user"></span></p>
+    <!-- Поиск пользователя -->
+    <div class="card" style="margin-bottom: 30px;">
+      <h3>🔍 Поиск пользователя</h3>
+      <div style="display: flex; gap: 10px; margin: 15px 0;">
+        <input type="text" id="search-user" placeholder="ID или @username" style="flex: 1; padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--card-bg); color: var(--text);">
+        <button class="btn" onclick="searchUser()">Поиск</button>
+      </div>
+      <div id="user-actions" style="display: none; margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border);">
+        <p style="color: var(--text-secondary);"><strong>Найден:</strong> <span id="found-user"></span></p>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
           <button class="btn" style="background: #4CAF50;" onclick="grantPremium()">✅ Выдать премиум</button>
           <button class="btn" style="background: #FF9800;" onclick="revokePremium()">🚫 Снять</button>
           <button class="btn" style="background: #F44336;" onclick="blockUser()">⛔ Заблокировать</button>
         </div>
       </div>
+    </div>
 
-      <!-- Модерация отзывов -->
-      <div class="card section">
-        <h3>📝 Модерация отзывов</h3>
-        <div id="reviews-list" style="max-height: 300px; overflow-y: auto;">
-          <p>Загрузка...</p>
-        </div>
+    <!-- Модерация отзывов -->
+    <div class="card" style="margin-bottom: 30px;">
+      <h3>📝 Модерация отзывов</h3>
+      <div id="reviews-list" style="max-height: 300px; overflow-y: auto;">
+        <p>Загрузка...</p>
       </div>
+    </div>
 
-      <!-- Техподдержка -->
-      <div class="card section">
-        <h3>📬 Техподдержка</h3>
-        <div id="support-list" style="max-height: 300px; overflow-y: auto;">
-          <p>Загрузка обращений...</p>
-        </div>
+    <!-- Техподдержка -->
+    <div class="card" style="margin-bottom: 30px;">
+      <h3>📬 Техподдержка</h3>
+      <div id="support-list" style="max-height: 300px; overflow-y: auto;">
+        <p>Загрузка обращений...</p>
       </div>
+    </div>
 
-      <div class="templates">
-  <h4>📝 Шаблоны ответов:</h4>
-  <button onclick="useTemplate('Спасибо за обращение! ✅')">Спасибо</button>
-  <button onclick="useTemplate('Ошибка исправлена в последней версии. Обновите страницу.')">Исправлено</button>
-  <button onclick="useTemplate('Убедитесь, что вы вошли в аккаунт и обновили страницу.')">Проверьте</button>
-  <button onclick="useTemplate('Подробная инструкция: https://leo-aide.online/faq')">Инструкция</button>
-  <button onclick="useTemplate('Мы получили ваше обращение и уже работаем над ним.')">Обработка</button>
-</div>
-
-<script>
-function useTemplate(text) {
-  document.getElementById('reply-text').value = text;
-}
-</script>
-
-      <!-- Реклама -->
-      <div class="card section">
-        <h3>📢 Реклама</h3>
-        <div id="ads-list" style="margin-top: 15px;">
-          <p>🛠 Функция в разработке</p>
-        </div>
+    <!-- Шаблоны ответов -->
+    <div class="card" style="margin-bottom: 30px;">
+      <h3>📝 Шаблоны ответов</h3>
+      <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
+        <button class="btn" onclick="useTemplate('Спасибо за обращение! ✅')" style="padding: 8px 12px; font-size: 14px;">Спасибо</button>
+        <button class="btn" onclick="useTemplate('Ошибка исправлена в последней версии. Обновите страницу.')" style="padding: 8px 12px; font-size: 14px;">Исправлено</button>
+        <button class="btn" onclick="useTemplate('Убедитесь, что вы вошли в аккаунт и обновили страницу.')" style="padding: 8px 12px; font-size: 14px;">Проверьте</button>
+        <button class="btn" onclick="useTemplate('Подробная инструкция: https://leo-aide.online/faq')" style="padding: 8px 12px; font-size: 14px;">Инструкция</button>
+        <button class="btn" onclick="useTemplate('Мы получили ваше обращение и уже работаем над ним.')" style="padding: 8px 12px; font-size: 14px;">Обработка</button>
       </div>
-    </main>
+    </div>
+
+    <!-- Реклама -->
+    <div class="card">
+      <h3>📢 Реклама</h3>
+      <div id="ads-list" style="margin-top: 15px;">
+        <p>🛠 Функция в разработке</p>
+      </div>
+    </div>
   </div>
 
-  <!-- 🔥 Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+  <!-- Скрипты -->
   <script>
     let statsData = {};
     let currentChart = null;
@@ -161,21 +131,21 @@ function useTemplate(text) {
     function renderStatsCards() {
       document.getElementById('stats-container').innerHTML = `
         <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-          <div style="flex: 1; min-width: 200px; background: #1976D2; color: white; padding: 20px; border-radius: 12px; text-align: center;">
-            <h4>${statsData.total_users || 0}</h4>
-            <p>Пользователей</p>
+          <div style="flex: 1; min-width: 200px; background: #1976D2; color: white; padding: 20px; border-radius: var(--radius-md); text-align: center;">
+            <h4 style="margin: 0; font-size: 28px;">${statsData.total_users || 0}</h4>
+            <p style="margin: 8px 0 0; opacity: 0.9;">Пользователей</p>
           </div>
-          <div style="flex: 1; min-width: 200px; background: #388E3C; color: white; padding: 20px; border-radius: 12px; text-align: center;">
-            <h4>${statsData.premium_users || 0}</h4>
-            <p>Премиум</p>
+          <div style="flex: 1; min-width: 200px; background: #388E3C; color: white; padding: 20px; border-radius: var(--radius-md); text-align: center;">
+            <h4 style="margin: 0; font-size: 28px;">${statsData.premium_users || 0}</h4>
+            <p style="margin: 8px 0 0; opacity: 0.9;">Премиум</p>
           </div>
-          <div style="flex: 1; min-width: 200px; background: #1976D2; color: white; padding: 20px; border-radius: 12px; text-align: center;">
-            <h4>${statsData.active_today || 0}</h4>
-            <p>Активно сегодня</p>
+          <div style="flex: 1; min-width: 200px; background: #1976D2; color: white; padding: 20px; border-radius: var(--radius-md); text-align: center;">
+            <h4 style="margin: 0; font-size: 28px;">${statsData.active_today || 0}</h4>
+            <p style="margin: 8px 0 0; opacity: 0.9;">Активно сегодня</p>
           </div>
-          <div style="flex: 1; min-width: 200px; background: #FF8F00; color: white; padding: 20px; border-radius: 12px; text-align: center;">
-            <h4>${statsData.referrals_count || 0}</h4>
-            <p>Рефералов</p>
+          <div style="flex: 1; min-width: 200px; background: #FF8F00; color: white; padding: 20px; border-radius: var(--radius-md); text-align: center;">
+            <h4 style="margin: 0; font-size: 28px;">${statsData.referrals_count || 0}</h4>
+            <p style="margin: 8px 0 0; opacity: 0.9;">Рефералов</p>
           </div>
         </div>`;
     }
@@ -185,39 +155,39 @@ function useTemplate(text) {
         <table style="
           width: 100%;
           border-collapse: collapse;
-          background: white;
-          border-radius: 12px;
+          background: var(--card-bg);
+          border-radius: var(--radius-md);
           overflow: hidden;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+          box-shadow: var(--shadow);
           font-size: 14px;
         ">
           <thead>
             <tr style="
-              background: #f8f9fa;
-              color: #333;
+              background: var(--accent-light);
+              color: var(--text);
               font-weight: 500;
               text-align: left;
             ">
-              <th style="padding: 14px 20px; border-bottom: 2px solid #ddd;">Метрика</th>
-              <th style="padding: 14px 20px; border-bottom: 2px solid #ddd;">Значение</th>
+              <th style="padding: 14px 20px; border-bottom: 2px solid var(--border);">Метрика</th>
+              <th style="padding: 14px 20px; border-bottom: 2px solid var(--border);">Значение</th>
             </tr>
           </thead>
           <tbody>
-            <tr style="background: #f9f9f9;">
-              <td style="padding: 14px 20px; border-bottom: 1px solid #eee; color: #555;">Пользователи</td>
-              <td style="padding: 14px 20px; border-bottom: 1px solid #eee; font-weight: 500; color: #1976D2;">${statsData.total_users || 0}</td>
+            <tr style="background: var(--bg);">
+              <td style="padding: 14px 20px; border-bottom: 1px solid var(--border); color: var(--text-secondary);">Пользователи</td>
+              <td style="padding: 14px 20px; border-bottom: 1px solid var(--border); font-weight: 500; color: #1976D2;">${statsData.total_users || 0}</td>
             </tr>
-            <tr style="background: white;">
-              <td style="padding: 14px 20px; border-bottom: 1px solid #eee; color: #555;">Премиум</td>
-              <td style="padding: 14px 20px; border-bottom: 1px solid #eee; font-weight: 500; color: #388E3C;">${statsData.premium_users || 0}</td>
+            <tr style="background: var(--card-bg);">
+              <td style="padding: 14px 20px; border-bottom: 1px solid var(--border); color: var(--text-secondary);">Премиум</td>
+              <td style="padding: 14px 20px; border-bottom: 1px solid var(--border); font-weight: 500; color: #388E3C;">${statsData.premium_users || 0}</td>
             </tr>
-            <tr style="background: #f9f9f9;">
-              <td style="padding: 14px 20px; border-bottom: 1px solid #eee; color: #555;">Активно сегодня</td>
-              <td style="padding: 14px 20px; border-bottom: 1px solid #eee; font-weight: 500; color: #1976D2;">${statsData.active_today || 0}</td>
+            <tr style="background: var(--bg);">
+              <td style="padding: 14px 20px; border-bottom: 1px solid var(--border); color: var(--text-secondary);">Активно сегодня</td>
+              <td style="padding: 14px 20px; border-bottom: 1px solid var(--border); font-weight: 500; color: #1976D2;">${statsData.active_today || 0}</td>
             </tr>
-            <tr style="background: white;">
-              <td style="padding: 14px 20px; border-bottom: 1px solid #eee; color: #555;">Рефералов</td>
-              <td style="padding: 14px 20px; border-bottom: 1px solid #eee; font-weight: 500; color: #FF8F00;">${statsData.referrals_count || 0}</td>
+            <tr style="background: var(--card-bg);">
+              <td style="padding: 14px 20px; border-bottom: 1px solid var(--border); color: var(--text-secondary);">Рефералов</td>
+              <td style="padding: 14px 20px; border-bottom: 1px solid var(--border); font-weight: 500; color: #FF8F00;">${statsData.referrals_count || 0}</td>
             </tr>
           </tbody>
         </table>
@@ -231,26 +201,13 @@ function useTemplate(text) {
       }
 
       const container = document.getElementById('stats-container');
-      const wrapper = document.createElement('div');
-      wrapper.className = 'chart-wrapper';
-      wrapper.style.display = 'flex';
-      wrapper.style.justifyContent = 'center';
-      wrapper.style.margin = '20px 0';
-
-      const canvas = document.createElement('canvas');
-      canvas.id = 'activityChart';
-      canvas.width = 600;
-      canvas.height = 300;
-
-      wrapper.appendChild(canvas);
-      container.innerHTML = '';
-      container.appendChild(wrapper);
+      container.innerHTML = '<div class="chart-wrapper"><canvas id="activityChart"></canvas></div>';
 
       requestAnimationFrame(() => {
         fetch('/api/admin/activity-by-day')
           .then(res => res.json())
           .then(data => {
-            const ctx = canvas.getContext('2d');
+            const ctx = document.getElementById('activityChart').getContext('2d');
             currentChart = new Chart(ctx, {
               type: 'line',
               data: {
@@ -265,7 +222,7 @@ function useTemplate(text) {
                 }]
               },
               options: {
-                responsive: false,
+                responsive: true,
                 maintainAspectRatio: false,
                 animation: { duration: 400 },
                 plugins: { legend: { display: true } }
@@ -286,26 +243,13 @@ function useTemplate(text) {
       }
 
       const container = document.getElementById('stats-container');
-      const wrapper = document.createElement('div');
-      wrapper.className = 'chart-wrapper';
-      wrapper.style.display = 'flex';
-      wrapper.style.justifyContent = 'center';
-      wrapper.style.margin = '20px 0';
-
-      const canvas = document.createElement('canvas');
-      canvas.id = 'commandsChart';
-      canvas.width = 600;
-      canvas.height = 300;
-
-      wrapper.appendChild(canvas);
-      container.innerHTML = '';
-      container.appendChild(wrapper);
+      container.innerHTML = '<div class="chart-wrapper"><canvas id="commandsChart"></canvas></div>';
 
       requestAnimationFrame(() => {
         fetch('/api/admin/top-commands')
           .then(res => res.json())
           .then(data => {
-            const ctx = canvas.getContext('2d');
+            const ctx = document.getElementById('commandsChart').getContext('2d');
             currentChart = new Chart(ctx, {
               type: 'bar',
               data: {
@@ -317,7 +261,7 @@ function useTemplate(text) {
                 }]
               },
               options: {
-                responsive: false,
+                responsive: true,
                 maintainAspectRatio: false,
                 animation: { duration: 400 },
                 indexAxis: 'y',
@@ -402,13 +346,13 @@ function useTemplate(text) {
         const reviews = await res.json();
         const container = document.getElementById('reviews-list');
         container.innerHTML = reviews.map(r => `
-          <div style="padding: 10px; border-bottom: 1px solid #eee;">
+          <div style="padding: 12px; border-bottom: 1px solid var(--border);">
             <strong>${r.first_name} (@${r.username})</strong> <span style="color: #FFA000;">⭐ ${r.rating}</span>
-            <p style="margin: 8px 0;">${r.text}</p>
-            <small>${new Date(r.created_at).toLocaleString()}</small>
-            <div style="margin-top: 8px;">
-              <button class="btn" style="background: #4CAF50; padding: 5px 10px;" onclick="approveReview(${r.id})">✅ Принять</button>
-              <button class="btn" style="background: #F44336; padding: 5px 10px;" onclick="deleteReview(${r.id})">🗑 Удалить</button>
+            <p style="margin: 8px 0; color: var(--text);">${r.text}</p>
+            <small style="color: var(--text-secondary);">${new Date(r.created_at).toLocaleString()}</small>
+            <div style="margin-top: 8px; display: flex; gap: 8px;">
+              <button class="btn" style="padding: 5px 10px; font-size: 12px;" onclick="approveReview(${r.id})">✅ Принять</button>
+              <button class="btn" style="background: #F44336; padding: 5px 10px; font-size: 12px;" onclick="deleteReview(${r.id})">🗑 Удалить</button>
             </div>
           </div>
         `).join('');
@@ -424,9 +368,9 @@ function useTemplate(text) {
         const tickets = await res.json();
         const container = document.getElementById('support-list');
         container.innerHTML = tickets.map(t => `
-          <div style="padding: 10px; border-bottom: 1px solid #eee;">
+          <div style="padding: 12px; border-bottom: 1px solid var(--border);">
             <strong>@${t.username}</strong> (${t.first_name})
-            <p style="margin: 8px 0; font-size: 14px; white-space: pre-wrap;">${t.message}</p>
+            <p style="margin: 8px 0; font-size: 14px; white-space: pre-wrap; color: var(--text);">${t.message}</p>
             <span style="
               font-size: 12px;
               padding: 3px 8px;
@@ -436,9 +380,9 @@ function useTemplate(text) {
             ">
               ${t.status === 'open' ? '🔴 Открыт' : t.status === 'in_progress' ? '🟡 В работе' : '🟢 Закрыт'}
             </span>
-            <small>${new Date(t.created_at).toLocaleString()}</small>
+            <small style="color: var(--text-secondary);">${new Date(t.created_at).toLocaleString()}</small>
             <div style="margin-top: 8px;">
-              <button class="btn" style="background: #2196F3; padding: 5px 10px;"
+              <button class="btn" style="background: #2196F3; padding: 5px 10px; font-size: 12px;"
                   onclick="replyToTicket(${t.id}, ${t.user_id})">💬 Ответить</button>
             </div>
           </div>
@@ -463,15 +407,14 @@ function useTemplate(text) {
         if (res.ok) {
           const data = await res.json();
           alert(data.message || '✅ Ответ отправлен');
-          await loadSupportTickets(); // Обновляем список
+          await loadSupportTickets();
         } else {
-          // Если сервер прислал текст (не JSON)
           const text = await res.text();
           console.error('Ошибка сервера:', text);
           alert(`❌ Ошибка: ${text.substring(0, 200)}`);
         }
       } catch (e) {
-        alert('❌ Ошибка сети. Проверьте подключение.');
+        alert('❌ Ошибка сети.');
         console.error(e);
       }
     }
@@ -507,11 +450,17 @@ function useTemplate(text) {
     }
 
     function goBack() {
-      window.Telegram?.WebApp?.close();
-      window.location.href = "https://t.me/leo_aide_bot";
+      if (window.Telegram?.WebApp) {
+        Telegram.WebApp.close();
+      } else {
+        window.location.href = "https://t.me/leo_aide_bot";
+      }
     }
 
-    
+    function useTemplate(text) {
+      // Можно будет позже использовать в replyToTicket
+      console.log('Шаблон выбран:', text);
+    }
   </script>
 </body>
 </html>
