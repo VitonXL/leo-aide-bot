@@ -4,7 +4,6 @@
 
 {% block styles %}
 <style>
-/* === ЕДИНАЯ ДИЗАЙН-СИСТЕМА === */
 :root {
   --bg: transparent;
   --card-bg: rgba(255, 255, 255, 0.95);
@@ -23,7 +22,6 @@
   --transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* === ТЕМНАЯ ТЕМА === */
 [data-theme="dark"] {
   --bg: transparent;
   --card-bg: rgba(30, 30, 30, 0.95);
@@ -32,7 +30,6 @@
   --border: rgba(178, 255, 89, 0.1);
 }
 
-/* === ГЛАВНЫЙ ФОН === */
 body, html {
   width: 100%;
   height: 100%;
@@ -45,7 +42,6 @@ body, html {
   animation: gradient-shift 15s ease infinite;
   min-height: 100vh;
   overflow-x: hidden;
-  -webkit-text-size-adjust: 100%;
 }
 
 [data-theme="dark"] body {
@@ -58,14 +54,12 @@ body, html {
   100% { background-position: 0% 50%; }
 }
 
-/* === КОНТЕЙНЕР === */
 .container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
 }
 
-/* === ЗАГОЛОВОК === */
 .admin-header {
   text-align: center;
   margin: 40px 0 30px;
@@ -87,7 +81,6 @@ body, html {
   font-size: 15px;
 }
 
-/* === КАРТЫ === */
 .admin-card {
   background: var(--card-bg);
   border-radius: var(--radius-lg);
@@ -118,7 +111,6 @@ body, html {
   color: var(--accent);
 }
 
-/* === ТАБЛИЦЫ === */
 .user-table, .support-table {
   width: 100%;
   border-collapse: collapse;
@@ -147,7 +139,6 @@ body, html {
   background: rgba(76, 175, 80, 0.06);
 }
 
-/* === СТАТУСЫ === */
 .status {
   padding: 4px 10px;
   border-radius: 20px;
@@ -173,7 +164,6 @@ body, html {
   color: var(--text);
 }
 
-/* === КНОПКИ === */
 .btn {
   padding: 10px 20px;
   border: none;
@@ -220,44 +210,6 @@ body, html {
   flex-wrap: wrap;
 }
 
-/* === ЗАГРУЗКА === */
-.loading {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 12px;
-  padding: 20px;
-  color: var(--text-secondary);
-  font-size: 16px;
-}
-
-.loading .spinner {
-  width: 20px;
-  height: 20px;
-  border: 2px solid rgba(76, 175, 80, 0.3);
-  border-top: 2px solid var(--accent);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-@keyframes gradient-shift-gold {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-@keyframes shimmer-gold {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-/* === СТАТИСТИКА === */
 .stat-item {
   background: rgba(76, 175, 80, 0.06);
   border: 1px solid var(--border);
@@ -284,39 +236,30 @@ body, html {
   color: var(--accent);
 }
 
-.stat-value[style*="gold"] {
-  background: var(--gold-soft);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+@keyframes gradient-shift-gold {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
-/* === АДАПТИВ === */
-@media (max-width: 768px) {
-  .user-table, .support-table {
-    font-size: 13px;
-  }
-  .user-table th, .user-table td,
-  .support-table th, .support-table td {
-    padding: 8px;
-  }
-  .btn-group {
-    flex-direction: column;
-    align-items: center;
-  }
-  .btn {
-    width: 100%;
-    max-width: 280px;
-  }
-  .stat-item {
-    padding: 12px;
-  }
+@keyframes shimmer-gold {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 </style>
 {{ super() }}
 {% endblock %}
 
 {% block content %}
+  {% include "components/header.html" %}
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      setPageTitle("Админка");
+    });
+  </script>
+
   <div class="container">
     <div class="admin-header">
       <h1><span class="material-icons">admin_panel_settings</span> Админ-панель</h1>
@@ -326,7 +269,6 @@ body, html {
     <!-- Статистика -->
     <div class="admin-card">
       <h2><span class="material-icons">insights</span> Статистика</h2>
-
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
         <div class="stat-item">
           <div class="stat-label">Всего пользователей</div>
@@ -357,26 +299,10 @@ body, html {
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td>GigaChat</td>
-              <td style="text-align: right;">1.2k</td>
-              <td style="text-align: right; color: #4CAF50;">+12%</td>
-            </tr>
-            <tr>
-              <td>Финансы</td>
-              <td style="text-align: right;">843</td>
-              <td style="text-align: right; color: #4CAF50;">+7%</td>
-            </tr>
-            <tr>
-              <td>Погода</td>
-              <td style="text-align: right;">621</td>
-              <td style="text-align: right; color: #4CAF50;">+3%</td>
-            </tr>
-            <tr>
-              <td>Игры</td>
-              <td style="text-align: right;">304</td>
-              <td style="text-align: right; color: #f44336;">-2%</td>
-            </tr>
+            <tr><td>GigaChat</td><td style="text-align: right;">1.2k</td><td style="text-align: right; color: #4CAF50;">+12%</td></tr>
+            <tr><td>Финансы</td><td style="text-align: right;">843</td><td style="text-align: right; color: #4CAF50;">+7%</td></tr>
+            <tr><td>Погода</td><td style="text-align: right;">621</td><td style="text-align: right; color: #4CAF50;">+3%</td></tr>
+            <tr><td>Игры</td><td style="text-align: right;">304</td><td style="text-align: right; color: #f44336;">-2%</td></tr>
           </tbody>
         </table>
       </div>
@@ -386,17 +312,10 @@ body, html {
     <div class="admin-card">
       <h2><span class="material-icons">group</span> Пользователи</h2>
       <div class="btn-group">
-        <button class="btn btn-primary" onclick="refreshUsers()">
-          <span class="material-icons">refresh</span> Обновить
-        </button>
-        <button class="btn" onclick="patchUsers()">
-          <span class="material-icons">update</span> Обновить из users.yml
-        </button>
-        <button class="btn" onclick="exportUsers()">
-          <span class="material-icons">download</span> Экспорт
-        </button>
+        <button class="btn btn-primary" onclick="refreshUsers()"><span class="material-icons">refresh</span> Обновить</button>
+        <button class="btn" onclick="patchUsers()"><span class="material-icons">update</span> Обновить из users.yml</button>
+        <button class="btn" onclick="exportUsers()"><span class="material-icons">download</span> Экспорт</button>
       </div>
-
       <table class="user-table">
         <thead>
           <tr>
@@ -432,34 +351,18 @@ body, html {
           </tr>
         </thead>
         <tbody id="support-list">
-          <tr>
-            <td>1</td>
-            <td>@vitron</td>
-            <td>Не работает GigaChat</td>
-            <td>10:30</td>
-            <td><div class="status">Новое</div></td>
-          </tr>
-          <tr>
-            <td>2</td>
-            <td>@user_123</td>
-            <td>Ошибка при оплате</td>
-            <td>09:15</td>
-            <td><div class="status">В обработке</div></td>
-          </tr>
+          <tr><td>1</td><td>@vitron</td><td>Не работает GigaChat</td><td>10:30</td><td><div class="status">Новое</div></td></tr>
+          <tr><td>2</td><td>@user_123</td><td>Ошибка при оплате</td><td>09:15</td><td><div class="status">В обработке</div></td></tr>
         </tbody>
       </table>
-
       <div class="btn-group">
-        <button class="btn" onclick="markAsRead()">
-          <span class="material-icons">check</span> Отметить прочитанными
-        </button>
+        <button class="btn" onclick="markAsRead()"><span class="material-icons">check</span> Отметить прочитанными</button>
       </div>
     </div>
 
     <!-- Мониторинг API -->
     <div class="admin-card">
       <h2><span class="material-icons">memory</span> Мониторинг API</h2>
-
       <div style="margin-bottom: 20px;">
         <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
           <span>GigaChat — Запросы (день)</span>
@@ -472,7 +375,6 @@ body, html {
           ⚠️ Осталось 33 запроса. Переполнение может вызвать ошибки.
         </div>
       </div>
-
       <h3 style="margin: 16px 0 12px; color: var(--text-secondary); font-weight: 500; font-size: 16px;">👥 Топ пользователей по запросам</h3>
       <div class="user-table">
         <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
@@ -490,34 +392,9 @@ body, html {
           </tbody>
         </table>
       </div>
-
       <div class="btn-group">
-        <button class="btn" onclick="resetApiCounters()">
-          <span class="material-icons">restart_alt</span> Сбросить счётчики
-        </button>
-        <button class="btn btn-primary" onclick="enableOveruse()">
-          <span class="material-icons">settings</span> Разрешить перегрузку
-        </button>
-      </div>
-    </div>
-
-    <!-- Система -->
-    <div class="admin-card">
-      <h2><span class="material-icons">settings</span> Система</h2>
-      <div style="display: flex; flex-direction: column; gap: 12px;">
-        <div><strong>Версия:</strong> v1.2.0</div>
-        <div><strong>База данных:</strong> Подключена</div>
-        <div><strong>Активных пользователей:</strong> 128</div>
-        <div><strong>Премиум:</strong> 24</div>
-      </div>
-
-      <div class="btn-group">
-        <button class="btn" onclick="clearCache()">
-          <span class="material-icons">delete</span> Очистить кэш
-        </button>
-        <button class="btn" onclick="restartBot()">
-          <span class="material-icons">restart_alt</span> Перезапустить
-        </button>
+        <button class="btn" onclick="resetApiCounters()"><span class="material-icons">restart_alt</span> Сбросить счётчики</button>
+        <button class="btn btn-primary" onclick="enableOveruse()"><span class="material-icons">settings</span> Разрешить перегрузку</button>
       </div>
     </div>
   </div>
@@ -526,7 +403,6 @@ body, html {
 {% block scripts %}
   {{ super() }}
   <script>
-    // Моковые данные
     const mockUsers = [
       { id: 1, username: "vitron", role: "admin", is_premium: true },
       { id: 2, username: "user_12345", role: "user", is_premium: false },
@@ -555,74 +431,21 @@ body, html {
 
     function refreshUsers() {
       const tbody = document.getElementById('user-list');
-      tbody.innerHTML = `
-        <tr>
-          <td colspan="5" class="loading">
-            <div class="spinner"></div>
-            <span>Загрузка...</span>
-          </td>
-        </tr>
-      `;
-      setTimeout(() => {
-        renderUsers(mockUsers);
-        Toast.info('Пользователи обновлены');
-      }, 800);
+      tbody.innerHTML = `<tr><td colspan="5" class="loading"><div class="spinner"></div><span>Загрузка...</span></td></tr>`;
+      setTimeout(() => { renderUsers(mockUsers); Toast.info('Пользователи обновлены'); }, 800);
     }
 
-    function patchUsers() {
-      Toast.info('Запуск патча из users.yml...');
-      setTimeout(() => {
-        Toast.success('База обновлена из users.yml');
-      }, 1500);
-    }
-
-    function exportUsers() {
-      Toast.info('Экспорт пользователей...');
-    }
-
-    function setRole(id, newRole) {
-      Toast.success(`Роль пользователя ${id} изменена на ${newRole}`);
-      refreshUsers();
-    }
-
-    function markAsRead() {
-      Toast.info('Все обращения отмечены как прочитанные');
-    }
-
-    function clearCache() {
-      Toast.info('Кэш очищен');
-    }
-
-    function restartBot() {
-      Toast.info('Перезапуск бота...');
-      setTimeout(() => {
-        Toast.success('Бот перезапущен');
-      }, 2000);
-    }
-
-    function resetApiCounters() {
-      Toast.info('Счётчики GigaChat сброшены');
-    }
-
-    function enableOveruse() {
-      Toast.warning('Режим перегрузки GigaChat включён');
-    }
+    function patchUsers() { Toast.info('Запуск патча из users.yml...'); }
+    function exportUsers() { Toast.info('Экспорт пользователей...'); }
+    function setRole(id, newRole) { Toast.success(`Роль пользователя ${id} изменена на ${newRole}`); refreshUsers(); }
+    function markAsRead() { Toast.info('Все обращения отмечены как прочитанные'); }
+    function resetApiCounters() { Toast.info('Счётчики GigaChat сброшены'); }
+    function enableOveruse() { Toast.warning('Режим перегрузки GigaChat включён'); }
 
     document.addEventListener('DOMContentLoaded', () => {
-      const savedTheme = getCookie('theme') || 'light';
+      const savedTheme = localStorage.getItem('theme') || 'light';
       document.documentElement.setAttribute('data-theme', savedTheme);
-
-      setTimeout(() => {
-        renderUsers(mockUsers);
-      }, 800);
-
       Toast.info('Добро пожеловать, админ!');
     });
-
-    function getCookie(name) {
-      const value = `; ${document.cookie}`;
-      const parts = value.split(`; ${name}=`);
-      if (parts.length === 2) return parts.pop().split(';').shift();
-    }
   </script>
 {% endblock %}
