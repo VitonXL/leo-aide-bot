@@ -1,0 +1,107 @@
+<div class="card" style="
+  margin: 20px 0;
+  position: relative;
+  overflow: hidden;
+">
+  <!-- Фон для премиум-пользователей (опционально) -->
+  {% if user.is_premium %}
+  <div style="
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 6px;
+    background: var(--gold);
+    background-size: 400% 400%;
+    animation: shimmer-gold-strong 6s ease-in-out infinite;
+  "></div>
+  {% endif %}
+
+  <div style="
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding-bottom: 12px;
+  ">
+    <!-- Аватар -->
+    <div class="avatar" style="
+      background-color: #{{ '%06x' % (user.id % 0xFFFFFF) }};
+      width: 56px;
+      height: 56px;
+      font-size: 24px;
+      font-weight: 600;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    ">
+      {{ user.first_name[0]|upper }}
+    </div>
+
+    <!-- Имя и статус -->
+    <div>
+      <div style="
+        font-size: 18px;
+        font-weight: 500;
+        color: var(--text);
+      ">
+        {{ user.first_name }}
+        {% if user.is_premium %}
+          <img src="/static/premium.svg" alt="Premium" style="
+            width: 18px;
+            height: 18px;
+            margin-left: 6px;
+            vertical-align: middle;
+          ">
+        {% endif %}
+      </div>
+
+      <!-- Подпись -->
+      <div style="
+        font-size: 14px;
+        color: var(--text-secondary);
+      ">
+        ID: <code style="
+          background: rgba(0,0,0,0.05);
+          padding: 2px 6px;
+          border-radius: 4px;
+          font-family: monospace;
+          font-size: 12px;
+        ">{{ user.id }}</code>
+      </div>
+    </div>
+  </div>
+
+  <!-- Статусы -->
+  <div style="
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    font-size: 14px;
+    color: var(--text-secondary);
+    border-top: 1px solid var(--border);
+    padding-top: 12px;
+    margin-top: 12px;
+  ">
+    <div>
+      <strong>Подписка:</strong>
+      {% if user.is_premium %}
+        <span style="color: #DAA520; font-weight: 500;">Активна</span>
+      {% else %}
+        <span style="color: #F44336;">❌ Нет</span>
+      {% endif %}
+    </div>
+    <div>
+      <strong>Рефералы:</strong>
+      <span style="color: var(--text);">{{ user.referrals or 0 }}</span>
+    </div>
+    <div>
+      <strong>Язык:</strong>
+      <span style="color: var(--text);">{{ user.language_code|upper or 'RU' }}</span>
+    </div>
+    <div>
+      <strong>Запросы GigaChat:</strong>
+      <span style="color: var(--text);">{{ user.gigachat_requests or 0 }}/10</span>
+    </div>
+  </div>
+</div>
