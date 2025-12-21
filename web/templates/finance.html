@@ -75,6 +75,10 @@ body, html {
   font-weight: 700;
   color: var(--accent);
   margin: 0 0 8px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
 }
 
 .finance-header p {
@@ -86,10 +90,10 @@ body, html {
 .card {
   background: var(--card-bg);
   border-radius: var(--radius-md);
-  padding: 20px;
+  padding: 24px;
   box-shadow: var(--shadow);
   border: 1px solid var(--border);
-  margin-bottom: 20px;
+  margin-bottom: 24px;
   transition: transform var(--transition);
 }
 
@@ -100,16 +104,16 @@ body, html {
 
 .card h3 {
   margin: 0 0 16px 0;
-  font-size: 18px;
+  font-size: 20px;
   color: var(--text);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 /* === ФОРМЫ === */
 .form-group {
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 
 .form-group label {
@@ -120,9 +124,7 @@ body, html {
   font-weight: 500;
 }
 
-.form-group input,
-.form-group select,
-.form-group button {
+.form-control {
   width: 100%;
   padding: 12px;
   border: 1px solid var(--border);
@@ -130,12 +132,136 @@ body, html {
   font-size: 15px;
   background: var(--card-bg);
   color: var(--text);
+  box-sizing: border-box;
 }
 
-.form-group input:focus,
-.form-group select:focus {
+.form-control:focus {
   outline: none;
   border-color: var(--accent);
+}
+
+/* === КАТАЛОГИ КНОПКИ === */
+.catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.catalog-btn {
+  background: rgba(76, 175, 80, 0.06);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.catalog-btn:hover {
+  background: rgba(76, 175, 80, 0.12);
+  transform: translateY(-2px);
+}
+
+.catalog-btn.active {
+  border-color: var(--accent);
+  background: rgba(76, 175, 80, 0.15);
+  font-weight: 600;
+}
+
+.catalog-btn .icon {
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+
+.catalog-btn .name {
+  font-weight: 600;
+  display: block;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+
+.catalog-btn .currency {
+  font-size: 12px;
+  color: var(--text-secondary);
+  background: rgba(218, 165, 32, 0.2);
+  padding: 2px 8px;
+  border-radius: 12px;
+  margin-right: 6px;
+}
+
+.catalog-btn .stats {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 6px;
+}
+
+.catalog-btn .delete {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: #f44336;
+  color: white;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  cursor: pointer;
+  opacity: 0;
+}
+
+.catalog-btn:hover .delete {
+  opacity: 1;
+}
+
+/* === ОПЕРАЦИИ === */
+.operation-list {
+  max-height: 320px;
+  overflow-y: auto;
+  margin-top: 16px;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+  padding-right: 8px;
+}
+
+.operation {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+
+.operation:last-child {
+  border-bottom: none;
+}
+
+.operation.income {
+  color: #4CAF50;
+}
+
+.operation.expense {
+  color: #f44336;
+}
+
+.operation .note {
+  flex: 1;
+  font-weight: 500;
+}
+
+.operation .meta {
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-align: right;
+  min-width: 110px;
 }
 
 /* === КНОПКИ === */
@@ -167,70 +293,8 @@ body, html {
   box-shadow: 0 8px 20px rgba(76, 175, 80, 0.25);
 }
 
-/* === КАТАЛОГИ === */
-.catalog-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.catalog-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 14px;
-  background: rgba(76, 175, 80, 0.06);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.catalog-item:hover {
-  background: rgba(76, 175, 80, 0.1);
-}
-
-.catalog-item.active {
-  border-color: var(--accent);
-  background: rgba(76, 175, 80, 0.15);
-  font-weight: 600;
-}
-
-.catalog-item .name {
-  font-weight: 500;
-}
-
-.catalog-item .stats {
-  font-size: 13px;
-  color: var(--text-secondary);
-}
-
-/* === ОПЕРАЦИИ === */
-.operation-list {
-  max-height: 300px;
-  overflow-y: auto;
-  margin-top: 16px;
-  padding-right: 8px;
-}
-
-.operation {
-  display: flex;
-  justify-content: space-between;
-  padding: 10px;
-  border-bottom: 1px solid var(--border);
-  font-size: 14px;
-}
-
-.operation:last-child {
-  border-bottom: none;
-}
-
-.operation.income {
-  color: #4CAF50;
-}
-
-.operation.expense {
-  color: #f44336;
+.btn:active {
+  transform: translateY(-1px);
 }
 
 /* === АНИМАЦИИ === */
@@ -245,6 +309,12 @@ body, html {
   .container {
     padding: 16px;
   }
+  .catalog-grid {
+    grid-template-columns: 1fr;
+  }
+  .catalog-btn .name {
+    max-width: 140px;
+  }
 }
 </style>
 {{ super() }}
@@ -253,39 +323,76 @@ body, html {
 {% block content %}
   <div class="container">
     <div class="finance-header">
-      <h1>📁 Финансы</h1>
-      <p>Управление проектами и бюджетом</p>
+      <h1><span class="material-icons">payments</span> Финансы</h1>
+      <p>Управление проектами, валютами и бюджетом</p>
     </div>
 
     <!-- Создание каталога -->
     <div class="card">
-      <h3><span class="material-icons">folder</span> Создать каталог</h3>
+      <h3><span class="material-icons">add</span> Новый каталог</h3>
       <div class="form-group">
         <label>Название</label>
-        <input type="text" id="catalog-name" placeholder="Например: YouTube-канал">
+        <input type="text" class="form-control" id="catalog-name" placeholder="Например: YouTube-канал">
+      </div>
+      <div class="form-group">
+        <label>Иконка</label>
+        <select class="form-control" id="catalog-icon">
+          <option value="📁">📁 Папка</option>
+          <option value="📈">📈 Рост</option>
+          <option value="💰">💰 Деньги</option>
+          <option value="🔥">🔥 Огонь</option>
+          <option value="🎯">🎯 Цель</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Валюта</label>
+        <select class="form-control" id="catalog-currency">
+          <option value="RUB">🇷🇺 RUB (рубль)</option>
+          <option value="USD">🇺🇸 USD (доллар)</option>
+          <option value="EUR">🇪🇺 EUR (евро)</option>
+          <option value="BTC">₿ BTC (биткоин)</option>
+        </select>
       </div>
       <button class="btn btn-primary" onclick="createCatalog()">📁 Создать каталог</button>
     </div>
 
     <!-- Список каталогов -->
     <div class="card">
-      <h3><span class="material-icons">list</span> Мои каталоги</h3>
-      <div class="catalog-list" id="catalog-list">
-        <div class="catalog-item empty">Пока нет каталогов</div>
+      <h3><span class="material-icons">folder</span> Мои проекты</h3>
+      <div class="catalog-grid" id="catalog-list">
+        <div class="empty">Пока нет каталогов</div>
       </div>
     </div>
 
     <!-- Операции в каталоге -->
     <div class="card" id="catalog-operations" style="display: none;">
-      <h3><span class="material-icons">account_balance</span> <span id="current-catalog">[Каталог]</span></h3>
-      <div class="form-group">
-        <label>Сумма (₽)</label>
-        <input type="number" id="op-amount" placeholder="Например: 5000">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3>
+          <span id="current-icon">📁</span>
+          <span id="current-catalog">[Каталог]</span>
+          <span class="currency" id="current-currency">RUB</span>
+        </h3>
+        <button class="btn" style="padding: 8px 16px; font-size: 14px;" onclick="convertCurrency()">
+          🔄 Конвертировать
+        </button>
       </div>
-      <div class="btn-group">
+
+      <div class="form-group">
+        <label>Сумма</label>
+        <input type="number" class="form-control" id="op-amount" placeholder="Например: 5000">
+      </div>
+
+      <div class="form-group">
+        <label>Комментарий</label>
+        <input type="text" class="form-control" id="op-note" placeholder="Например: Купил микрофон">
+      </div>
+
+      <div style="display: flex; gap: 12px; flex-wrap: wrap;">
         <button class="btn" onclick="addIncomeToCatalog()">➕ Доход</button>
         <button class="btn" onclick="addExpenseToCatalog()">➖ Расход</button>
       </div>
+
+      <h4 style="margin: 20px 0 12px; color: var(--text-secondary);">История операций</h4>
       <div class="operation-list" id="op-list"></div>
     </div>
   </div>
@@ -309,11 +416,15 @@ body, html {
     // Создание каталога
     function createCatalog() {
       const name = document.getElementById('catalog-name').value.trim();
+      const icon = document.getElementById('catalog-icon').value;
+      const currency = document.getElementById('catalog-currency').value;
       if (!name) return Toast.error('Введите название');
 
       const newCatalog = {
         id: Date.now(),
         name,
+        icon,
+        currency,
         balance: 0,
         income: 0,
         expense: 0,
@@ -325,30 +436,31 @@ body, html {
       renderCatalogs();
       document.getElementById('catalog-name').value = '';
       Toast.success(`📁 "${name}" создан`);
-
-      if (catalogs.length === 1) {
-        selectCatalog(newCatalog.id);
-      }
     }
 
     // Отображение каталогов
     function renderCatalogs() {
       const listEl = document.getElementById('catalog-list');
       if (catalogs.length === 0) {
-        listEl.innerHTML = '<div class="catalog-item empty">Пока нет каталогов</div>';
+        listEl.innerHTML = '<div class="empty">Пока нет каталогов</div>';
         return;
       }
 
       listEl.innerHTML = '';
       catalogs.forEach(cat => {
-        const div = document.createElement('div');
-        div.className = `catalog-item ${cat.id === currentCatalogId ? 'active' : ''}`;
-        div.onclick = () => selectCatalog(cat.id);
-        div.innerHTML = `
+        const btn = document.createElement('div');
+        btn.className = `catalog-btn ${cat.id === currentCatalogId ? 'active' : ''}`;
+        btn.onclick = () => selectCatalog(cat.id);
+        btn.innerHTML = `
+          <div class="icon">${cat.icon}</div>
           <div class="name">${cat.name}</div>
-          <div class="stats">₽ ${cat.balance} (дох: ${cat.income}, расх: ${cat.expense})</div>
+          <div>
+            <span class="currency">${cat.currency}</span>
+          </div>
+          <div class="stats">Баланс: ${cat.balance} ${cat.currency}</div>
+          <div class="delete" onclick="deleteCatalog(event, ${cat.id})">×</div>
         `;
-        listEl.appendChild(div);
+        listEl.appendChild(btn);
       });
     }
 
@@ -361,50 +473,74 @@ body, html {
 
       document.getElementById('catalog-operations').style.display = 'block';
       document.getElementById('current-catalog').textContent = cat.name;
+      document.getElementById('current-icon').textContent = cat.icon;
+      document.getElementById('current-currency').textContent = cat.currency;
       renderOperations(cat);
+    }
+
+    // Удалить каталог
+    function deleteCatalog(e, id) {
+      e.stopPropagation();
+      const cat = catalogs.find(c => c.id === id);
+      if (!cat) return;
+
+      if (!confirm(`Удалить каталог "${cat.name}"? Все данные пропадут.`)) return;
+
+      catalogs = catalogs.filter(c => c.id !== id);
+      saveCatalogs();
+      if (currentCatalogId === id) {
+        currentCatalogId = null;
+        document.getElementById('catalog-operations').style.display = 'none';
+      }
+      renderCatalogs();
+      Toast.info(`🗑 "${cat.name}" удалён`);
     }
 
     // Рендер операций
     function renderOperations(cat) {
       const listEl = document.getElementById('op-list');
       if (cat.operations.length === 0) {
-        listEl.innerHTML = '<div style="color: var(--text-secondary); font-size: 14px;">Пока нет операций</div>';
+        listEl.innerHTML = '<div style="color: var(--text-secondary); font-size: 14px; text-align: center; padding: 12px;">Пока нет операций</div>';
         return;
       }
 
       listEl.innerHTML = '';
-      cat.operations.forEach(op => {
+      [...cat.operations].reverse().forEach(op => {
         const div = document.createElement('div');
         div.className = `operation ${op.type}`;
         div.innerHTML = `
-          <div>${op.title}</div>
-          <div>${op.type === 'income' ? '+' : '-'}${op.amount} ₽</div>
+          <div class="note">${op.note || 'Без комментария'}</div>
+          <div class="meta">
+            <div>${op.type === 'income' ? '+' : '-'}${op.amount} ${cat.currency}</div>
+            <div>${new Date(op.date).toLocaleDateString('ru-RU')}</div>
+          </div>
         `;
         listEl.appendChild(div);
       });
     }
 
-    // Доход в каталоге
+    // Доход
     function addIncomeToCatalog() {
       const amount = parseFloat(document.getElementById('op-amount').value);
+      const note = document.getElementById('op-note').value.trim() || 'Доход';
       if (isNaN(amount) || amount <= 0) return Toast.error('Введите сумму');
 
       const cat = catalogs.find(c => c.id === currentCatalogId);
-      if (!cat) return;
-
       cat.balance += amount;
       cat.income += amount;
-      cat.operations.push({ type: 'income', title: 'Доход', amount, date: new Date() });
+      cat.operations.push({ type: 'income', amount, note, date: new Date().toISOString() });
 
       saveCatalogs();
       selectCatalog(currentCatalogId);
       document.getElementById('op-amount').value = '';
-      Toast.success(`+${amount} ₽ добавлено`);
+      document.getElementById('op-note').value = '';
+      Toast.success(`+${amount} ${cat.currency} добавлено`);
     }
 
-    // Расход в каталоге
+    // Расход
     function addExpenseToCatalog() {
       const amount = parseFloat(document.getElementById('op-amount').value);
+      const note = document.getElementById('op-note').value.trim() || 'Расход';
       if (isNaN(amount) || amount <= 0) return Toast.error('Введите сумму');
       if (amount > catalogs.find(c => c.id === currentCatalogId)?.balance) {
         return Toast.error('Недостаточно средств');
@@ -413,12 +549,27 @@ body, html {
       const cat = catalogs.find(c => c.id === currentCatalogId);
       cat.balance -= amount;
       cat.expense += amount;
-      cat.operations.push({ type: 'expense', title: 'Расход', amount, date: new Date() });
+      cat.operations.push({ type: 'expense', amount, note, date: new Date().toISOString() });
 
       saveCatalogs();
       selectCatalog(currentCatalogId);
       document.getElementById('op-amount').value = '';
-      Toast.info(`-${amount} ₽ списано`);
+      document.getElementById('op-note').value = '';
+      Toast.info(`-${amount} ${cat.currency} списано`);
+    }
+
+    // Конвертация (заглушка)
+    function convertCurrency() {
+      const cat = catalogs.find(c => c.id === currentCatalogId);
+      if (!cat) return;
+
+      let rate = 1;
+      if (cat.currency === 'USD') rate = 92;
+      else if (cat.currency === 'EUR') rate = 100;
+      else if (cat.currency === 'BTC') rate = 4000000;
+
+      const rub = (cat.balance * rate).toFixed(2);
+      Toast.info(`Текущий баланс: ${cat.balance} ${cat.currency} ≈ ${rub} RUB`, 5000);
     }
 
     // Сохранение
@@ -429,7 +580,7 @@ body, html {
     // Загрузка
     document.addEventListener('DOMContentLoaded', () => {
       init();
-      Toast.info('Финансы загружены');
+      Toast.info('Финансовый ассистент готов');
     });
   </script>
 {% endblock %}
