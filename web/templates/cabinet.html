@@ -3,6 +3,9 @@
 {% block title %}Кабинет{% endblock %}
 
 {% block content %}
+  <!-- Переключатель темы -->
+  {% include 'partials/theme-toggle.html' %}
+
   <!-- Статус пользователя -->
   {% include 'partials/user-status.html' %}
 
@@ -58,29 +61,16 @@
     </div>
     {% endfor %}
   </div>
+
+  <!-- Подключаем компоненты -->
+  {% include 'partials/toast.html' %}
+  {% include 'partials/modal.html' %}
 {% endblock %}
 
 {% block scripts %}
-  <!-- Подключаем toast и modal -->
-  {% include 'partials/toast.html' %}
-  {% include 'partials/modal.html' %}
-
   <script>
-    // Пример: при нажатии на кнопку
-    function openAI() {
-      Toast.info('Запуск AI-помощника...');
-      // navigateTo('ai');
-    }
-
-    // Обновление приветствия
     document.addEventListener('DOMContentLoaded', () => {
-      const hour = new Date().getHours();
-      const greeting = document.getElementById('greeting') || document.createElement('div');
-      const icons = { 5: "☀️", 12: "🌤", 18: "🌙", 22: "😴" };
-      const g = ["Привет", "Доброе утро", "Добрый день", "Добрый вечер", "Доброй ночи"];
-      const i = ["🙂", "☀️", "🌤", "🌙", "😴"];
-      const idx = hour < 5 ? 0 : Math.min(Math.floor((hour - 5) / 6), 4);
-      greeting.textContent = g[idx];
+      Toast.info('Добро пожаловать, {{ user.first_name }}!');
     });
   </script>
 {% endblock %}
