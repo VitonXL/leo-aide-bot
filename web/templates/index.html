@@ -1,40 +1,76 @@
 <!DOCTYPE html>
-<html lang="ru" data-theme="{{ theme }}">
+<html lang="ru" class="gradient-bg" data-theme="{{ theme }}">
 <head>
   <meta charset="UTF-8" />
   <title>Лео Помощник</title>
-  <link rel="stylesheet" href="/static/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/main.css" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1>🤖 Лео Помощник</h1>
-      <button id="theme-toggle" onclick="toggleTheme()">
+  <div class="container" style="max-width: 800px; margin: 0 auto; padding: 40px 20px; text-align: center;">
+
+    <!-- Хедер с переключением темы -->
+    <header style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px;">
+      <h1 style="margin: 0; color: var(--accent); font-size: 28px;">🤖 Лео Помощник</h1>
+      <button id="theme-toggle" class="btn" style="padding: 8px 16px; font-size: 14px;" onclick="toggleTheme()">
         {{ '🌙 Тёмная' if theme == 'light' else '☀️ Светлая' }} тема
       </button>
     </header>
 
+    <!-- Основной контент -->
     <main>
-      <p>Ваш персональный ассистент в Telegram.</p>
+      <p style="font-size: 18px; color: var(--text-secondary); margin: 0 0 30px; max-width: 600px; margin-left: auto; margin-right: auto;">
+        Ваш персональный ассистент в Telegram — поможет с финансами, погодой, GigaChat и многим другим.
+      </p>
 
-      <div class="status-grid">
-        <div class="card"><strong>Бот</strong> <span class="status">🟢 В сети</span></div>
-        <div class="card"><strong>Подписка</strong> <span class="status">❌ Нет</span></div>
-        <div class="card"><strong>Рефералы</strong> 0</div>
-        <div class="card"><strong>Язык</strong> Русский</div>
+      <!-- Статусы -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin: 30px 0;">
+        <div class="card">
+          <strong style="color: var(--text);">Бот</strong>
+          <span class="status" style="color: #4CAF50; margin-left: 8px;">🟢 В сети</span>
+        </div>
+        <div class="card">
+          <strong style="color: var(--text);">Подписка</strong>
+          <span class="status" style="color: #F44336; margin-left: 8px;">❌ Нет</span>
+        </div>
+        <div class="card">
+          <strong style="color: var(--text);">Рефералы</strong>
+          <span style="color: var(--text-secondary); margin-left: 8px;">0</span>
+        </div>
+        <div class="card">
+          <strong style="color: var(--text);">Язык</strong>
+          <span style="color: var(--text-secondary); margin-left: 8px;">Русский</span>
+        </div>
       </div>
 
-      <a href="https://t.me/Leo_aide_bot" class="btn" target="_blank">
-        Открыть в Telegram
+      <!-- Кнопка перехода в Telegram -->
+      <a href="https://t.me/Leo_aide_bot" class="btn" style="width: 100%; max-width: 400px; padding: 16px; font-size: 18px; margin: 20px 0;" target="_blank">
+        🚀 Открыть в Telegram
       </a>
     </main>
+
+    <!-- Подвал -->
+    <footer style="margin-top: 40px; color: var(--text-secondary); font-size: 14px;">
+      <p>Лео Помощник • 2025</p>
+    </footer>
   </div>
 
+  <!-- Скрипт для переключения темы -->
   <script>
     function toggleTheme() {
+      const btn = document.getElementById('theme-toggle');
+      const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+
       fetch('/toggle-theme', { method: 'GET' })
-        .then(() => location.reload());
+        .then(() => {
+          // Обновляем текст кнопки и атрибут
+          document.documentElement.setAttribute('data-theme', isLight ? 'dark' : 'light');
+          btn.innerHTML = isLight ? '☀️ Светлая тема' : '🌙 Тёмная тема';
+        })
+        .catch(err => {
+          console.error('Ошибка переключения темы:', err);
+        });
     }
   </script>
 </body>
