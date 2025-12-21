@@ -257,6 +257,40 @@ body, html {
   100% { background-position: 0% 50%; }
 }
 
+/* === СТАТИСТИКА === */
+.stat-item {
+  background: rgba(76, 175, 80, 0.06);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  text-align: center;
+  transition: transform 0.2s;
+}
+
+.stat-item:hover {
+  transform: translateY(-2px);
+  background: rgba(76, 175, 80, 0.1);
+}
+
+.stat-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.stat-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.stat-value[style*="gold"] {
+  background: var(--gold-soft);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
 /* === АДАПТИВ === */
 @media (max-width: 768px) {
   .user-table, .support-table {
@@ -274,6 +308,9 @@ body, html {
     width: 100%;
     max-width: 280px;
   }
+  .stat-item {
+    padding: 12px;
+  }
 }
 </style>
 {{ super() }}
@@ -284,6 +321,65 @@ body, html {
     <div class="admin-header">
       <h1><span class="material-icons">admin_panel_settings</span> Админ-панель</h1>
       <p>Управление пользователями, поддержкой и системой</p>
+    </div>
+
+    <!-- Статистика -->
+    <div class="admin-card">
+      <h2><span class="material-icons">insights</span> Статистика</h2>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+        <div class="stat-item">
+          <div class="stat-label">Всего пользователей</div>
+          <div class="stat-value">128</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Активные сегодня</div>
+          <div class="stat-value">89</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Премиум</div>
+          <div class="stat-value" style="color: var(--gold-soft); background: rgba(218, 165, 32, 0.2);">24</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Новых за неделю</div>
+          <div class="stat-value">17</div>
+        </div>
+      </div>
+
+      <h3 style="margin: 16px 0 12px; color: var(--text-secondary); font-weight: 500; font-size: 16px;">🔥 Самые востребованные функции</h3>
+      <div class="user-table">
+        <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+          <thead>
+            <tr>
+              <th style="text-align: left; padding: 10px; color: var(--text-secondary);">Функция</th>
+              <th style="text-align: right; padding: 10px; color: var(--text-secondary);">Запросы</th>
+              <th style="text-align: right; padding: 10px; color: var(--text-secondary);">Рост</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>GigaChat</td>
+              <td style="text-align: right;">1.2k</td>
+              <td style="text-align: right; color: #4CAF50;">+12%</td>
+            </tr>
+            <tr>
+              <td>Финансы</td>
+              <td style="text-align: right;">843</td>
+              <td style="text-align: right; color: #4CAF50;">+7%</td>
+            </tr>
+            <tr>
+              <td>Погода</td>
+              <td style="text-align: right;">621</td>
+              <td style="text-align: right; color: #4CAF50;">+3%</td>
+            </tr>
+            <tr>
+              <td>Игры</td>
+              <td style="text-align: right;">304</td>
+              <td style="text-align: right; color: #f44336;">-2%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <!-- Управление пользователями -->
@@ -360,16 +456,59 @@ body, html {
       </div>
     </div>
 
+    <!-- Мониторинг API -->
+    <div class="admin-card">
+      <h2><span class="material-icons">memory</span> Мониторинг API</h2>
+
+      <div style="margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+          <span>GigaChat — Запросы (день)</span>
+          <span><strong>67 / 100</strong></span>
+        </div>
+        <div style="width: 100%; height: 12px; background: rgba(0,0,0,0.05); border-radius: 6px; overflow: hidden;">
+          <div style="width: 67%; height: 100%; background: linear-gradient(to right, #4CAF50, #8BC34A); border-radius: 6px;"></div>
+        </div>
+        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
+          ⚠️ Осталось 33 запроса. Переполнение может вызвать ошибки.
+        </div>
+      </div>
+
+      <h3 style="margin: 16px 0 12px; color: var(--text-secondary); font-weight: 500; font-size: 16px;">👥 Топ пользователей по запросам</h3>
+      <div class="user-table">
+        <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+          <thead>
+            <tr>
+              <th style="text-align: left; padding: 10px; color: var(--text-secondary);">Пользователь</th>
+              <th style="text-align: right; padding: 10px; color: var(--text-secondary);">Запросы</th>
+              <th style="text-align: right; padding: 10px; color: var(--text-secondary);">Статус</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>@vitron</td><td style="text-align: right;">23</td><td style="text-align: right;"><div class="status premium">Премиум</div></td></tr>
+            <tr><td>@user_123</td><td style="text-align: right;">18</td><td style="text-align: right;"><div class="status user">Базовый</div></td></tr>
+            <tr><td>@giga_fan</td><td style="text-align: right;">15</td><td style="text-align: right;"><div class="status user">Базовый</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="btn-group">
+        <button class="btn" onclick="resetApiCounters()">
+          <span class="material-icons">restart_alt</span> Сбросить счётчики
+        </button>
+        <button class="btn btn-primary" onclick="enableOveruse()">
+          <span class="material-icons">settings</span> Разрешить перегрузку
+        </button>
+      </div>
+    </div>
+
     <!-- Система -->
     <div class="admin-card">
       <h2><span class="material-icons">settings</span> Система</h2>
-      <div class="user-table">
-        <div style="display: flex; flex-direction: column; gap: 12px;">
-          <div><strong>Версия:</strong> v1.2.0</div>
-          <div><strong>База данных:</strong> Подключена</div>
-          <div><strong>Активных пользователей:</strong> 128</div>
-          <div><strong>Премиум:</strong> 24</div>
-        </div>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div><strong>Версия:</strong> v1.2.0</div>
+        <div><strong>База данных:</strong> Подключена</div>
+        <div><strong>Активных пользователей:</strong> 128</div>
+        <div><strong>Премиум:</strong> 24</div>
       </div>
 
       <div class="btn-group">
@@ -461,16 +600,23 @@ body, html {
       }, 2000);
     }
 
+    function resetApiCounters() {
+      Toast.info('Счётчики GigaChat сброшены');
+    }
+
+    function enableOveruse() {
+      Toast.warning('Режим перегрузки GigaChat включён');
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       const savedTheme = getCookie('theme') || 'light';
       document.documentElement.setAttribute('data-theme', savedTheme);
 
-      // Симуляция загрузки
       setTimeout(() => {
         renderUsers(mockUsers);
       }, 800);
 
-      Toast.info('Добро пожаловать, админ!');
+      Toast.info('Добро пожеловать, админ!');
     });
 
     function getCookie(name) {
