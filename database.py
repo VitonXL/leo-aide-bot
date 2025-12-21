@@ -282,15 +282,13 @@ async def add_finance_operation(pool, user_id: int, amount: float, type: str, ca
     logger.info(f"💰 {type.capitalize()}: {amount} ₽ для пользователя {user_id}")
 
 
+# ✅ Вставь в database.py
 async def get_user_stats(pool, user_id: int):
-    """
-    Возвращает финансовую статистику пользователя.
-    """
     async with pool.acquire() as conn:
         row = await conn.fetchrow('''
             SELECT 
-                COALESCE(SUM(amount), 0) FILTER (WHERE type = 'income') AS income,
-                COALESCE(SUM(amount), 0) FILTER (WHERE type = 'expense') AS expense
+                COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0) AS income,
+                COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0) AS expense
             FROM finance_operations 
             WHERE user_id = $1
         ''', user_id)
