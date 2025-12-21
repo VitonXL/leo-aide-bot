@@ -1,88 +1,476 @@
-<!DOCTYPE html>
-<html lang="ru" class="gradient-bg" data-theme="light">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Финансы — Лео Помощник</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/css/main.css" />
-</head>
-<body>
-  <div class="container" style="max-width: 800px; margin: 0 auto; padding: 20px;">
-    
-    <!-- Хедер -->
-    <header style="display: flex; align-items: center; gap: 16px; margin-bottom: 30px;">
-      <div class="hamburger" onclick="history.back()" style="cursor: pointer; font-size: 24px;">←</div>
-      <h1 style="margin: 0; color: var(--accent);">💰 Финансы</h1>
-    </header>
+{% extends "base.html" %}
 
-    <!-- Основной контент -->
+{% block title %}Лео — Финансы{% endblock %}
+
+{% block styles %}
+<style>
+/* === ЕДИНАЯ ДИЗАЙН-СИСТЕМА === */
+:root {
+  --bg: transparent;
+  --card-bg: rgba(255, 255, 255, 0.95);
+  --text: #212121;
+  --text-secondary: #757575;
+  --border: rgba(178, 255, 89, 0.2);
+  --accent: #4CAF50;
+  --accent-light: #B2FF59;
+  --gold: linear-gradient(-45deg, #DAA520, #FFD700, #F4C430, #C5B358, #DAA520);
+  --gold-soft: linear-gradient(-45deg, #D4A017, #E6C229, #F4C430, #D4A017);
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --shadow: 0 6px 20px rgba(76, 175, 80, 0.08);
+  --shadow-hover: 0 12px 28px rgba(76, 175, 80, 0.16), 0 16px 40px rgba(0, 0, 0, 0.12);
+  --transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* === ТЕМНАЯ ТЕМА === */
+[data-theme="dark"] {
+  --bg: transparent;
+  --card-bg: rgba(30, 30, 30, 0.95);
+  --text: #ffffff;
+  --text-secondary: #b0b0b0;
+  --border: rgba(178, 255, 89, 0.1);
+}
+
+/* === ГЛАВНЫЙ ФОН === */
+body, html {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', sans-serif;
+  color: var(--text);
+  background: linear-gradient(135deg, #f0fff0, #d9f7d9, #e6ffeb);
+  background-size: 400% 400%;
+  animation: gradient-shift 15s ease infinite;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+[data-theme="dark"] body {
+  background: linear-gradient(135deg, #0a1e0a, #0c240c, #0d2a0d);
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* === КОНТЕЙНЕР === */
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* === ЗАГОЛОВОК === */
+.finance-header {
+  text-align: center;
+  margin: 40px 0 30px;
+}
+
+.finance-header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--accent);
+  margin: 0 0 8px 0;
+}
+
+.finance-header p {
+  color: var(--text-secondary);
+  font-size: 15px;
+}
+
+/* === БАЛАНС === */
+.balance-card {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  text-align: center;
+  margin-bottom: 30px;
+  position: relative;
+  overflow: hidden;
+}
+
+.balance-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 6px;
+  background: var(--gold-soft);
+  animation: shimmer-gold 6s ease-in-out infinite;
+}
+
+.balance-value {
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--accent);
+  margin: 16px 0;
+}
+
+.balance-label {
+  color: var(--text-secondary);
+  font-size: 16px;
+}
+
+/* === КАРТЫ === */
+.card {
+  background: var(--card-bg);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  margin-bottom: 20px;
+  transition: transform var(--transition);
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-hover);
+}
+
+.card h3 {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* === ФОРМЫ === */
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.form-group input,
+.form-group select,
+.form-group button {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  background: var(--card-bg);
+  color: var(--text);
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* === КНОПКИ === */
+.btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.15);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: #4CAF50;
+}
+
+.btn-primary {
+  background: var(--gold);
+  background-size: 200% 200%;
+  animation: gradient-shift-gold 3s ease infinite;
+  color: white;
+}
+
+.btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(76, 175, 80, 0.25);
+}
+
+.btn:active {
+  transform: translateY(-1px);
+}
+
+/* === СПИСКИ === */
+.item-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: rgba(76, 175, 80, 0.06);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  font-size: 15px;
+}
+
+.item .amount {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.item.income {
+  border-left: 4px solid #4CAF50;
+}
+
+.item.expense {
+  border-left: 4px solid #f44336;
+}
+
+/* === АНИМАЦИИ === */
+@keyframes gradient-shift-gold {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes shimmer-gold {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* === АДАПТИВ === */
+@media (max-width: 768px) {
+  .balance-value {
+    font-size: 32px;
+  }
+  .btn {
+    font-size: 14px;
+  }
+}
+</style>
+{{ super() }}
+{% endblock %}
+
+{% block content %}
+  <div class="container">
+    <div class="finance-header">
+      <h1>💰 Финансы</h1>
+      <p>Контроль доходов, расходов и продаж</p>
+    </div>
+
+    <!-- Баланс -->
+    <div class="balance-card">
+      <div class="balance-label">Текущий баланс</div>
+      <div class="balance-value" id="balance">0 ₽</div>
+      <div class="balance-label">Обновлено: <span id="last-update">только что</span></div>
+    </div>
+
+    <!-- Доходы -->
     <div class="card">
-      <h2 style="margin: 0 0 20px 0;">Калькулятор прибыли и убытков</h2>
-      
-      <!-- Профиль -->
-      <div style="margin: 20px 0;">
-        <label style="color: var(--text-secondary);">Активный профиль:</label>
-        <select id="profile-select" style="width: 100%; padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--card-bg); color: var(--text);">
-          <option value="personal">Личный</option>
-          <option value="family">Семейный</option>
-          <option value="business">Бизнес</option>
+      <h3><span class="material-icons">trending_up</span> Добавить доход</h3>
+      <div class="form-group">
+        <label>Сумма (₽)</label>
+        <input type="number" id="income-amount" placeholder="Например: 5000">
+      </div>
+      <div class="form-group">
+        <label>Категория</label>
+        <select id="income-category">
+          <option value="Зарплата">Зарплата</option>
+          <option value="Фриланс">Фриланс</option>
+          <option value="Инвестиции">Инвестиции</option>
+          <option value="Другое">Другое</option>
         </select>
       </div>
+      <button class="btn btn-primary" onclick="addIncome()">➕ Добавить доход</button>
+    </div>
 
-      <!-- Форма -->
-      <div style="margin: 20px 0; display: flex; flex-direction: column; gap: 16px;">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-          <div>
-            <label style="color: var(--text-secondary);">Сумма:</label>
-            <input type="number" id="amount-input" placeholder="0.00" style="width: 100%; padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--card-bg); color: var(--text);">
-          </div>
-          <div>
-            <label style="color: var(--text-secondary);">Категория:</label>
-            <select id="category-select" style="width: 100%; padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--card-bg); color: var(--text);">
-              <option value="income">Доход</option>
-              <option value="expense">Расход</option>
-            </select>
-          </div>
-        </div>
-
-        <div>
-          <label style="color: var(--text-secondary);">Цель:</label>
-          <input type="text" id="comment-input" placeholder="Например: Зарплата" style="width: 100%; padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--card-bg); color: var(--text);">
-        </div>
-
-        <div>
-          <label style="color: var(--text-secondary);">Время операции:</label>
-          <input type="datetime-local" id="time-input" style="width: 100%; padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--card-bg); color: var(--text);">
-        </div>
-
-        <button class="btn" style="width: 100%;" onclick="addFinanceOperation()">➕ Добавить операцию</button>
+    <!-- Расходы -->
+    <div class="card">
+      <h3><span class="material-icons">trending_down</span> Добавить расход</h3>
+      <div class="form-group">
+        <label>Сумма (₽)</label>
+        <input type="number" id="expense-amount" placeholder="Например: 1200">
       </div>
+      <div class="form-group">
+        <label>Категория</label>
+        <select id="expense-category">
+          <option value="Еда">Еда</option>
+          <option value="Транспорт">Транспорт</option>
+          <option value="Развлечения">Развлечения</option>
+          <option value="Другое">Другое</option>
+        </select>
+      </div>
+      <button class="btn" onclick="addExpense()">➖ Добавить расход</button>
+    </div>
 
-      <!-- История операций -->
-      <div style="margin-top: 30px;">
-        <div class="section-title">📜 История операций</div>
-        <div id="operations-list" style="margin-top: 15px; max-height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;">
-          <p style="color: #888; font-size: 14px;">Пока нет операций</p>
+    <!-- Категории -->
+    <div class="card">
+      <h3><span class="material-icons">category</span> Управление категориями</h3>
+      <div class="form-group">
+        <label>Новая категория</label>
+        <input type="text" id="new-category" placeholder="Например: YouTube">
+      </div>
+      <div class="form-group">
+        <label>Тип</label>
+        <select id="category-type">
+          <option value="income">Доход</option>
+          <option value="expense">Расход</option>
+        </select>
+      </div>
+      <button class="btn" onclick="addCustomCategory()">➕ Добавить категорию</button>
+    </div>
+
+    <!-- Продажи -->
+    <div class="card">
+      <h3><span class="material-icons">sell</span> Учёт продаж</h3>
+      <div class="form-group">
+        <label>Что продал?</label>
+        <input type="text" id="sold-item" placeholder="Например: Курс по Python">
+      </div>
+      <div class="form-group">
+        <label>Сумма (₽)</label>
+        <input type="number" id="sold-amount" placeholder="Например: 10000">
+      </div>
+      <div class="form-group">
+        <label>Дата продажи</label>
+        <input type="date" id="sold-date" value="{{ today }}">
+      </div>
+      <button class="btn btn-primary" onclick="recordSale()">📦 Зафиксировать продажу</button>
+    </div>
+
+    <!-- История -->
+    <div class="card">
+      <h3><span class="material-icons">history</span> История операций</h3>
+      <div class="item-list" id="history">
+        <div class="item income">
+          <div>Зарплата</div>
+          <div class="amount">+5000 ₽</div>
         </div>
       </div>
     </div>
-
-    <!-- FAB -->
-    <button class="fab" onclick="closeApp()">✕</button>
   </div>
+{% endblock %}
 
-  <!-- Скрипты -->
-  <script src="/static/js/main.js"></script>
-  <script src="/static/js/finance.js?v=3"></script>
+{% block scripts %}
+  {{ super() }}
   <script>
-    function closeApp() {
-      if (window.Telegram?.WebApp) {
-        Telegram.WebApp.close();
-      } else {
-        history.back();
-      }
+    // Инициализация
+    let balance = 0;
+    const history = [];
+    const categories = {
+      income: ["Зарплата", "Фриланс", "Инвестиции", "Другое"],
+      expense: ["Еда", "Транспорт", "Развлечения", "Другое"]
+    };
+
+    // Обновляем UI
+    function updateUI() {
+      document.getElementById('balance').textContent = balance + ' ₽';
+      document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
+      
+      const historyEl = document.getElementById('history');
+      historyEl.innerHTML = '';
+      [...history].reverse().forEach(item => {
+        const div = document.createElement('div');
+        div.className = `item ${item.type}`;
+        div.innerHTML = `
+          <div>${item.title}</div>
+          <div class="amount">${item.type === 'income' ? '+' : '-'}${item.amount} ₽</div>
+        `;
+        historyEl.appendChild(div);
+      });
     }
+
+    function addIncome() {
+      const amount = parseFloat(document.getElementById('income-amount').value);
+      const category = document.getElementById('income-category').value;
+      if (isNaN(amount) || amount <= 0) return Toast.error('Введите сумму');
+      
+      balance += amount;
+      history.push({ type: 'income', title: category, amount });
+      document.getElementById('income-amount').value = '';
+      updateUI();
+      Toast.success(`+${amount} ₽ добавлено`);
+    }
+
+    function addExpense() {
+      const amount = parseFloat(document.getElementById('expense-amount').value);
+      const category = document.getElementById('expense-category').value;
+      if (isNaN(amount) || amount <= 0) return Toast.error('Введите сумму');
+      if (amount > balance) return Toast.error('Недостаточно средств');
+      
+      balance -= amount;
+      history.push({ type: 'expense', title: category, amount });
+      document.getElementById('expense-amount').value = '';
+      updateUI();
+      Toast.info(`-${amount} ₽ списано`);
+    }
+
+    function addCustomCategory() {
+      const name = document.getElementById('new-category').value.trim();
+      const type = document.getElementById('category-type').value;
+      if (!name) return Toast.error('Введите название');
+      if (categories[type].includes(name)) return Toast.info('Такая категория уже есть');
+      
+      categories[type].push(name);
+      updateCategorySelects();
+      document.getElementById('new-category').value = '';
+      Toast.success(`Категория "${name}" добавлена`);
+    }
+
+    function updateCategorySelects() {
+      const incSelect = document.getElementById('income-category');
+      const expSelect = document.getElementById('expense-category');
+      
+      // Очищаем и заполняем
+      [incSelect, expSelect].forEach((sel, i) => {
+        const type = i === 0 ? 'income' : 'expense';
+        sel.innerHTML = '';
+        categories[type].forEach(cat => {
+          const opt = document.createElement('option');
+          opt.value = cat;
+          opt.textContent = cat;
+          sel.appendChild(opt);
+        });
+      });
+    }
+
+    function recordSale() {
+      const item = document.getElementById('sold-item').value.trim();
+      const amount = parseFloat(document.getElementById('sold-amount').value);
+      const date = document.getElementById('sold-date').value;
+      if (!item || isNaN(amount) || amount <= 0) return Toast.error('Заполните все поля');
+      
+      balance += amount;
+      history.push({ 
+        type: 'income', 
+        title: `Продажа: ${item}`, 
+        amount 
+      });
+      updateUI();
+      Toast.success(`📦 Продажа зафиксирована: +${amount} ₽`);
+    }
+
+    // Инициализация
+    document.addEventListener('DOMContentLoaded', () => {
+      updateCategorySelects();
+      updateUI();
+      Toast.info('Финансовый калькулятор готов');
+    });
+
+    // Передаём сегодняшнюю дату в шаблон
+    document.getElementById('sold-date').value = new Date().toISOString().split('T')[0];
   </script>
-</body>
-</html>
+{% endblock %}
