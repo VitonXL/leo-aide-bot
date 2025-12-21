@@ -1,153 +1,30 @@
-<!-- Фон оверлея -->
-<div class="modal-overlay" style="
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2000;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.3s, visibility 0.3s;
-  animation: fade-in 0.3s forwards;
-">
-  <!-- Модальное окно -->
-  <div class="modal" style="
-    background: var(--bg);
-    border-radius: var(--radius-lg);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.16);
-    width: 90%;
-    max-width: 400px;
-    overflow: hidden;
-    animation: scale-up 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    position: relative;
-  ">
-    <!-- Заголовок -->
-    <div style="
-      padding: 16px 20px;
-      background: var(--accent-light);
-      color: var(--accent);
-      font-size: 18px;
-      font-weight: 500;
-      border-bottom: 1px solid var(--border);
-    ">
-      {{ title or 'Подтвердите действие' }}
-    </div>
-
-    <!-- Контент -->
-    <div style="
-      padding: 24px 20px;
-      color: var(--text);
-      font-size: 15px;
-      text-align: center;
-      line-height: 1.5;
-    ">
-      {{ message or 'Вы уверены, что хотите продолжить?' }}
-    </div>
-
-    <!-- Кнопки -->
-    <div style="
-      display: flex;
-      border-top: 1px solid var(--border);
-      overflow: hidden;
-    ">
-      <button class="modal-cancel btn" style="
-        flex: 1;
-        padding: 14px;
-        background: var(--card-bg);
-        color: var(--text);
-        border: none;
-        font-size: 16px;
-        cursor: pointer;
-      ">
-        Отмена
-      </button>
-      <button class="modal-confirm btn" style="
-        flex: 1;
-        padding: 14px;
-        background: var(--accent);
-        color: white;
-        border: none;
-        font-size: 16px;
-        cursor: pointer;
-      ">
-        Подтвердить
-      </button>
+<div id="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000;">
+  <div class="card" style="width: 90%; max-width: 400px; text-align: center; padding: 24px;">
+    <h3 id="modal-title">Подтвердите действие</h3>
+    <p id="modal-text">Вы уверены, что хотите продолжить?</p>
+    <div style="display: flex; gap: 12px; justify-content: center; margin-top: 20px;">
+      <button class="btn" style="background: #F44336;" onclick="confirmAction()">Подтвердить</button>
+      <button class="btn" onclick="closeModal()">Отмена</button>
     </div>
   </div>
 </div>
-
-<!-- Анимации -->
-<style>
-  @keyframes scale-up {
-    from { transform: scale(0.9); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
-  }
-  @keyframes fade-in {
-    from { opacity: 0; visibility: visible; }
-    to { opacity: 1; visibility: visible; }
-  }
-</style>
-
-<!-- Скрипт модального окна -->
 <script>
-  class Modal {
-    constructor() {
-      this.el = document.querySelector('.modal-overlay');
-      if (!this.el) return;
+  let confirmCallback = null;
 
-      this.confirmBtn = this.el.querySelector('.modal-confirm');
-      this.cancelBtn = this.el.querySelector('.modal-cancel');
-
-      this.confirmCallback = null;
-
-      // Закрытие по оверлею и кнопкам
-      this.el.addEventListener('click', (e) => {
-        if (e.target === this.el) {
-          this.hide();
-        }
-      });
-
-      this.confirmBtn.addEventListener('click', () => {
-        if (this.confirmCallback) this.confirmCallback();
-        this.hide();
-      });
-
-      this.cancelBtn.addEventListener('click', () => {
-        this.hide();
-      });
-    }
-
-    show({ title, message, onConfirm }) {
-      if (!this.el) return;
-
-      this.confirmCallback = onConfirm;
-
-      const titleEl = this.el.querySelector('.modal div[style*="background: var(--accent-light)"]');
-      const messageEl = this.el.querySelector('.modal div[style*="padding: 24px"]');
-
-      if (title) titleEl.textContent = title;
-      if (message) messageEl.textContent = message;
-
-      this.el.style.opacity = '1';
-      this.el.style.visibility = 'visible';
-      document.body.style.overflow = 'hidden';
-    }
-
-    hide() {
-      this.el.style.opacity = '0';
-      this.el.style.visibility = 'hidden';
-      document.body.style.overflow = '';
-    }
+  function confirmAction(title = "Подтвердите", text = "Вы уверены?", callback = () => {}) {
+    document.getElementById('modal-title').textContent = title;
+    document.getElementById('modal-text').textContent = text;
+    confirmCallback = callback;
+    document.getElementById('modal').style.display = 'flex';
   }
 
-  // Глобальный экземпляр
-  window.LeoModal = new Modal();
-
-  // Удобная функция
-  function confirmAction(message, onConfirm, title = 'Подтвердите действие') {
-    LeoModal.show({ title, message, onConfirm });
+  function closeModal() {
+    document.getElementById('modal').style.display = 'none';
+    confirmCallback = null;
   }
+
+  window.onclick = function(e) {
+    const modal = document.getElementById('modal');
+    if (e.target === modal) closeModal();
+  };
 </script>
