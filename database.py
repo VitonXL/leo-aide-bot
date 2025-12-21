@@ -1,4 +1,3 @@
-# database.py
 import asyncpg
 import os
 from loguru import logger
@@ -103,14 +102,31 @@ async def init_db(pool):
                 message TEXT NOT NULL,
                 status TEXT NOT NULL DEFAULT 'open',
                 created_at TIMESTAMPTZ DEFAULT NOW(),
-                updated_at TIMESTAMPTZ DEFAULT NOW()
-                -- ticket_id добавим позже через миграцию
+                updated_at TIMESTAMPTZ DEFAULT NOW(),
+                ticket_id TEXT UNIQUE
             );
         ''')
 
-        # Индексы (без индекса по ticket_id — он будет позже)
+        # Индексы
         await conn.execute('CREATE INDEX IF NOT EXISTS idx_support_user ON support_tickets(user_id);')
         await conn.execute('CREATE INDEX IF NOT EXISTS idx_support_status ON support_tickets(status);')
+        await conn.execute('CREATE INDEX IF NOT EXISTS idx_support_ticket_id ON support_tickets(ticket_id);')
+
+        # --- Таблица финансовых операций ---
+        await conn.execute('''
+            CREATE TABLE IF NOT EXISTS finance_operations (
+                id SERIAL PRIMARY KEY,
+                user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                amount DECIMAL(12, 2) NOT NULL,
+                type TEXT NOT NULL CHECK (type IN ('income', 'expense')),
+                category TEXT,
+                comment TEXT,
+                created_at TIMESTAMPTZ DEFAULT NOW()
+            );
+        ''')
+        await conn.execute('CREATE INDEX IF NOT EXISTS idx_finance_user ON finance_operations(user_id);')
+        await conn.execute('CREATE INDEX IF NOT EXISTS idx_finance_type ON finance_operations(type);')
+        await conn.execute('CREATE INDEX IF NOT EXISTS idx_finance_date ON finance_operations(created_at);')
 
         # --- Миграции — расширения ---
         migrations = [
@@ -132,26 +148,8 @@ async def init_db(pool):
             except Exception as e:
                 logger.warning(f"⚠️ Ошибка при добавлении колонки {column}: {e}")
 
-        # ✅ Миграция: добавляем ticket_id в support_tickets
-        try:
-            await conn.execute('''
-                ALTER TABLE support_tickets 
-                ADD COLUMN IF NOT EXISTS ticket_id TEXT UNIQUE;
-            ''')
-            logger.info("✅ Колонка ticket_id добавлена в support_tickets (если отсутствовала)")
-        except Exception as e:
-            logger.warning(f"⚠️ Ошибка при добавлении ticket_id: {e}")
+        logger.info("✅ Все таблицы и миграции применены")
 
-        # ✅ Теперь можно создать индекс
-        try:
-            await conn.execute('''
-                CREATE INDEX IF NOT EXISTS idx_support_ticket_id ON support_tickets(ticket_id);
-            ''')
-            logger.info("✅ Индекс idx_support_ticket_id создан")
-        except Exception as e:
-            logger.warning(f"⚠️ Ошибка при создании индекса ticket_id: {e}")
-
-    logger.info("✅ Все таблицы и миграции применены")
 
 # --- Работа с пользователями ---
 async def add_or_update_user(pool, user):
@@ -266,6 +264,48 @@ async def log_command_usage(pool, user_id: int, command: str):
     logger.debug(f"📊 Команда: {command} от {user_id}")
 
 
+# --- Финансовые операции ---
+async def add_finance_operation(pool, user_id: int, amount: float, type: str, category: str = None, comment: str = None):
+    """
+    Добавляет финансовую операцию (доход или расход).
+    """
+    if type not in ['income', 'expense']:
+        raise ValueError("Тип должен быть 'income' или 'expense'")
+    if amount < 0:
+        raise ValueError("Сумма должна быть положительной. Тип определяет расход/доход.")
+
+    async with pool.acquire() as conn:
+        await conn.execute('''
+            INSERT INTO finance_operations (user_id, amount, type, category, comment)
+            VALUES ($1, $2, $3, $4, $5)
+        ''', user_id, amount, type, category, comment)
+    logger.info(f"💰 {type.capitalize()}: {amount} ₽ для пользователя {user_id}")
+
+
+async def get_user_stats(pool, user_id: int):
+    """
+    Возвращает финансовую статистику пользователя.
+    """
+    async with pool.acquire() as conn:
+        row = await conn.fetchrow('''
+            SELECT 
+                COALESCE(SUM(amount), 0) FILTER (WHERE type = 'income') AS income,
+                COALESCE(SUM(amount), 0) FILTER (WHERE type = 'expense') AS expense
+            FROM finance_operations 
+            WHERE user_id = $1
+        ''', user_id)
+
+        income = row['income'] or 0
+        expense = row['expense'] or 0
+        balance = income - expense
+
+        return {
+            "income": round(float(income), 2),
+            "expense": round(float(expense), 2),
+            "balance": round(float(balance), 2)
+        }
+
+
 # --- Очистка неактивных ---
 async def delete_inactive_users(pool, days=90):
     async with pool.acquire() as conn:
@@ -325,7 +365,7 @@ async def ensure_support_table_exists():
                     status TEXT NOT NULL DEFAULT 'open',
                     created_at TIMESTAMPTZ DEFAULT NOW(),
                     updated_at TIMESTAMPTZ DEFAULT NOW(),
-                    ticket_id TEXT UNIQUE  -- ✅
+                    ticket_id TEXT UNIQUE
                 )
             ''')
             await conn.execute('CREATE INDEX IF NOT EXISTS idx_support_user ON support_tickets(user_id);')
