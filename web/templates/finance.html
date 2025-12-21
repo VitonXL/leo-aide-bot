@@ -82,40 +82,6 @@ body, html {
   font-size: 15px;
 }
 
-/* === БАЛАНС === */
-.balance-card {
-  background: var(--card-bg);
-  border-radius: var(--radius-lg);
-  padding: 28px;
-  box-shadow: var(--shadow);
-  border: 1px solid var(--border);
-  text-align: center;
-  margin-bottom: 30px;
-  position: relative;
-  overflow: hidden;
-}
-
-.balance-card::after {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 6px;
-  background: var(--gold-soft);
-  animation: shimmer-gold 6s ease-in-out infinite;
-}
-
-.balance-value {
-  font-size: 36px;
-  font-weight: 700;
-  color: var(--accent);
-  margin: 16px 0;
-}
-
-.balance-label {
-  color: var(--text-secondary);
-  font-size: 16px;
-}
-
 /* === КАРТЫ === */
 .card {
   background: var(--card-bg);
@@ -186,6 +152,7 @@ body, html {
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.2);
   background: #4CAF50;
+  margin-bottom: 8px;
 }
 
 .btn-primary {
@@ -200,42 +167,70 @@ body, html {
   box-shadow: 0 8px 20px rgba(76, 175, 80, 0.25);
 }
 
-.btn:active {
-  transform: translateY(-1px);
-}
-
-/* === СПИСКИ === */
-.item-list {
+/* === КАТАЛОГИ === */
+.catalog-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  max-height: 300px;
-  overflow-y: auto;
-  padding-right: 8px;
 }
 
-.item {
+.catalog-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px;
+  padding: 14px;
   background: rgba(76, 175, 80, 0.06);
-  border-radius: var(--radius-sm);
   border: 1px solid var(--border);
-  font-size: 15px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
-.item .amount {
+.catalog-item:hover {
+  background: rgba(76, 175, 80, 0.1);
+}
+
+.catalog-item.active {
+  border-color: var(--accent);
+  background: rgba(76, 175, 80, 0.15);
   font-weight: 600;
-  color: var(--text);
 }
 
-.item.income {
-  border-left: 4px solid #4CAF50;
+.catalog-item .name {
+  font-weight: 500;
 }
 
-.item.expense {
-  border-left: 4px solid #f44336;
+.catalog-item .stats {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* === ОПЕРАЦИИ === */
+.operation-list {
+  max-height: 300px;
+  overflow-y: auto;
+  margin-top: 16px;
+  padding-right: 8px;
+}
+
+.operation {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+
+.operation:last-child {
+  border-bottom: none;
+}
+
+.operation.income {
+  color: #4CAF50;
+}
+
+.operation.expense {
+  color: #f44336;
 }
 
 /* === АНИМАЦИИ === */
@@ -245,19 +240,10 @@ body, html {
   100% { background-position: 0% 50%; }
 }
 
-@keyframes shimmer-gold {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
 /* === АДАПТИВ === */
 @media (max-width: 768px) {
-  .balance-value {
-    font-size: 32px;
-  }
-  .btn {
-    font-size: 14px;
+  .container {
+    padding: 16px;
   }
 }
 </style>
@@ -267,99 +253,40 @@ body, html {
 {% block content %}
   <div class="container">
     <div class="finance-header">
-      <h1>💰 Финансы</h1>
-      <p>Контроль доходов, расходов и продаж</p>
+      <h1>📁 Финансы</h1>
+      <p>Управление проектами и бюджетом</p>
     </div>
 
-    <!-- Баланс -->
-    <div class="balance-card">
-      <div class="balance-label">Текущий баланс</div>
-      <div class="balance-value" id="balance">0 ₽</div>
-      <div class="balance-label">Обновлено: <span id="last-update">только что</span></div>
-    </div>
-
-    <!-- Доходы -->
+    <!-- Создание каталога -->
     <div class="card">
-      <h3><span class="material-icons">trending_up</span> Добавить доход</h3>
+      <h3><span class="material-icons">folder</span> Создать каталог</h3>
+      <div class="form-group">
+        <label>Название</label>
+        <input type="text" id="catalog-name" placeholder="Например: YouTube-канал">
+      </div>
+      <button class="btn btn-primary" onclick="createCatalog()">📁 Создать каталог</button>
+    </div>
+
+    <!-- Список каталогов -->
+    <div class="card">
+      <h3><span class="material-icons">list</span> Мои каталоги</h3>
+      <div class="catalog-list" id="catalog-list">
+        <div class="catalog-item empty">Пока нет каталогов</div>
+      </div>
+    </div>
+
+    <!-- Операции в каталоге -->
+    <div class="card" id="catalog-operations" style="display: none;">
+      <h3><span class="material-icons">account_balance</span> <span id="current-catalog">[Каталог]</span></h3>
       <div class="form-group">
         <label>Сумма (₽)</label>
-        <input type="number" id="income-amount" placeholder="Например: 5000">
+        <input type="number" id="op-amount" placeholder="Например: 5000">
       </div>
-      <div class="form-group">
-        <label>Категория</label>
-        <select id="income-category">
-          <option value="Зарплата">Зарплата</option>
-          <option value="Фриланс">Фриланс</option>
-          <option value="Инвестиции">Инвестиции</option>
-          <option value="Другое">Другое</option>
-        </select>
+      <div class="btn-group">
+        <button class="btn" onclick="addIncomeToCatalog()">➕ Доход</button>
+        <button class="btn" onclick="addExpenseToCatalog()">➖ Расход</button>
       </div>
-      <button class="btn btn-primary" onclick="addIncome()">➕ Добавить доход</button>
-    </div>
-
-    <!-- Расходы -->
-    <div class="card">
-      <h3><span class="material-icons">trending_down</span> Добавить расход</h3>
-      <div class="form-group">
-        <label>Сумма (₽)</label>
-        <input type="number" id="expense-amount" placeholder="Например: 1200">
-      </div>
-      <div class="form-group">
-        <label>Категория</label>
-        <select id="expense-category">
-          <option value="Еда">Еда</option>
-          <option value="Транспорт">Транспорт</option>
-          <option value="Развлечения">Развлечения</option>
-          <option value="Другое">Другое</option>
-        </select>
-      </div>
-      <button class="btn" onclick="addExpense()">➖ Добавить расход</button>
-    </div>
-
-    <!-- Категории -->
-    <div class="card">
-      <h3><span class="material-icons">category</span> Управление категориями</h3>
-      <div class="form-group">
-        <label>Новая категория</label>
-        <input type="text" id="new-category" placeholder="Например: YouTube">
-      </div>
-      <div class="form-group">
-        <label>Тип</label>
-        <select id="category-type">
-          <option value="income">Доход</option>
-          <option value="expense">Расход</option>
-        </select>
-      </div>
-      <button class="btn" onclick="addCustomCategory()">➕ Добавить категорию</button>
-    </div>
-
-    <!-- Продажи -->
-    <div class="card">
-      <h3><span class="material-icons">sell</span> Учёт продаж</h3>
-      <div class="form-group">
-        <label>Что продал?</label>
-        <input type="text" id="sold-item" placeholder="Например: Курс по Python">
-      </div>
-      <div class="form-group">
-        <label>Сумма (₽)</label>
-        <input type="number" id="sold-amount" placeholder="Например: 10000">
-      </div>
-      <div class="form-group">
-        <label>Дата продажи</label>
-        <input type="date" id="sold-date" value="{{ today }}">
-      </div>
-      <button class="btn btn-primary" onclick="recordSale()">📦 Зафиксировать продажу</button>
-    </div>
-
-    <!-- История -->
-    <div class="card">
-      <h3><span class="material-icons">history</span> История операций</h3>
-      <div class="item-list" id="history">
-        <div class="item income">
-          <div>Зарплата</div>
-          <div class="amount">+5000 ₽</div>
-        </div>
-      </div>
+      <div class="operation-list" id="op-list"></div>
     </div>
   </div>
 {% endblock %}
@@ -367,110 +294,142 @@ body, html {
 {% block scripts %}
   {{ super() }}
   <script>
-    // Инициализация
-    let balance = 0;
-    const history = [];
-    const categories = {
-      income: ["Зарплата", "Фриланс", "Инвестиции", "Другое"],
-      expense: ["Еда", "Транспорт", "Развлечения", "Другое"]
-    };
+    // Данные
+    let catalogs = JSON.parse(localStorage.getItem('finance_catalogs') || '[]');
+    let currentCatalogId = null;
 
-    // Обновляем UI
-    function updateUI() {
-      document.getElementById('balance').textContent = balance + ' ₽';
-      document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
-      
-      const historyEl = document.getElementById('history');
-      historyEl.innerHTML = '';
-      [...history].reverse().forEach(item => {
+    // Инициализация
+    function init() {
+      renderCatalogs();
+      if (catalogs.length > 0) {
+        selectCatalog(catalogs[0].id);
+      }
+    }
+
+    // Создание каталога
+    function createCatalog() {
+      const name = document.getElementById('catalog-name').value.trim();
+      if (!name) return Toast.error('Введите название');
+
+      const newCatalog = {
+        id: Date.now(),
+        name,
+        balance: 0,
+        income: 0,
+        expense: 0,
+        operations: []
+      };
+
+      catalogs.push(newCatalog);
+      saveCatalogs();
+      renderCatalogs();
+      document.getElementById('catalog-name').value = '';
+      Toast.success(`📁 "${name}" создан`);
+
+      if (catalogs.length === 1) {
+        selectCatalog(newCatalog.id);
+      }
+    }
+
+    // Отображение каталогов
+    function renderCatalogs() {
+      const listEl = document.getElementById('catalog-list');
+      if (catalogs.length === 0) {
+        listEl.innerHTML = '<div class="catalog-item empty">Пока нет каталогов</div>';
+        return;
+      }
+
+      listEl.innerHTML = '';
+      catalogs.forEach(cat => {
         const div = document.createElement('div');
-        div.className = `item ${item.type}`;
+        div.className = `catalog-item ${cat.id === currentCatalogId ? 'active' : ''}`;
+        div.onclick = () => selectCatalog(cat.id);
         div.innerHTML = `
-          <div>${item.title}</div>
-          <div class="amount">${item.type === 'income' ? '+' : '-'}${item.amount} ₽</div>
+          <div class="name">${cat.name}</div>
+          <div class="stats">₽ ${cat.balance} (дох: ${cat.income}, расх: ${cat.expense})</div>
         `;
-        historyEl.appendChild(div);
+        listEl.appendChild(div);
       });
     }
 
-    function addIncome() {
-      const amount = parseFloat(document.getElementById('income-amount').value);
-      const category = document.getElementById('income-category').value;
+    // Выбрать каталог
+    function selectCatalog(id) {
+      currentCatalogId = id;
+      renderCatalogs();
+      const cat = catalogs.find(c => c.id === id);
+      if (!cat) return;
+
+      document.getElementById('catalog-operations').style.display = 'block';
+      document.getElementById('current-catalog').textContent = cat.name;
+      renderOperations(cat);
+    }
+
+    // Рендер операций
+    function renderOperations(cat) {
+      const listEl = document.getElementById('op-list');
+      if (cat.operations.length === 0) {
+        listEl.innerHTML = '<div style="color: var(--text-secondary); font-size: 14px;">Пока нет операций</div>';
+        return;
+      }
+
+      listEl.innerHTML = '';
+      cat.operations.forEach(op => {
+        const div = document.createElement('div');
+        div.className = `operation ${op.type}`;
+        div.innerHTML = `
+          <div>${op.title}</div>
+          <div>${op.type === 'income' ? '+' : '-'}${op.amount} ₽</div>
+        `;
+        listEl.appendChild(div);
+      });
+    }
+
+    // Доход в каталоге
+    function addIncomeToCatalog() {
+      const amount = parseFloat(document.getElementById('op-amount').value);
       if (isNaN(amount) || amount <= 0) return Toast.error('Введите сумму');
-      
-      balance += amount;
-      history.push({ type: 'income', title: category, amount });
-      document.getElementById('income-amount').value = '';
-      updateUI();
+
+      const cat = catalogs.find(c => c.id === currentCatalogId);
+      if (!cat) return;
+
+      cat.balance += amount;
+      cat.income += amount;
+      cat.operations.push({ type: 'income', title: 'Доход', amount, date: new Date() });
+
+      saveCatalogs();
+      selectCatalog(currentCatalogId);
+      document.getElementById('op-amount').value = '';
       Toast.success(`+${amount} ₽ добавлено`);
     }
 
-    function addExpense() {
-      const amount = parseFloat(document.getElementById('expense-amount').value);
-      const category = document.getElementById('expense-category').value;
+    // Расход в каталоге
+    function addExpenseToCatalog() {
+      const amount = parseFloat(document.getElementById('op-amount').value);
       if (isNaN(amount) || amount <= 0) return Toast.error('Введите сумму');
-      if (amount > balance) return Toast.error('Недостаточно средств');
-      
-      balance -= amount;
-      history.push({ type: 'expense', title: category, amount });
-      document.getElementById('expense-amount').value = '';
-      updateUI();
+      if (amount > catalogs.find(c => c.id === currentCatalogId)?.balance) {
+        return Toast.error('Недостаточно средств');
+      }
+
+      const cat = catalogs.find(c => c.id === currentCatalogId);
+      cat.balance -= amount;
+      cat.expense += amount;
+      cat.operations.push({ type: 'expense', title: 'Расход', amount, date: new Date() });
+
+      saveCatalogs();
+      selectCatalog(currentCatalogId);
+      document.getElementById('op-amount').value = '';
       Toast.info(`-${amount} ₽ списано`);
     }
 
-    function addCustomCategory() {
-      const name = document.getElementById('new-category').value.trim();
-      const type = document.getElementById('category-type').value;
-      if (!name) return Toast.error('Введите название');
-      if (categories[type].includes(name)) return Toast.info('Такая категория уже есть');
-      
-      categories[type].push(name);
-      updateCategorySelects();
-      document.getElementById('new-category').value = '';
-      Toast.success(`Категория "${name}" добавлена`);
+    // Сохранение
+    function saveCatalogs() {
+      localStorage.setItem('finance_catalogs', JSON.stringify(catalogs));
     }
 
-    function updateCategorySelects() {
-      const incSelect = document.getElementById('income-category');
-      const expSelect = document.getElementById('expense-category');
-      
-      // Очищаем и заполняем
-      [incSelect, expSelect].forEach((sel, i) => {
-        const type = i === 0 ? 'income' : 'expense';
-        sel.innerHTML = '';
-        categories[type].forEach(cat => {
-          const opt = document.createElement('option');
-          opt.value = cat;
-          opt.textContent = cat;
-          sel.appendChild(opt);
-        });
-      });
-    }
-
-    function recordSale() {
-      const item = document.getElementById('sold-item').value.trim();
-      const amount = parseFloat(document.getElementById('sold-amount').value);
-      const date = document.getElementById('sold-date').value;
-      if (!item || isNaN(amount) || amount <= 0) return Toast.error('Заполните все поля');
-      
-      balance += amount;
-      history.push({ 
-        type: 'income', 
-        title: `Продажа: ${item}`, 
-        amount 
-      });
-      updateUI();
-      Toast.success(`📦 Продажа зафиксирована: +${amount} ₽`);
-    }
-
-    // Инициализация
+    // Загрузка
     document.addEventListener('DOMContentLoaded', () => {
-      updateCategorySelects();
-      updateUI();
-      Toast.info('Финансовый калькулятор готов');
+      init();
+      Toast.info('Финансы загружены');
     });
-
-    // Передаём сегодняшнюю дату в шаблон
-    document.getElementById('sold-date').value = new Date().toISOString().split('T')[0];
   </script>
 {% endblock %}
