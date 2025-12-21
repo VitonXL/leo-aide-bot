@@ -64,7 +64,7 @@ async def cabinet(request: Request):
     try:
         user_id = int(user_id)
     except ValueError:
-        raise HTTPException(status_code:400, detail="Invalid user_id")
+        raise HTTPException(status_code=400, detail="Invalid user_id")  # ✅ Исправлено: = вместо :
 
     if not verify_cabinet_link(user_id, hash_param):
         raise HTTPException(status_code=403, detail="Invalid signature")
@@ -82,11 +82,10 @@ async def cabinet(request: Request):
             "theme": "light"
         }
 
-    # 🔽 Получаем статистику и рефералов
+    # Получаем статистику и рефералов
     pool = await get_db_pool()
     stats = await get_user_stats(pool, user_id)
     referrals_count = await get_referral_stats(pool, user_id)
-
     user_data["referrals"] = referrals_count
 
     theme = request.cookies.get("theme", user_data.get("theme", "light"))
@@ -119,7 +118,7 @@ async def finance_page(request: Request):
     try:
         user_id = int(user_id)
     except ValueError:
-        raise HTTPException(status_code:400, detail="Invalid user_id")
+        raise HTTPException(status_code=400, detail="Invalid user_id")  # ✅ Исправлено
 
     if not verify_cabinet_link(user_id, hash_param):
         raise HTTPException(status_code=403, detail="Invalid signature")
@@ -159,7 +158,7 @@ async def admin_page(request: Request):
     try:
         user_id = int(user_id)
     except ValueError:
-        raise HTTPException(status_code:400, detail="Invalid user_id")
+        raise HTTPException(status_code=400, detail="Invalid user_id")  # ✅ Исправлено
 
     if not verify_cabinet_link(user_id, hash_param):
         raise HTTPException(status_code=403, detail="Invalid signature")
