@@ -1,0 +1,51 @@
+<div class="loader-container" style="
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 16px;
+  min-height: 120px;
+  gap: 16px;
+">
+  <!-- Анимированный круг -->
+  <div style="
+    width: 48px;
+    height: 48px;
+    border: 4px solid var(--border);
+    border-top: 4px solid var(--accent);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  "></div>
+
+  <!-- Текст -->
+  <div style="
+    font-size: 15px;
+    opacity: 0.8;
+  ">
+    Загрузка данных...
+  </div>
+
+  <!-- Иконка-робот (опционально) -->
+  <div style="
+    font-size: 24px;
+    animation: float 3s ease-in-out infinite;
+  ">
+    🤖
+  </div>
+</div>
+
+<!-- Анимации (если нет в main.css) -->
+<style>
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+</style>
