@@ -60,61 +60,6 @@ body, html {
   padding: 20px;
 }
 
-/* === ЕДИНАЯ НАВИГАЦИЯ === */
-.navbar {
-  width: 100%;
-  max-width: 1000px;
-  margin: 0 auto 30px auto;
-  padding: 16px 20px;
-  background: var(--card-bg);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow);
-  border: 1px solid var(--border);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  z-index: 1000;
-}
-
-.navbar button,
-.navbar a {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text);
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.navbar a {
-  text-decoration: none;
-}
-
-.navbar button:hover,
-.navbar a:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(76, 175, 80, 0.12);
-}
-
-.navbar .logo {
-  background: var(--accent);
-  color: white;
-  font-weight: bold;
-  font-size: 18px;
-  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.2);
-}
-
-.navbar .admin {
-  background: var(--gold-soft);
-  color: #1a1a1a;
-  box-shadow: 0 2px 8px rgba(218, 165, 32, 0.3);
-}
-
 /* === КАРТЫ === */
 .card {
   background: var(--card-bg);
@@ -283,24 +228,15 @@ body, html {
 {% endblock %}
 
 {% block content %}
-  <div class="container">
-    <!-- ЕДИНАЯ НАВИГАЦИЯ -->
-    <div class="navbar">
-      <div style="display: flex; align-items: center; gap: 16px;">
-        <button onclick="history.back()" title="Назад">
-          <span class="material-icons">arrow_back</span>
-        </button>
-        <a href="/" class="logo">🤖</a>
-      </div>
-      <h2 style="margin: 0; font-size: 18px; font-weight: 600; color: var(--text);">Финансы</h2>
-      <div style="display: flex; align-items: center; gap: 12px;">
-        <button onclick="toggleTheme()" title="Сменить тему">
-          <span class="material-icons" id="theme-icon">dark_mode</span>
-        </button>
-        <a href="/cabinet" class="logo">👤</a>
-      </div>
-    </div>
+  {% include "components/header.html" %}
 
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      setPageTitle("Финансы");
+    });
+  </script>
+
+  <div class="container">
     <!-- Создание каталога -->
     <div class="card">
       <h3><span class="material-icons">add</span> Новый каталог</h3>
@@ -376,29 +312,9 @@ body, html {
     let catalogs = JSON.parse(localStorage.getItem('finance_catalogs') || '[]');
     let currentCatalogId = null;
 
-    function toggleTheme() {
-      const html = document.documentElement;
-      const isDark = html.getAttribute('data-theme') === 'dark';
-      const icon = document.getElementById('theme-icon');
-      if (isDark) {
-        html.setAttribute('data-theme', 'light');
-        icon.textContent = 'dark_mode';
-        localStorage.setItem('theme', 'light');
-        Toast.info('Светлая тема');
-      } else {
-        html.setAttribute('data-theme', 'dark');
-        icon.textContent = 'light_mode';
-        localStorage.setItem('theme', 'dark');
-        Toast.info('Тёмная тема');
-      }
-    }
-
     document.addEventListener('DOMContentLoaded', () => {
       const savedTheme = localStorage.getItem('theme') || 'light';
       document.documentElement.setAttribute('data-theme', savedTheme);
-      if (document.getElementById('theme-icon')) {
-        document.getElementById('theme-icon').textContent = savedTheme === 'dark' ? 'light_mode' : 'dark_mode';
-      }
       renderCatalogs();
     });
 
