@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ru" class="gradient-bg" data-theme="{{ theme or 'light' }}">
+<head>
+  <meta charset="UTF-8" />
+  <title>{{ title }} — Лео Помощник</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/main.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  {% block head %}{% endblock %}
+</head>
+<body class="{{ body_class }}" style="{{ body_style }}">
+  <div class="container" style="max-width: 100%; padding: 20px;">
+
+    <!-- Хедер -->
+    {% block header %}
+    <header style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px;">
+      <h1 style="margin: 0; font-size: 24px; color: var(--accent);">{{ title }}</h1>
+      {% if closable %}
+        <button class="btn" onclick="closeApp()" style="padding: 8px 12px; font-size: 18px;">✕</button>
+      {% endif %}
+    </header>
+    {% endblock %}
+
+    <!-- Основной контент -->
+    {% block content %}{% endblock %}
+
+    <!-- Подвал -->
+    {% block footer %}
+    <footer style="text-align: center; color: var(--text-secondary); font-size: 14px; margin-top: 40px;">
+      <p>Лео Помощник • 2025</p>
+    </footer>
+    {% endblock %}
+
+    <!-- FAB (если closable) -->
+    {% if closable %}
+      <button class="fab" onclick="closeApp()">✕</button>
+    {% endif %}
+  </div>
+
+  <!-- Универсальная функция закрытия -->
+  <script>
+    function closeApp() {
+      if (window.Telegram?.WebApp) {
+        Telegram.WebApp.close();
+      } else {
+        history.back();
+      }
+    }
+  </script>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>
