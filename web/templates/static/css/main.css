@@ -1,0 +1,252 @@
+/* === ГЛОБАЛЬНЫЕ СБРОСЫ === */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  width: 100%;
+  min-height: 100vh;
+  overflow-x: hidden;
+  font-family: 'Inter', sans-serif;
+  color: #212121;
+}
+
+/* === ОТСТУП ДЛЯ КОНТЕНТА === */
+.content-wrapper {
+  padding: 90px 10px 0;
+}
+
+/* === ОВАЛ С "ЛЕО" === */
+.leo-badge-3d {
+  position: fixed;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 130px;
+  height: 62px;
+  background: linear-gradient(135deg, #4CAF50, #2E7D32);
+  color: white;
+  border-radius: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3), 0 0 0 1.5px #FFD700;
+  font-family: 'Inter', sans-serif;
+  text-align: center;
+  z-index: 1002;
+  border: 1.5px solid #FFD700;
+  transition: all 0.3s ease;
+  animation: float 3s ease-in-out infinite;
+  pointer-events: auto;
+}
+
+.leo-badge-3d.hidden {
+  opacity: 0;
+  transform: translate(-50%, -10px);
+  pointer-events: none;
+}
+
+@keyframes float {
+  0% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(-1.5px); }
+  100% { transform: translateX(-50%) translateY(0); }
+}
+
+/* === ДЕРЕВО "ЛЕО" === */
+.leo-logo {
+  display: flex;
+  align-items: center;
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: -1px;
+}
+
+.leo-logo .l {
+  color: #8B4513;
+  font-size: 22px;
+  position: relative;
+}
+
+.leo-logo .l::before,
+.leo-logo .l::after {
+  content: '';
+  position: absolute;
+  width: 7px;
+  height: 8px;
+  background: #8B4513;
+  bottom: -7px;
+  border-radius: 40% 40% 60% 60%;
+}
+
+.leo-logo .l::before {
+  left: 2px;
+  transform: rotate(30deg);
+  width: 6px;
+  height: 7px;
+}
+
+.leo-logo .l::after {
+  right: 2px;
+  transform: rotate(-30deg);
+  width: 6px;
+  height: 7px;
+}
+
+.leo-logo .eo {
+  color: #FFD700;
+  font-size: 18px;
+  position: relative;
+}
+
+.leo-logo .eo::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: -3px;
+  width: 10px;
+  height: 10px;
+  background: #4CAF50;
+  border-radius: 50%;
+  box-shadow: 
+    7px -2px 0 1px #4CAF50,
+    3px -5px 0 1px #4CAF50,
+    10px 1px 0 1px #4CAF50;
+}
+
+.page-tag {
+  font-size: 12px;
+  font-weight: 500;
+  background: rgba(255, 215, 0, 0.25);
+  padding: 1px 6px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 215, 0, 0.4);
+  color: white;
+  white-space: nowrap;
+}
+
+/* === ШАПКА === */
+.full-header {
+  position: fixed;
+  top: 0;
+  left: 10px;
+  width: calc(100% - 20px);
+  height: 60px;
+  background: rgba(230, 249, 255, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  z-index: 1001;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.full-header.hidden {
+  opacity: 0;
+  transform: translateY(-8px);
+  pointer-events: none;
+}
+
+.header-left,
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn-icon {
+  background: transparent;
+  border: none;
+  color: #2E7D32;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 20px;
+}
+
+.btn-icon:hover {
+  background: rgba(76, 175, 80, 0.1);
+  transform: translateY(-2px);
+}
+
+.tg-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* === БУРГЕР-МЕНЮ === */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 10px;
+  width: calc(100% - 20px);
+  height: 100%;
+  background: white;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 1100;
+  border-radius: 16px;
+  overflow: hidden;
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+}
+
+.sidebar.open {
+  transform: translateX(0);
+}
+
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid #eee;
+}
+
+.sidebar-body a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  text-decoration: none;
+  color: #212121;
+  border-radius: 8px;
+  margin: 8px;
+  font-size: 15px;
+}
+
+.sidebar-body a:hover {
+  background: #e8f5e8;
+}
+
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 1050;
+  display: none;
+}
+
+.sidebar-overlay.active {
+  display: block;
+}
