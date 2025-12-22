@@ -180,6 +180,52 @@
       background: rgba(76, 175, 80, 0.1);
     }
 
+    /* === АВАТАРКА ПОЛЬЗОВАТЕЛЯ === */
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 2px solid #4CAF50;
+      object-fit: cover;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      transition: transform 0.2s;
+    }
+
+    .user-avatar:hover {
+      transform: scale(1.08);
+    }
+
+    /* === КНОПКА АДМИНКИ === */
+    .admin-badge {
+      display: none;
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: #ff5722;
+      color: white;
+      font-size: 10px;
+      font-weight: 600;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 0 2px #f0fff0;
+      cursor: pointer;
+      z-index: 2;
+    }
+
+    .admin-container {
+      position: relative;
+      display: inline-block;
+    }
+
+    [data-role="admin"] .admin-badge {
+      display: flex;
+    }
+
     /* === КОНТЕНТ === */
     .main-content {
       margin-top: 90px;
@@ -396,6 +442,17 @@
       </button>
     </div>
     <div class="header-right">
+      <!-- Контейнер аватарки + админка -->
+      <div class="admin-container" id="admin-container">
+        <img 
+          src="https://ui-avatars.com/api/?name=Иван+Иванов&background=4CAF50&color=fff&size=128" 
+          alt="Аватар" 
+          class="user-avatar"
+          id="user-avatar"
+          onclick="alert('Переход в личный кабинет')"
+        />
+        <div class="admin-badge" id="admin-badge" title="Админ панель">!</div>
+      </div>
       <button class="btn-icon" onclick="toggleTheme()" aria-label="Тема">
         <span class="material-icons" id="theme-icon">dark_mode</span>
       </button>
@@ -507,7 +564,39 @@
       }
     }
 
+    // Пример данных пользователя
+    const userData = {
+      first_name: "Иван",
+      username: "ivan_123",
+      role: "admin", // ← поменяй на "user", чтобы скрыть админку
+      photo_url: "https://t.me/i/userpic/320/somephoto.jpg" // ← будет из Telegram
+    };
+
+    // Подставляем фото (если есть)
     document.addEventListener('DOMContentLoaded', () => {
+      const avatar = document.getElementById('user-avatar');
+      const adminContainer = document.getElementById('admin-container');
+
+      // Если в реальном боте — подставляем фото из Telegram
+      if (window.Telegram?.WebApp?.initDataUnsafe?.user?.photo_url) {
+        avatar.src = window.Telegram.WebApp.initDataUnsafe.user.photo_url;
+      } else {
+        // Для теста используем ui-avatars
+        avatar.src = `https://ui-avatars.com/api/?name=${userData.first_name}&background=4CAF50&color=fff&size=128`;
+      }
+
+      // Показываем админ-бейдж, если роль = admin
+      if (userData.role === 'admin') {
+        adminContainer.setAttribute('data-role', 'admin');
+      }
+
+      // Клик по бейджу → админка
+      document.getElementById('admin-badge').onclick = (e) => {
+        e.stopPropagation();
+        alert('🔐 Добро пожаловать в админ-панель');
+      };
+
+      // Инициализация темы
       const savedTheme = localStorage.getItem('theme') || 'light';
       document.documentElement.setAttribute('data-theme', savedTheme);
       document.getElementById('theme-icon').textContent = savedTheme === 'dark' ? 'light_mode' : 'dark_mode';
