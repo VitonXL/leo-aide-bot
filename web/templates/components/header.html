@@ -1,12 +1,14 @@
 <!-- web/templates/components/header.html -->
-<!-- Центр: овал (выпирает вверх) -->
+<!-- Овал с деревом "Лео" (выпирает вверх) -->
 <div class="leo-badge-3d">
-  <div class="leo-text">Лео</div>
+  <div class="leo-logo">
+    <span class="l">Л</span><span class="eo">ео</span>
+  </div>
   <div class="page-tag" id="page-title">Финансы</div>
 </div>
 
-<!-- Шапка — на всю ширину, с закруглением снизу -->
-<div class="full-header">
+<!-- Прозрачная шапка — на всю ширину, закруглена снизу -->
+<div class="full-header" id="main-header">
   <div class="header-left">
     <button class="btn-icon" id="menu-toggle" aria-label="Меню">
       <span class="material-icons">menu</span>
@@ -53,7 +55,7 @@
 <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
 
 <style>
-/* === ОВАЛ В ЦЕНТРЕ (выпирает вверх) === */
+/* === ОВАЛ С ДЕРЕВОМ "ЛЕО" (выпирает вверх) === */
 .leo-badge-3d {
   position: fixed;
   top: 12px;
@@ -77,10 +79,65 @@
   animation: float 3s ease-in-out infinite;
 }
 
-.leo-text {
-  font-size: 20px;
+/* === ДЕРЕВО "ЛЕО" === */
+.leo-logo {
+  display: flex;
+  align-items: center;
   font-weight: 700;
-  margin-bottom: 2px;
+  font-size: 20px;
+  letter-spacing: -1px;
+}
+
+.leo-logo .l {
+  color: #8B4513;
+  font-size: 24px;
+  position: relative;
+}
+
+.leo-logo .l::before,
+.leo-logo .l::after {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 10px;
+  background: #8B4513;
+  bottom: -8px;
+  border-radius: 40% 40% 60% 60%;
+}
+
+.leo-logo .l::before {
+  left: 2px;
+  transform: rotate(30deg);
+  width: 7px;
+  height: 9px;
+}
+
+.leo-logo .l::after {
+  right: 2px;
+  transform: rotate(-30deg);
+  width: 7px;
+  height: 9px;
+}
+
+.leo-logo .eo {
+  color: #FFD700;
+  font-size: 20px;
+  position: relative;
+}
+
+.leo-logo .eo::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: -4px;
+  width: 12px;
+  height: 12px;
+  background: #4CAF50;
+  border-radius: 50%;
+  box-shadow: 
+    8px -2px 0 1px #4CAF50,
+    4px -6px 0 1px #4CAF50,
+    12px 2px 0 1px #4CAF50;
 }
 
 .page-tag {
@@ -90,6 +147,7 @@
   padding: 2px 8px;
   border-radius: 12px;
   border: 1px solid rgba(255, 215, 0, 0.4);
+  color: white;
 }
 
 @keyframes float {
@@ -98,15 +156,17 @@
   100% { transform: translateX(-50%) translateY(0); }
 }
 
-/* === ШАПКА — НА ВСЮ ШИРИНУ, ЗАКРУГЛЕНА СНИЗУ === */
+/* === ШАПКА — ПРОЗРАЧНАЯ, НА ВСЮ ШИРИНУ === */
 .full-header {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 60px;
-  background: linear-gradient(135deg, #e6f9ff, #d0f0ff);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  background: rgba(230, 249, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   border-bottom-left-radius: 16px;
   border-bottom-right-radius: 16px;
   display: flex;
@@ -114,8 +174,12 @@
   justify-content: space-between;
   padding: 0 16px;
   z-index: 1001;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.full-header.hidden {
+  opacity: 0;
+  transform: translateY(-10px);
 }
 
 /* === КНОПКИ === */
@@ -124,7 +188,6 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  z-index: 1003;
 }
 
 .btn-icon {
@@ -154,7 +217,7 @@
   object-fit: cover;
 }
 
-/* === Бургер-меню (остаётся прежним) === */
+/* === БУРГЕР-МЕНЮ === */
 .sidebar {
   position: fixed;
   top: 0;
@@ -212,6 +275,23 @@
 </style>
 
 <script>
+// === Скрытие шапки при прокрутке вниз ===
+let lastScrollTop = 0;
+const header = document.getElementById('main-header');
+
+window.addEventListener('scroll', () => {
+  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+  if (scrollTop > lastScrollTop && scrollTop > 60) {
+    // Прокручиваем вниз → скрываем
+    header.classList.add('hidden');
+  } else {
+    // Прокручиваем вверх → показываем
+    header.classList.remove('hidden');
+  }
+  lastScrollTop = scrollTop;
+});
+
+// === Бургер-меню ===
 function toggleMenu() {
   document.getElementById('sidebar').classList.add('open');
   document.getElementById('sidebar-overlay').classList.add('active');
@@ -222,6 +302,7 @@ function closeSidebar() {
   document.getElementById('sidebar-overlay').classList.remove('active');
 }
 
+// === Смена темы ===
 function toggleTheme() {
   const html = document.documentElement;
   const icon = document.getElementById('theme-icon');
@@ -237,11 +318,13 @@ function toggleTheme() {
   }
 }
 
+// === Название страницы ===
 function setPageTitle(title) {
   const el = document.getElementById('page-title');
   if (el) el.textContent = title;
 }
 
+// === Инициализация ===
 document.addEventListener('DOMContentLoaded', () => {
   const savedTheme = localStorage.getItem('theme') || 'light';
   document.documentElement.setAttribute('data-theme', savedTheme);
