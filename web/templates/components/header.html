@@ -1,6 +1,5 @@
 <!-- web/templates/components/header.html -->
 <div class="leo-header">
-  <!-- Левая часть -->
   <div class="header-left">
     <button class="btn-icon" id="menu-toggle" aria-label="Меню">
       <span class="material-icons">menu</span>
@@ -10,19 +9,18 @@
     </button>
   </div>
 
-  <!-- Центр: "животик змеи" -->
+  <!-- Центр: "животик" -->
   <div class="header-center">
-    <div class="snake-belly">
-      <div class="snake-head">
+    <div class="snake-bulge">
+      <div class="snake-logo">
         <span class="l">Л</span><span class="eo">ео</span>
       </div>
-      <div class="page-tag">
+      <div class="page-pill">
         <span id="page-title">Финансы</span>
       </div>
     </div>
   </div>
 
-  <!-- Правая часть -->
   <div class="header-right">
     <a href="/cabinet" class="btn-icon" aria-label="Кабинет">
       <img src="/static/img/tg-user-icon.png" alt="Кабинет" class="tg-icon">
@@ -38,7 +36,7 @@
   </div>
 </div>
 
-<!-- Бургер-меню (остаётся без изменений) -->
+<!-- Бургер-меню (без изменений) -->
 <div class="sidebar" id="sidebar">
   <div class="sidebar-header">
     <h3>Навигация</h3>
@@ -70,12 +68,12 @@
   margin: 0 auto;
   background: #f8f3e6; /* тёплый фон — как старый образец */
   border-bottom: 1px solid #d4a017;
-  border-radius: 0 0 16px 16px;
-  box-shadow: 0 4px 20px rgba(178, 255, 89, 0.2);
+  border-radius: 0 0 12px 12px;
+  box-shadow: 0 4px 20px rgba(212, 160, 23, 0.15);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
+  padding: 10px 16px;
   overflow: hidden;
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
@@ -86,12 +84,106 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  flex: 1;
+  min-width: 0;
 }
 
 .header-center {
-  flex: 1;
+  flex: 0 0 auto;
+  position: relative;
+}
+
+/* === ЦЕНТР: ЖИВОТИК === */
+.snake-bulge {
+  position: relative;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  width: 140px;
+  height: 72px;
+}
+
+/* === Лого "Лео" === */
+.snake-logo {
+  display: flex;
+  align-items: center;
+  font-weight: 700;
+  font-size: 22px;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: -1px;
+  margin-bottom: 4px;
+}
+
+.snake-logo .l {
+  color: #8B4513;
+  font-size: 26px;
+  position: relative;
+}
+
+.snake-logo .l::before,
+.snake-logo .l::after {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 10px;
+  background: #8B4513;
+  bottom: -8px;
+  border-radius: 40% 40% 60% 60%;
+}
+
+.snake-logo .l::before {
+  left: 2px;
+  transform: rotate(30deg);
+  width: 7px;
+  height: 9px;
+}
+
+.snake-logo .l::after {
+  right: 2px;
+  transform: rotate(-30deg);
+  width: 7px;
+  height: 9px;
+}
+
+.snake-logo .eo {
+  color: #2E8B57;
+  font-size: 22px;
+  position: relative;
+}
+
+.snake-logo .eo::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: -4px;
+  width: 12px;
+  height: 12px;
+  background: #32CD32;
+  border-radius: 50%;
+  box-shadow: 
+    8px -2px 0 1px #32CD32,
+    4px -6px 0 1px #32CD32,
+    12px 2px 0 1px #32CD32;
+}
+
+/* === ФИШКА СТРАНИЦЫ (утолщение) === */
+.page-pill {
+  width: 110px;
+  background: #D4A017; /* золото */
+  color: white;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 5px 10px;
+  border-radius: 18px;
+  box-shadow: 
+    0 2px 8px rgba(212, 160, 23, 0.3),
+    0 1px 2px rgba(0, 0, 0, 0.1);
+  border: 1px solid #b8860b;
+  white-space: nowrap;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+  font-family: 'Inter', sans-serif;
+  transform: translateY(1px);
+  text-align: center;
 }
 
 /* === КНОПКИ === */
@@ -107,6 +199,7 @@
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s;
+  font-size: 20px;
 }
 
 .btn-icon:hover {
@@ -119,98 +212,6 @@
   height: 24px;
   border-radius: 50%;
   object-fit: cover;
-}
-
-/* === ЖИВОТИК ЗМЕИ === */
-.snake-belly {
-  position: relative;
-  width: 140px;
-  height: 72px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-/* === ГОЛОВА ЗМЕИ (Лео) === */
-.snake-head {
-  display: flex;
-  align-items: center;
-  font-weight: 700;
-  font-size: 22px;
-  font-family: 'Inter', sans-serif;
-  letter-spacing: -1px;
-  margin-bottom: 6px;
-}
-
-.snake-head .l {
-  color: #8B4513;
-  font-size: 26px;
-  position: relative;
-}
-
-.snake-head .l::before,
-.snake-head .l::after {
-  content: '';
-  position: absolute;
-  width: 8px;
-  height: 10px;
-  background: #8B4513;
-  bottom: -8px;
-  border-radius: 40% 40% 60% 60%;
-}
-
-.snake-head .l::before {
-  left: 2px;
-  transform: rotate(30deg);
-  width: 7px;
-  height: 9px;
-}
-
-.snake-head .l::after {
-  right: 2px;
-  transform: rotate(-30deg);
-  width: 7px;
-  height: 9px;
-}
-
-.snake-head .eo {
-  color: #2E8B57;
-  font-size: 22px;
-  position: relative;
-}
-
-.snake-head .eo::before {
-  content: '';
-  position: absolute;
-  top: -6px;
-  left: -4px;
-  width: 12px;
-  height: 12px;
-  background: #32CD32;
-  border-radius: 50%;
-  box-shadow: 
-    8px -2px 0 1px #32CD32,
-    4px -6px 0 1px #32CD32,
-    12px 2px 0 1px #32CD32;
-}
-
-/* === ТЕЛО ЗМЕИ / ЖИВОТИК === */
-.page-tag {
-  background: #d4a017; /* золото — как в старом образце */
-  color: white;
-  font-size: 14px;
-  font-weight: 500;
-  padding: 6px 16px;
-  border-radius: 20px;
-  box-shadow: 
-    0 2px 8px rgba(212, 160, 23, 0.3),
-    0 1px 2px rgba(0, 0, 0, 0.1);
-  border: 1px solid #b8860b;
-  white-space: nowrap;
-  transform: translateY(2px);
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
-  font-family: 'Inter', sans-serif;
-  letter-spacing: 0.3px;
 }
 
 /* === БУРГЕР-МЕНЮ === */
@@ -261,7 +262,6 @@
   background: rgba(212, 160, 23, 0.1);
 }
 
-/* === ЗАТЕМНЕНИЕ === */
 .sidebar-overlay {
   position: fixed;
   top: 0;
@@ -280,23 +280,24 @@
 /* === АДАПТИВ === */
 @media (max-width: 768px) {
   .leo-header {
-    padding: 12px 12px;
+    padding: 10px 12px;
   }
-  .snake-belly {
+  .snake-bulge {
     width: 120px;
   }
-  .snake-head {
+  .snake-logo {
     font-size: 20px;
   }
-  .snake-head .l {
+  .snake-logo .l {
     font-size: 24px;
   }
-  .snake-head .eo {
+  .snake-logo .eo {
     font-size: 20px;
   }
-  .page-tag {
-    font-size: 13px;
-    padding: 5px 12px;
+  .page-pill {
+    width: 100px;
+    font-size: 12px;
+    padding: 5px 8px;
   }
 }
 </style>
