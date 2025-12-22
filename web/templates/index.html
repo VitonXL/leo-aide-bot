@@ -21,22 +21,28 @@
       box-sizing: border-box;
     }
 
+    /* === ФОН С СЕТКОЙ В ТЁМНОЙ ТЕМЕ === */
     html, body {
       width: 100%;
       min-height: 100vh;
       font-family: 'Inter', sans-serif;
       color: #212121;
       overflow-x: hidden;
-      background: #f0f7ff; /* Голубо-белый фон */
+      background: #f0f7ff; /* Светлый голубо-белый фон */
       transition: background 0.4s ease;
     }
 
     [data-theme="dark"] {
-      background: #0a1128; /* Тёмно-синий фон */
+      background: #0d1117; /* Серо-голубой фон */
       color: #e0f7ff;
+      background-image: 
+        linear-gradient(0deg, transparent 23px, rgba(42, 52, 58, 0.1) 24px, transparent 25px),
+        linear-gradient(90deg, transparent 23px, rgba(42, 52, 58, 0.1) 24px, transparent 25px);
+      background-size: 25px 25px;
+      background-position: 0 0, 0 0;
     }
 
-    /* === ОВАЛ С ЛОГОТИПОМ "ЛЕО" — С ЗЕЛЁНЫМИ АКЦЕНТАМИ === */
+    /* === ОВАЛ С ЛОГОТИПОМ "ЛЕО" === */
     .leo-badge-3d {
       position: fixed;
       top: 8px;
@@ -44,7 +50,7 @@
       transform: translateX(-50%);
       width: 130px;
       height: 62px;
-      background: linear-gradient(135deg, #B2FF59, #4CAF50); /* Светло- и тёмно-зелёный */
+      background: linear-gradient(135deg, #B2FF59, #4CAF50);
       color: white;
       border-radius: 30px;
       display: flex;
@@ -52,7 +58,7 @@
       align-items: center;
       justify-content: center;
       padding: 6px 12px;
-      box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3), 0 0 0 1.5px #DAA520; /* Золотая обводка */
+      box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3), 0 0 0 1.5px #DAA520;
       z-index: 1003;
       border: 1.5px solid #DAA520;
       animation: float 3s ease-in-out infinite;
@@ -157,6 +163,13 @@
       z-index: 1002;
     }
 
+    [data-theme="dark"] .full-header {
+      background: rgba(13, 17, 23, 0.92);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(76, 175, 80, 0.2);
+      border: 1px solid rgba(76, 175, 80, 0.1);
+    }
+
     .header-left,
     .header-right {
       display: flex;
@@ -177,8 +190,16 @@
       cursor: pointer;
     }
 
+    [data-theme="dark"] .btn-icon {
+      color: #B2FF59;
+    }
+
     .btn-icon:hover {
       background: rgba(76, 175, 80, 0.1);
+    }
+
+    [data-theme="dark"] .btn-icon:hover {
+      background: rgba(178, 255, 89, 0.1);
     }
 
     /* === АВАТАРКА === */
@@ -190,6 +211,11 @@
       object-fit: cover;
       cursor: pointer;
       box-shadow: 0 2px 8px rgba(76, 175, 80, 0.2);
+    }
+
+    [data-theme="dark"] .user-avatar {
+      border-color: #B2FF59;
+      box-shadow: 0 2px 8px rgba(178, 255, 89, 0.2);
     }
 
     /* === АДМИН-КНОПКА === */
@@ -231,9 +257,9 @@
     }
 
     [data-theme="dark"] .card {
-      background: #0f172a;
-      border: 1px solid #B2FF59;
-      box-shadow: 0 0 0 1px #B2FF59, 0 8px 24px rgba(178, 255, 89, 0.15);
+      background: #121821;
+      border: 1px solid rgba(178, 255, 89, 0.2);
+      box-shadow: 0 0 0 1px rgba(178, 255, 89, 0.15), 0 8px 24px rgba(178, 255, 89, 0.1);
       color: #e0f7ff;
     }
 
@@ -257,14 +283,14 @@
     }
 
     [data-theme="dark"] .action-btn {
-      background: #1a2e1b;
+      background: #0e1a10;
       border: 1px solid #B2FF59;
       color: #B2FF59;
       box-shadow: 0 0 0 1px #B2FF59, 0 4px 12px rgba(178, 255, 89, 0.1);
     }
 
     [data-theme="dark"] .action-btn:hover {
-      background: #244426;
+      background: #132615;
       box-shadow: 0 0 0 2px #B2FF59, 0 8px 20px rgba(178, 255, 89, 0.2);
       transform: translateY(-4px);
     }
@@ -302,9 +328,9 @@
     }
 
     [data-theme="dark"] .stat-card {
-      background: #0f172a;
-      border: 1px solid #B2FF59;
-      box-shadow: 0 0 0 1px #B2FF59, 0 4px 16px rgba(178, 255, 89, 0.1);
+      background: #121821;
+      border: 1px solid rgba(178, 255, 89, 0.2);
+      box-shadow: 0 0 0 1px rgba(178, 255, 89, 0.1), 0 4px 16px rgba(178, 255, 89, 0.08);
     }
 
     .stat-title {
@@ -330,7 +356,7 @@
     }
 
     [data-theme="dark"] .stat-row {
-      border-bottom-color: rgba(178, 255, 89, 0.2);
+      border-bottom-color: rgba(178, 255, 89, 0.1);
     }
 
     .stat-row:last-child {
@@ -391,9 +417,9 @@
     }
 
     [data-theme="dark"] .news-item {
-      background: #0f172a;
-      border: 1px solid #B2FF59;
-      box-shadow: 0 0 0 1px #B2FF59, 0 2px 8px rgba(178, 255, 89, 0.1);
+      background: #121821;
+      border: 1px solid rgba(178, 255, 89, 0.2);
+      box-shadow: 0 0 0 1px rgba(178, 255, 89, 0.1), 0 2px 8px rgba(178, 255, 89, 0.08);
     }
 
     .news-icon {
@@ -436,9 +462,9 @@
     }
 
     [data-theme="dark"] .footer-info {
-      background: #0f172a;
-      border: 1px solid #B2FF59;
-      box-shadow: 0 0 0 1px #B2FF59;
+      background: #121821;
+      border: 1px solid rgba(178, 255, 89, 0.2);
+      box-shadow: 0 0 0 1px rgba(178, 255, 89, 0.1);
     }
 
     .footer-tag {
@@ -469,13 +495,13 @@
     }
 
     [data-theme="dark"] .footer-btn {
-      background: #1a2e1b;
+      background: #0e1a10;
       color: #B2FF59;
       border: 1px solid #B2FF59;
     }
 
     [data-theme="dark"] .footer-btn:hover {
-      background: #244426;
+      background: #132615;
       box-shadow: 0 0 0 2px #B2FF59;
     }
 
@@ -488,13 +514,42 @@
     }
 
     @media (max-width: 768px) {
-      .dual-stats, .button-grid {
+      .dual-stats,
+      .button-grid {
         grid-template-columns: 1fr;
       }
 
       .footer-btn {
         width: 80%;
         max-width: 240px;
+        font-size: 14px;
+      }
+
+      .full-header {
+        padding: 0 12px;
+      }
+
+      .btn-icon,
+      .user-avatar {
+        width: 36px;
+        height: 36px;
+      }
+
+      .main-content {
+        padding: 12px;
+      }
+
+      .card,
+      .stat-card {
+        padding: 20px;
+      }
+    }
+
+    /* === УЛУЧШЕНИЕ ВОСПРИЯТИЯ СЕТКИ === */
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
       }
     }
   </style>
