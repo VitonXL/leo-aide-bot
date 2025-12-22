@@ -1,6 +1,6 @@
 <!-- web/templates/components/header.html -->
 <div class="leo-header">
-  <!-- Левая часть: бургер и назад -->
+  <!-- Левая часть -->
   <div class="header-left">
     <button class="btn-icon" id="menu-toggle" aria-label="Меню">
       <span class="material-icons">menu</span>
@@ -10,40 +10,35 @@
     </button>
   </div>
 
-  <!-- Центр: дерево Лео + название страницы -->
+  <!-- Центр: "животик змеи" -->
   <div class="header-center">
-    <div class="leo-tree">
-      <div class="leo-logo">
+    <div class="snake-belly">
+      <div class="snake-head">
         <span class="l">Л</span><span class="eo">ео</span>
       </div>
-      <div class="page-chip">
+      <div class="page-tag">
         <span id="page-title">Финансы</span>
       </div>
     </div>
   </div>
 
-  <!-- Правая часть: иконки -->
+  <!-- Правая часть -->
   <div class="header-right">
-    <!-- Кабинет (иконка из Telegram) -->
-    <a href="/cabinet" class="btn-icon" aria-label="Личный кабинет">
+    <a href="/cabinet" class="btn-icon" aria-label="Кабинет">
       <img src="/static/img/tg-user-icon.png" alt="Кабинет" class="tg-icon">
     </a>
-
-    <!-- Смена темы -->
-    <button class="btn-icon" onclick="toggleTheme()" aria-label="Сменить тему">
+    <button class="btn-icon" onclick="toggleTheme()" aria-label="Тема">
       <span class="material-icons" id="theme-icon">dark_mode</span>
     </button>
-
-    <!-- Админка (только если админ) -->
     {% if current_user and current_user.is_admin %}
-    <a href="/admin" class="btn-icon" aria-label="Админ-панель">
+    <a href="/admin" class="btn-icon" aria-label="Админка">
       <span class="material-icons">shield</span>
     </a>
     {% endif %}
   </div>
 </div>
 
-<!-- Бургер-меню -->
+<!-- Бургер-меню (остаётся без изменений) -->
 <div class="sidebar" id="sidebar">
   <div class="sidebar-header">
     <h3>Навигация</h3>
@@ -62,12 +57,10 @@
     {% endif %}
   </div>
 </div>
-
-<!-- Затемнение фона -->
 <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
 
 <style>
-/* === УНИВЕРСАЛЬНАЯ ШАПКА === */
+/* === ОСНОВНАЯ ШАПКА === */
 .leo-header {
   position: sticky;
   top: 0;
@@ -75,17 +68,17 @@
   width: 100%;
   max-width: 1000px;
   margin: 0 auto;
-  background: var(--card-bg);
-  border-bottom: 1px solid var(--border);
-  border-radius: 0 0 var(--radius-md) var(--radius-md);
-  box-shadow: var(--shadow);
+  background: #f8f3e6; /* тёплый фон — как старый образец */
+  border-bottom: 1px solid #d4a017;
+  border-radius: 0 0 16px 16px;
+  box-shadow: 0 4px 20px rgba(178, 255, 89, 0.2);
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
   overflow: hidden;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 .header-left,
@@ -105,7 +98,7 @@
 .btn-icon {
   background: transparent;
   border: none;
-  color: var(--text);
+  color: #8B4513;
   width: 40px;
   height: 40px;
   border-radius: 50%;
@@ -114,15 +107,13 @@
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s;
-  font-size: 20px;
 }
 
 .btn-icon:hover {
-  background: rgba(76, 175, 80, 0.1);
+  background: rgba(212, 160, 23, 0.1);
   transform: translateY(-2px);
 }
 
-/* === ИКОНКА ТЕЛЕГРАМА === */
 .tg-icon {
   width: 24px;
   height: 24px;
@@ -130,17 +121,18 @@
   object-fit: cover;
 }
 
-/* === ДЕРЕВО ЛЕО === */
-.leo-tree {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+/* === ЖИВОТИК ЗМЕИ === */
+.snake-belly {
   position: relative;
   width: 140px;
   height: 72px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.leo-logo {
+/* === ГОЛОВА ЗМЕИ (Лео) === */
+.snake-head {
   display: flex;
   align-items: center;
   font-weight: 700;
@@ -150,14 +142,14 @@
   margin-bottom: 6px;
 }
 
-.leo-logo .l {
-  color: #8B4513; /* коричневый — корни */
+.snake-head .l {
+  color: #8B4513;
   font-size: 26px;
   position: relative;
 }
 
-.leo-logo .l::before,
-.leo-logo .l::after {
+.snake-head .l::before,
+.snake-head .l::after {
   content: '';
   position: absolute;
   width: 8px;
@@ -167,27 +159,27 @@
   border-radius: 40% 40% 60% 60%;
 }
 
-.leo-logo .l::before {
+.snake-head .l::before {
   left: 2px;
   transform: rotate(30deg);
   width: 7px;
   height: 9px;
 }
 
-.leo-logo .l::after {
+.snake-head .l::after {
   right: 2px;
   transform: rotate(-30deg);
   width: 7px;
   height: 9px;
 }
 
-.leo-logo .eo {
-  color: #2E8B57; /* зелёный — ствол и листва */
+.snake-head .eo {
+  color: #2E8B57;
   font-size: 22px;
   position: relative;
 }
 
-.leo-logo .eo::before {
+.snake-head .eo::before {
   content: '';
   position: absolute;
   top: -6px;
@@ -202,22 +194,23 @@
     12px 2px 0 1px #32CD32;
 }
 
-/* === ФИШКА СТРАНИЦЫ (животик змеи) === */
-.page-chip {
-  background: var(--card-bg);
-  color: var(--text);
+/* === ТЕЛО ЗМЕИ / ЖИВОТИК === */
+.page-tag {
+  background: #d4a017; /* золото — как в старом образце */
+  color: white;
   font-size: 14px;
   font-weight: 500;
-  padding: 6px 14px;
+  padding: 6px 16px;
   border-radius: 20px;
   box-shadow: 
-    0 2px 8px rgba(76, 175, 80, 0.15),
-    0 1px 2px rgba(0, 0, 0, 0.05);
-  border: 1px solid var(--border);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+    0 2px 8px rgba(212, 160, 23, 0.3),
+    0 1px 2px rgba(0, 0, 0, 0.1);
+  border: 1px solid #b8860b;
   white-space: nowrap;
   transform: translateY(2px);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+  font-family: 'Inter', sans-serif;
+  letter-spacing: 0.3px;
 }
 
 /* === БУРГЕР-МЕНЮ === */
@@ -227,12 +220,11 @@
   left: -300px;
   width: 280px;
   height: 100%;
-  background: var(--card-bg);
-  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
+  background: #f8f3e6;
+  box-shadow: 2px 0 16px rgba(178, 255, 89, 0.2);
   z-index: 1100;
   transition: left 0.3s ease;
-  overflow-y: auto;
-  border-right: 1px solid var(--border);
+  border-right: 1px solid #d4a017;
 }
 
 .sidebar.open {
@@ -244,17 +236,13 @@
   justify-content: space-between;
   align-items: center;
   padding: 16px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid #d4a017;
 }
 
 .sidebar-header h3 {
   margin: 0;
   font-size: 18px;
-  color: var(--text);
-}
-
-.sidebar-body {
-  padding: 16px;
+  color: #8B4513;
 }
 
 .sidebar-body a {
@@ -263,19 +251,14 @@
   gap: 12px;
   padding: 12px 8px;
   text-decoration: none;
-  color: var(--text);
-  border-radius: var(--radius-sm);
+  color: #212121;
+  border-radius: 8px;
   margin-bottom: 8px;
   font-size: 15px;
 }
 
 .sidebar-body a:hover {
-  background: rgba(76, 175, 80, 0.08);
-}
-
-.sidebar-body .material-icons {
-  font-size: 18px;
-  color: var(--accent);
+  background: rgba(212, 160, 23, 0.1);
 }
 
 /* === ЗАТЕМНЕНИЕ === */
@@ -299,19 +282,19 @@
   .leo-header {
     padding: 12px 12px;
   }
-  .leo-tree {
+  .snake-belly {
     width: 120px;
   }
-  .leo-logo {
+  .snake-head {
     font-size: 20px;
   }
-  .leo-logo .l {
+  .snake-head .l {
     font-size: 24px;
   }
-  .leo-logo .eo {
+  .snake-head .eo {
     font-size: 20px;
   }
-  .page-chip {
+  .page-tag {
     font-size: 13px;
     padding: 5px 12px;
   }
@@ -319,7 +302,6 @@
 </style>
 
 <script>
-// === Функции ===
 function toggleMenu() {
   const sidebar = document.getElementById('sidebar');
   const overlay = document.getElementById('sidebar-overlay');
@@ -338,7 +320,7 @@ function toggleTheme() {
   const html = document.documentElement;
   const icon = document.getElementById('theme-icon');
   const isDark = html.getAttribute('data-theme') === 'dark';
-  
+
   if (isDark) {
     html.setAttribute('data-theme', 'light');
     icon.textContent = 'dark_mode';
@@ -352,7 +334,6 @@ function toggleTheme() {
   }
 }
 
-// Установка темы при загрузке
 document.addEventListener('DOMContentLoaded', () => {
   const savedTheme = localStorage.getItem('theme') || 'light';
   document.documentElement.setAttribute('data-theme', savedTheme);
@@ -360,19 +341,8 @@ document.addEventListener('DOMContentLoaded', () => {
   if (icon) {
     icon.textContent = savedTheme === 'dark' ? 'light_mode' : 'dark_mode';
   }
-
-  // Инициализация Toast, если нет
-  if (!window.Toast) {
-    window.Toast = {
-      info: (msg) => alert('INFO: ' + msg),
-      error: (msg) => alert('ERROR: ' + msg),
-      warning: (msg) => alert('WARNING: ' + msg),
-      success: (msg) => alert('SUCCESS: ' + msg)
-    };
-  }
 });
 
-// Установка названия страницы
 function setPageTitle(title) {
   const el = document.getElementById('page-title');
   if (el) el.textContent = title;
