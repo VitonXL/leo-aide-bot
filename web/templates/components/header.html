@@ -1,6 +1,6 @@
 <!-- web/templates/components/header.html -->
-<!-- Овал с деревом "Лео" (выпирает вверх, но меньше) -->
-<div class="leo-badge-3d">
+<!-- Овал с "Лео" и названием — теперь исчезает при скролле -->
+<div class="leo-badge-3d" id="leo-badge">
   <div class="leo-logo">
     <span class="l">Л</span><span class="eo">ео</span>
   </div>
@@ -55,17 +55,25 @@
 <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
 
 <style>
-/* === ОВАЛ С ДЕРЕВОМ "ЛЕО" — УМЕНЬШЕН НА 10px === */
+/* === КОНТЕЙНЕР С ОТСТУПАМИ ПО БОКАМ (10mm ≈ 38px, но 10px в пикселях) === */
+body {
+  margin: 0;
+  padding: 70px 10px 0; /* 10px слева и справа, 70px сверху под шапку */
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+/* === ОВАЛ С "ЛЕО" — ТЕПЕРЬ ИСЧЕЗАЕТ ПРИ СКРОЛЛЕ === */
 .leo-badge-3d {
   position: fixed;
-  top: 8px; /* было 12px → стало 8px (на 4px ниже) */
+  top: 8px;
   left: 50%;
   transform: translateX(-50%);
-  width: 130px; /* немного уже */
-  height: 62px; /* было 72px → стало 62px (на 10px меньше) */
+  width: 130px;
+  height: 62px;
   background: linear-gradient(135deg, #4CAF50, #2E7D32);
   color: white;
-  border-radius: 30px; /* чуть меньше */
+  border-radius: 30px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -76,7 +84,14 @@
   text-align: center;
   z-index: 1002;
   border: 1.5px solid #FFD700;
+  transition: opacity 0.3s ease, transform 0.3s ease;
   animation: float 3s ease-in-out infinite;
+}
+
+.leo-badge-3d.hidden {
+  opacity: 0;
+  transform: translateX(-50%) translateY(-5px);
+  pointer-events: none;
 }
 
 /* === ДЕРЕВО "ЛЕО" === */
@@ -84,7 +99,7 @@
   display: flex;
   align-items: center;
   font-weight: 700;
-  font-size: 18px; /* чуть меньше */
+  font-size: 18px;
   letter-spacing: -1px;
 }
 
@@ -157,12 +172,12 @@
   100% { transform: translateX(-50%) translateY(0); }
 }
 
-/* === ШАПКА — ПРОЗРАЧНАЯ, ИСЧЕЗАЕТ ПРИ СКРОЛЛЕ === */
+/* === ШАПКА — ИСЧЕЗАЕТ ПРИ СКРОЛЛЕ === */
 .full-header {
   position: fixed;
   top: 0;
-  left: 0;
-  width: 100%;
+  left: 10px; /* отступ слева */
+  width: calc(100% - 20px); /* 10px слева + 10px справа */
   height: 60px;
   background: rgba(230, 249, 255, 0.8);
   backdrop-filter: blur(10px);
@@ -233,7 +248,10 @@
 }
 
 .sidebar.open {
-  left: 0;
+  left: 10px;
+  width: calc(100% - 20px);
+  border-radius: 16px;
+  overflow: hidden;
 }
 
 .sidebar-header {
@@ -274,31 +292,27 @@
 .sidebar-overlay.active {
   display: block;
 }
-
-/* === ОТСТУП СВЕРХУ — чтобы шапка и овал не закрывали контент === */
-body {
-  padding-top: 70px; /* под овал и шапку */
-  margin: 0;
-  min-height: 100vh;
-}
 </style>
 
 <script>
-// === Скрытие шапки при прокрутке вниз ===
+// === Оба элемента исчезают при скролле вниз ===
 let lastScrollTop = 0;
+const header = document.getElementById('main-header');
+const badge = document.getElementById('leo-badge');
 
 window.addEventListener('scroll', () => {
-  const header = document.getElementById('main-header');
-  if (!header) return;
+  if (!header || !badge) return;
 
   const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
 
-  // Прокрутка вниз → скрываем шапку (овал остаётся)
+  // Прокрутка вниз → скрываем и шапку, и овал
   if (scrollTop > lastScrollTop && scrollTop > 60) {
     header.classList.add('hidden');
+    badge.classList.add('hidden');
   } else {
-    // Прокрутка вверх → показываем шапку
+    // Прокрутка вверх → показываем
     header.classList.remove('hidden');
+    badge.classList.remove('hidden');
   }
 
   lastScrollTop = scrollTop;
