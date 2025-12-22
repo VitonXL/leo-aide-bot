@@ -6,51 +6,16 @@
   {% include "components/header.html" %}
 
   <div class="content-wrapper">
-    <h1>Привет, я Лео 🌱</h1>
+    <h1>🌱 Добро пожаловать в Лео</h1>
     <p>Всё работает. Нет полос. Нет ошибок.</p>
-    <button onclick="toggleTheme()">Сменить тему</button>
+    <button class="btn" onclick="toggleTheme()">Сменить тему</button>
   </div>
 {% endblock %}
 
 {% block scripts %}
   <script>
-    // Ставим тему
-    document.documentElement.setAttribute('data-theme', 'light');
-
-    // Скрытие при скролле
-    let lastScrollTop = 0;
-    const header = document.getElementById('main-header');
-    const badge = document.getElementById('leo-badge');
-
-    window.addEventListener('scroll', () => {
-      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-
-      if (scrollTop > lastScrollTop && scrollTop > 50) {
-        header.classList.add('hidden');
-        badge.classList.add('hidden');
-      } else if (scrollTop < lastScrollTop) {
-        header.classList.remove('hidden');
-        badge.classList.remove('hidden');
-      }
-
-      lastScrollTop = scrollTop;
+    document.addEventListener('DOMContentLoaded', () => {
+      setPageTitle("Главная");
     });
-
-    // Смена темы
-    function toggleTheme() {
-      const html = document.documentElement;
-      const icon = document.getElementById('theme-icon');
-      const isDark = html.getAttribute('data-theme') === 'dark';
-
-      if (isDark) {
-        html.setAttribute('data-theme', 'light');
-        icon.textContent = 'dark_mode';
-        localStorage.setItem('theme', 'light');
-      } else {
-        html.setAttribute('data-theme', 'dark');
-        icon.textContent = 'light_mode';
-        localStorage.setItem('theme', 'dark');
-      }
-    }
   </script>
 {% endblock %}
