@@ -5,8 +5,13 @@
 
 {% block content %}
 
+<!-- Приветствие -->
 <div class="card">
-  <h2><span id="greeting-icon">👋</span> <span id="greeting-text">Загрузка...</span></h2>
+  <h2>
+    <span id="greeting-icon">🌤</span>
+    <span id="greeting-text">Загрузка...</span>
+  </h2>
+  <p><strong id="user-name">Пользователь</strong>, рады вас видеть!</p>
   <p>Лео — ваш личный помощник в мире Telegram. Умные функции и забота о комфорте.</p>
   <button class="btn-primary" onclick="buyPremium()">
     Оформить премиум
@@ -16,7 +21,7 @@
 <!-- Быстрые действия -->
 <div class="section-title">⚡ Быстрые действия</div>
 <div class="button-grid">
-  <a href="#" class="action-btn">
+  <a href="/finance?user_id={{ user.id }}&hash={{ user.hash }}" class="action-btn">
     <div class="action-icon">💰</div>
     <div class="action-label">Финансы</div>
   </a>
@@ -34,7 +39,7 @@
   </a>
 </div>
 
-<!-- ПОГОДА И КУРСЫ -->
+<!-- Погода и курсы -->
 <div class="dual-stats">
   <!-- Погода -->
   <div class="stat-card">
