@@ -117,22 +117,6 @@ app.mount("/static", StaticFiles(directory="web/static"), name="static")
 # --- Роуты ---
 app.include_router(admin_api)
 
-@app.get("/")
-async def read_root():
-    return FileResponse("web/templates/index.html")
-
-@app.get("/cabinet")
-async def cabinet():
-    return FileResponse("web/templates/index.html")
-
-@app.get("/finance")
-async def finance():
-    return FileResponse("web/templates/index.html")
-
-@app.get("/admin")
-async def admin():
-    return FileResponse("web/templates/index.html")
-
 @app.get("/health")
 async def health():
     return {"status": "ok"}
