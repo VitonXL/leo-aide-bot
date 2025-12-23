@@ -553,6 +553,50 @@
         padding: 20px;
       }
     }
+
+    /* === КНОПКИ: PRIMARY и SM === */
+    .btn-primary {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 500;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(76, 175, 80, 0.3);
+      transition: all 0.3s ease;
+      margin-top: 12px;
+    }
+
+    .btn-primary:hover {
+      background: #45a049;
+      transform: translateY(-2px);
+    }
+
+    .btn-sm {
+      background: #c8e6c9;
+      color: #2e7d32;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 12px;
+    }
+
+    .btn-sm:hover {
+      background: #b9f6ca;
+    }
+
+    [data-theme="dark"] .btn-sm {
+      background: #2c7d32;
+      color: #a5d6a7;
+    }
+
+    [data-theme="dark"] .btn-sm:hover {
+      background: #3d8b3d;
+    }
   </style>
 </head>
 <body>
@@ -606,7 +650,9 @@
     <div class="card">
       <h2>👋 Добро пожаловать в Лео</h2>
       <p>Ваш личный помощник в мире Telegram. Здесь — всё, что нужно.</p>
-      <button class="btn-primary" onclick="alert('Получить премиум')">Получить премиум</button>
+      <button class="btn-primary" onclick="alert('Начать обучение')">
+        Начать обучение
+      </button>
     </div>
 
     <!-- Быстрые действия -->
@@ -678,7 +724,7 @@
         </div>
       </div>
     </div>
-    <button class="btn-sm" onclick="alert('Ещё новости')">Ещё новости</button>
+    <button class="btn-sm" onclick="alert('Открыть ленту')">Открыть ленту</button>
 
   </div>
 
