@@ -1,4 +1,4 @@
-/* web/static/css/main.css */
+/* web/static/css/main.css — безопасная, адаптивная версия */
 
 :root {
   --bg-light: #f8fbf8;
@@ -36,33 +36,24 @@ body {
   color: var(--text-dark);
 }
 
-/* === ГЛАВНАЯ ШАПКА — ПОЛНОСТЬЮ АДАПТИВНАЯ === */
+/* === ГЛАВНАЯ ШАПКА — АДАПТИВНАЯ, БЕЗОПАСНАЯ === */
 .app-header {
   position: fixed;
   top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: calc(100% - 32px);
-  max-width: 100%;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  max-width: 600px;
+  width: 100%;
   z-index: 1003;
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding: 0 16px;
+  box-sizing: border-box;
 }
 
-/* На экранах 500px и больше — ограничить ширину */
-@media (min-width: 500px) {
-  .app-header {
-    width: 480px;
-    max-width: 480px;
-  }
-}
-
-.app-header.hidden {
-  transform: translate(-50%, -100%);
-}
-
-/* === ОВАЛ С ЛЕО — строго по центру, поверх шапки === */
+/* === ОВАЛ С ЛЕО — по центру шапки === */
 .leo-badge-3d.centered {
   position: absolute;
   top: 8px;
@@ -97,6 +88,7 @@ body {
 /* === ПАНЕЛЬ С КНОПКАМИ === */
 .header-panel {
   width: 100%;
+  max-width: 568px;
   height: 60px;
   background: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(10px);
@@ -116,14 +108,8 @@ body {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(76, 175, 80, 0.2);
 }
 
-/* === ЛЕВЫЙ БЛОК === */
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-/* === ПРАВЫЙ БЛОК === */
+/* === ЛЕВЫЙ / ПРАВЫЙ БЛОК === */
+.header-left,
 .header-right {
   display: flex;
   align-items: center;
@@ -200,7 +186,7 @@ body {
   font-size: 18px;
 }
 
-/* === ОТСТУП ОТ ШАПКИ ДО КОНТЕНТА === */
+/* === ОТСТУП ОТ ШАПКИ === */
 .main-content {
   margin-top: 90px;
   padding: 0 16px;
@@ -245,7 +231,7 @@ body {
   opacity: 1;
 }
 
-/* === СЕКЦИИ И КНОПКИ === */
+/* === СЕКЦИИ === */
 .section-title {
   font-size: 16px;
   color: var(--accent);
@@ -303,7 +289,7 @@ body {
   font-weight: 500;
 }
 
-/* === ДУБЛИРОВАНИЕ СТАТИСТИКИ === */
+/* === СТАТИСТИКА === */
 .dual-stats {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -428,23 +414,15 @@ body {
     grid-template-columns: 1fr;
   }
 
-  .full-header {
-    padding: 0 12px;
-  }
-
   .btn-icon,
-  .user-avatar {
+  .user-avatar,
+  .admin-btn {
     width: 36px;
     height: 36px;
   }
 
   .btn-icon span {
     font-size: 18px;
-  }
-
-  .admin-btn {
-    width: 36px;
-    height: 36px;
   }
 
   .main-content {
