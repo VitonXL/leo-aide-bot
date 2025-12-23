@@ -1,5 +1,4 @@
 /* web/static/css/main.css */
-/* Единая дизайн-система для всех страниц Лео */
 :root {
   --bg-light: #f8fbf8;
   --bg-dark: #0d1117;
@@ -17,7 +16,6 @@
   --transition: 0.3s ease;
 }
 
-/* === BODY & THEMES === */
 body {
   margin: 0;
   font-family: 'Inter', sans-serif;
@@ -25,7 +23,6 @@ body {
   color: var(--text-light);
   transition: background 0.4s ease;
   min-height: 100vh;
-  width: 100%;
 }
 
 [data-theme="dark"] body {
@@ -34,53 +31,26 @@ body {
     linear-gradient(0deg, transparent 24px, rgba(42, 52, 58, 0.1) 25px),
     linear-gradient(90deg, transparent 24px, rgba(42, 52, 58, 0.1) 25px);
   background-size: 25px 25px;
-  background-attachment: fixed;
   color: var(--text-dark);
-}
-
-/* === ОБЩИЕ СТИЛИ КАРТОЧЕК === */
-.card,
-.stat-card,
-.action-btn,
-.news-item,
-.footer-info {
-  border: 1px solid var(--border-light);
-  border-radius: 16px;
-  transition: border var(--transition), box-shadow var(--transition);
-}
-
-[data-theme="dark"] .card,
-[data-theme="dark"] .stat-card,
-[data-theme="dark"] .action-btn,
-[data-theme="dark"] .news-item,
-[data-theme="dark"] .footer-info {
-  border: 1px solid var(--border-dark);
 }
 
 /* === КАРТОЧКИ === */
 .card {
   background: var(--card-bg-light);
-  box-shadow: var(--shadow-light);
+  border: 1px solid var(--border-light);
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
   padding: 24px;
   margin-bottom: 24px;
 }
 
 [data-theme="dark"] .card {
   background: var(--card-bg-dark);
-  box-shadow: var(--shadow-dark), 0 8px 24px rgba(178, 255, 89, 0.1);
+  border-color: var(--border-dark);
+  box-shadow: 0 0 0 1px rgba(178, 255, 89, 0.15), 0 8px 24px rgba(178, 255, 89, 0.1);
 }
 
-.card:hover,
-.action-btn:hover,
-.stat-card:hover,
-.news-item:hover {
-  border-color: rgba(76, 175, 80, 0.2);
-  box-shadow: 
-    0 6px 20px rgba(76, 175, 80, 0.12),
-    0 0 0 1px rgba(76, 175, 80, 0.1);
-}
-
-/* === ОВАЛ С "ЛЕО" (фиксированный) === */
+/* === ОВАЛ С ЛЕО === */
 .leo-badge-3d {
   position: fixed;
   top: 8px;
@@ -100,87 +70,14 @@ body {
   z-index: 1003;
   border: 1.5px solid #DAA520;
   animation: float 3s ease-in-out infinite;
-  pointer-events: auto;
   font-weight: 700;
   font-size: 18px;
-  text-align: center;
 }
 
 @keyframes float {
   0% { transform: translateX(-50%) translateY(0); }
   50% { transform: translateX(-50%) translateY(-1.5px); }
   100% { transform: translateX(-50%) translateY(0); }
-}
-
-/* === ЛОГОТИП === */
-.leo-logo {
-  display: flex;
-  align-items: center;
-  font-weight: 700;
-  font-size: 18px;
-  letter-spacing: -1px;
-}
-
-.l {
-  color: #4CAF50;
-  font-size: 22px;
-  position: relative;
-}
-
-.l::before,
-.l::after {
-  content: '';
-  position: absolute;
-  width: 7px;
-  height: 8px;
-  background: #4CAF50;
-  bottom: -7px;
-  border-radius: 40% 40% 60% 60%;
-}
-
-.l::before {
-  left: 2px;
-  transform: rotate(30deg);
-  width: 6px;
-  height: 7px;
-}
-
-.l::after {
-  right: 2px;
-  transform: rotate(-30deg);
-  width: 6px;
-  height: 7px;
-}
-
-.eo {
-  color: #DAA520;
-  font-size: 18px;
-  position: relative;
-}
-
-.eo::before {
-  content: '';
-  position: absolute;
-  top: -5px;
-  left: -3px;
-  width: 10px;
-  height: 10px;
-  background: #B2FF59;
-  border-radius: 50%;
-  box-shadow: 
-    7px -2px 0 1px #B2FF59,
-    3px -5px 0 1px #B2FF59,
-    10px 1px 0 1px #B2FF59;
-}
-
-.page-tag {
-  font-size: 12px;
-  font-weight: 500;
-  background: rgba(218, 165, 32, 0.25);
-  padding: 1px 6px;
-  border-radius: 10px;
-  border: 1px solid rgba(218, 165, 32, 0.4);
-  color: white;
 }
 
 /* === ШАПКА === */
@@ -192,7 +89,6 @@ body {
   height: 60px;
   background: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   border-bottom-left-radius: 16px;
   border-bottom-right-radius: 16px;
@@ -206,41 +102,8 @@ body {
 
 [data-theme="dark"] .full-header {
   background: rgba(13, 17, 23, 0.92);
-  backdrop-filter: blur(10px);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(76, 175, 80, 0.2);
-  border: 1px solid rgba(76, 175, 80, 0.1);
-}
-
-.header-left,
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.btn-icon {
-  background: transparent;
-  border: none;
-  color: #4CAF50;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-[data-theme="dark"] .btn-icon {
-  color: #B2FF59;
-}
-
-.btn-icon:hover {
-  background: rgba(76, 175, 80, 0.1);
-}
-
-[data-theme="dark"] .btn-icon:hover {
-  background: rgba(178, 255, 89, 0.1);
+  border-color: rgba(76, 175, 80, 0.1);
 }
 
 /* === АВАТАРКА (КРУГ) === */
@@ -259,7 +122,7 @@ body {
   box-shadow: 0 2px 8px rgba(178, 255, 89, 0.2);
 }
 
-/* === АДМИН-КНОПКА (видима при наличии) === */
+/* === АДМИН-КНОПКА === */
 .admin-btn {
   display: flex;
   align-items: center;
@@ -280,218 +143,13 @@ body {
   transform: translateY(-2px);
 }
 
-/* === КНОПКИ БЫСТРОГО ДОСТУПА === */
-.action-btn {
-  display: block;
-  background: #f8fff8;
-  border: 1px solid rgba(76, 175, 80, 0.2);
-  border-radius: 16px;
-  padding: 18px;
-  text-decoration: none;
-  color: #2E7D32;
-  font-weight: 500;
-  transition: all var(--transition);
-  text-align: center;
+/* === ОСНОВНОЙ КОНТЕНТ === */
+.main-content {
+  margin-top: 140px;
+  padding: 0 16px;
 }
 
-.action-btn:hover {
-  background: #e8f5e9;
-  transform: translateY(-4px);
-}
-
-[data-theme="dark"] .action-btn {
-  background: #0e1a10;
-  color: #B2FF59;
-  box-shadow: 0 0 0 1px #B2FF59, 0 4px 12px rgba(178, 255, 89, 0.1);
-}
-
-[data-theme="dark"] .action-btn:hover {
-  background: #132615;
-  box-shadow: 0 0 0 2px #B2FF59, 0 8px 20px rgba(178, 255, 89, 0.2);
-  transform: translateY(-4px);
-}
-
-.action-icon {
-  font-size: 28px;
-  margin-bottom: 8px;
-  display: block;
-  color: #4CAF50;
-}
-
-[data-theme="dark"] .action-icon {
-  color: #B2FF59;
-}
-
-.action-label {
-  font-size: 15px;
-  font-weight: 500;
-}
-
-/* === ВИДЖЕТЫ: ПОГОДА, КУРСЫ === */
-.dual-stats {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin: 24px 0;
-}
-
-.stat-card {
-  background: var(--card-bg-light);
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-}
-
-[data-theme="dark"] .stat-card {
-  background: var(--card-bg-dark);
-  box-shadow: 0 0 0 1px rgba(178, 255, 89, 0.1), 0 4px 16px rgba(178, 255, 89, 0.08);
-}
-
-.stat-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: #4CAF50;
-  margin: 0 0 12px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-[data-theme="dark"] .stat-title {
-  color: #B2FF59;
-}
-
-.stat-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 8px 0;
-  border-bottom: 1px dashed rgba(0, 0, 0, 0.06);
-  font-size: 14px;
-}
-
-[data-theme="dark"] .stat-row {
-  border-bottom-color: rgba(178, 255, 89, 0.1);
-}
-
-.stat-row:last-child {
-  border-bottom: none;
-}
-
-.stat-label {
-  color: #757575;
-}
-
-[data-theme="dark"] .stat-label {
-  color: #b2ff59cc;
-}
-
-.stat-value {
-  font-weight: 500;
-  color: #212121;
-}
-
-[data-theme="dark"] .stat-value {
-  color: #e0f7ff;
-}
-
-.stat-change {
-  color: #4CAF50;
-  font-size: 12px;
-  margin-left: 6px;
-}
-
-[data-theme="dark"] .stat-change {
-  color: #B2FF59;
-}
-
-/* === НОВОСТИ === */
-.section-title {
-  font-size: 16px;
-  color: #4CAF50;
-  margin: 24px 0 12px;
-  font-weight: 600;
-}
-
-[data-theme="dark"] .section-title {
-  color: #B2FF59;
-}
-
-.news-feed {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.news-item {
-  background: var(--card-bg-light);
-  border: 1px solid rgba(178, 255, 89, 0.2);
-  border-radius: 8px;
-  padding: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-}
-
-[data-theme="dark"] .news-item {
-  background: var(--card-bg-dark);
-  border: 1px solid rgba(178, 255, 89, 0.2);
-  box-shadow: 0 0 0 1px rgba(178, 255, 89, 0.1), 0 2px 8px rgba(178, 255, 89, 0.08);
-}
-
-.news-icon {
-  font-size: 20px;
-  color: #4CAF50;
-}
-
-[data-theme="dark"] .news-icon {
-  color: #B2FF59;
-}
-
-.news-title {
-  font-size: 15px;
-  font-weight: 500;
-  color: #212121;
-  margin: 0;
-}
-
-[data-theme="dark"] .news-title {
-  color: #e0f7ff;
-}
-
-.news-time {
-  font-size: 12px;
-  color: #999;
-}
-
-[data-theme="dark"] .news-time {
-  color: #80c755;
-}
-
-/* === ФУТЕР === */
-.footer-info {
-  text-align: center;
-  padding: 20px 16px;
-  margin-top: 32px;
-  background: rgba(248, 255, 248, 0.9);
-  border: 1px solid rgba(178, 255, 89, 0.2);
-  border-radius: 16px;
-}
-
-[data-theme="dark"] .footer-info {
-  background: var(--card-bg-dark);
-  border: 1px solid rgba(178, 255, 89, 0.2);
-  box-shadow: 0 0 0 1px rgba(178, 255, 89, 0.1);
-}
-
-.footer-tag {
-  font-size: 14px;
-  color: #4CAF50;
-  margin-bottom: 12px;
-  font-weight: 500;
-}
-
-[data-theme="dark"] .footer-tag {
-  color: #B2FF59;
-}
-
+/* === КНОПКИ === */
 .footer-btn {
   background: #4CAF50;
   color: white;
@@ -502,7 +160,6 @@ body {
   font-weight: 500;
   cursor: pointer;
   box-shadow: 0 4px 14px rgba(76, 175, 80, 0.3);
-  transition: all 0.2s ease;
   display: block;
   margin: 12px auto;
   max-width: 220px;
@@ -510,47 +167,4 @@ body {
 
 .footer-btn:hover {
   background: #45a049;
-}
-
-/* === ОСНОВНОЙ КОНТЕНТ === */
-.main-content {
-  margin-top: 140px;
-  padding: 0 16px;
-  min-height: calc(100vh - 200px);
-  z-index: 100;
-}
-
-/* === АДАПТИВ === */
-.button-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-  margin: 24px 0;
-}
-
-@media (max-width: 768px) {
-  .dual-stats,
-  .button-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .full-header {
-    padding: 0 12px;
-  }
-
-  .btn-icon,
-  .user-avatar {
-    width: 36px;
-    height: 36px;
-  }
-
-  .card,
-  .stat-card {
-    padding: 20px;
-  }
-
-  .footer-btn {
-    font-size: 14px;
-    padding: 10px 20px;
-  }
 }
