@@ -1,8 +1,6 @@
 // web/static/js/app.js
-
-// Инициализация Telegram WebApp
 document.addEventListener("DOMContentLoaded", () => {
-    console.log("✅ DOM загружен");
+    console.log("✅ JS загружен");
 
     // Приветствие
     function updateGreeting() {
@@ -33,19 +31,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (tg) {
         tg.ready();
         tg.expand();
-
-        const user = tg.initDataUnsafe.user;
-        if (user) {
-            const avatar = document.querySelector('.user-avatar');
-            if (user.photo_url) {
-                avatar.src = user.photo_url;
-            } else {
-                avatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.first_name || 'User')}&background=4CAF50&color=fff`;
-            }
-        }
     }
 
-    // Toast (простая реализация)
+    // Toast
     window.Toast = {
         show(message) {
             const toast = document.getElementById('toast');
