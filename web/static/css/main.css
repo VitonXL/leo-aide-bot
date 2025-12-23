@@ -103,6 +103,7 @@ body {
   pointer-events: auto;
   font-weight: 700;
   font-size: 18px;
+  text-align: center;
 }
 
 @keyframes float {
@@ -185,7 +186,7 @@ body {
 /* === ШАПКА === */
 .full-header {
   position: fixed;
-  top: 0;
+  top: 72px;
   left: 10px;
   width: calc(100% - 20px);
   height: 60px;
@@ -200,6 +201,7 @@ body {
   justify-content: space-between;
   padding: 0 16px;
   z-index: 1002;
+  border: 1px solid rgba(76, 175, 80, 0.1);
 }
 
 [data-theme="dark"] .full-header {
@@ -241,7 +243,7 @@ body {
   background: rgba(178, 255, 89, 0.1);
 }
 
-/* === АВАТАРКА === */
+/* === АВАТАРКА (КРУГ) === */
 .user-avatar {
   width: 40px;
   height: 40px;
@@ -257,9 +259,11 @@ body {
   box-shadow: 0 2px 8px rgba(178, 255, 89, 0.2);
 }
 
-/* === АДМИН-КНОПКА === */
+/* === АДМИН-КНОПКА (видима при наличии) === */
 .admin-btn {
-  display: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: #f48b29;
   color: white;
   width: 44px;
@@ -268,9 +272,12 @@ body {
   border-radius: 14px;
   cursor: pointer;
   box-shadow: 0 3px 10px rgba(244, 139, 41, 0.35);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  margin-left: 8px;
+}
+
+.admin-btn:hover {
+  background: #e57e25;
+  transform: translateY(-2px);
 }
 
 /* === КНОПКИ БЫСТРОГО ДОСТУПА === */
@@ -462,9 +469,10 @@ body {
 .footer-info {
   text-align: center;
   padding: 20px 16px;
-  margin-top: 24px;
+  margin-top: 32px;
   background: rgba(248, 255, 248, 0.9);
   border: 1px solid rgba(178, 255, 89, 0.2);
+  border-radius: 16px;
 }
 
 [data-theme="dark"] .footer-info {
@@ -485,75 +493,31 @@ body {
 }
 
 .footer-btn {
-  background: #f8fff8;
-  color: #4CAF50;
-  border: 1px solid rgba(76, 175, 80, 0.2);
-  padding: 8px 16px;
-  border-radius: 10px;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  margin: 6px 4px;
-}
-
-.footer-btn:hover {
-  background: #e8f5e9;
-}
-
-[data-theme="dark"] .footer-btn {
-  background: #0e1a10;
-  color: #B2FF59;
-  border: 1px solid #B2FF59;
-}
-
-[data-theme="dark"] .footer-btn:hover {
-  background: #132615;
-  box-shadow: 0 0 0 2px #B2FF59;
-}
-
-/* === КНОПКИ === */
-.btn-primary {
   background: #4CAF50;
   color: white;
   border: none;
   padding: 12px 24px;
   border-radius: 8px;
+  font-size: 15px;
   font-weight: 500;
   cursor: pointer;
   box-shadow: 0 4px 14px rgba(76, 175, 80, 0.3);
-  transition: all 0.3s ease;
-  margin-top: 12px;
+  transition: all 0.2s ease;
+  display: block;
+  margin: 12px auto;
+  max-width: 220px;
 }
 
-.btn-primary:hover {
+.footer-btn:hover {
   background: #45a049;
-  transform: translateY(-2px);
 }
 
-.btn-sm {
-  background: #c8e6c9;
-  color: #2e7d32;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-size: 14px;
-  cursor: pointer;
-  width: 100%;
-  margin-top: 12px;
-}
-
-.btn-sm:hover {
-  background: #b9f6ca;
-}
-
-[data-theme="dark"] .btn-sm {
-  background: #2c7d32;
-  color: #a5d6a7;
-}
-
-[data-theme="dark"] .btn-sm:hover {
-  background: #3d8b3d;
+/* === ОСНОВНОЙ КОНТЕНТ === */
+.main-content {
+  margin-top: 140px;
+  padding: 0 16px;
+  min-height: calc(100vh - 200px);
+  z-index: 100;
 }
 
 /* === АДАПТИВ === */
@@ -570,12 +534,6 @@ body {
     grid-template-columns: 1fr;
   }
 
-  .footer-btn {
-    width: 80%;
-    max-width: 240px;
-    font-size: 14px;
-  }
-
   .full-header {
     padding: 0 12px;
   }
@@ -586,12 +544,13 @@ body {
     height: 36px;
   }
 
-  .main-content {
-    padding: 12px;
-  }
-
   .card,
   .stat-card {
     padding: 20px;
+  }
+
+  .footer-btn {
+    font-size: 14px;
+    padding: 10px 20px;
   }
 }
