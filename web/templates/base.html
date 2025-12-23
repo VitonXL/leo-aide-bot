@@ -35,7 +35,7 @@
     <div class="leo-logo">
       <span class="l">Л</span><span class="eo">ео</span>
     </div>
-    <div class="page-tag">{{ page_tag }}</div>
+    <div class="page-tag">{{ page_tag or "Главная" }}</div>
   </div>
 
   <!-- Шапка -->
@@ -49,21 +49,42 @@
     </div>
     <div class="header-right">
       {% block header_right %}
-      <div class="admin-container" id="admin-container">
-        <img 
-          src="{{ user.avatar_url }}" 
-          alt="Аватар" 
-          class="user-avatar"
-          id="user-avatar"
-          onclick="window.location.href='/cabinet?user_id={{ user.id }}&hash={{ user.hash }}'"
-        />
-      </div>
-      <button class="admin-btn" id="admin-btn" style="display: {{ 'flex' if user.role == 'admin' else 'none' }};">
-        <span class="material-icons">shield</span>
-      </button>
-      <button class="btn-icon" onclick="toggleTheme()" aria-label="Тема">
-        <span class="material-icons" id="theme-icon">dark_mode</span>
-      </button>
+        <!-- Аватарка -->
+        <div class="admin-container" id="admin-container">
+          {% if user and user.avatar_url %}
+            <img 
+              src="{{ user.avatar_url }}" 
+              alt="Аватар" 
+              class="user-avatar"
+              id="user-avatar"
+              onclick="goToCabinet({{ user.id }}, '{{ user.hash }}')"
+            />
+          {% else %}
+            <img 
+              src="https://ui-avatars.com/api/?name=Гость&background=0d1117&color=4CAF50&size=128" 
+              alt="Гость" 
+              class="user-avatar"
+              id="user-avatar"
+              onclick="alert('Войдите через Telegram')"
+            />
+          {% endif %}
+        </div>
+
+        <!-- Админ-кнопка -->
+        {% if user and user.role == 'admin' %}
+          <button class="admin-btn" id="admin-btn">
+            <span class="material-icons">shield</span>
+          </button>
+        {% else %}
+          <button class="admin-btn" id="admin-btn" style="display: none;">
+            <span class="material-icons">shield</span>
+          </button>
+        {% endif %}
+
+        <!-- Кнопка темы -->
+        <button class="btn-icon" onclick="toggleTheme()" aria-label="Тема">
+          <span class="material-icons" id="theme-icon">dark_mode</span>
+        </button>
       {% endblock %}
     </div>
   </div>
@@ -91,6 +112,15 @@
   {% block scripts %}{% endblock %}
 
   <script>
+    // Перейти в кабинет с защитой
+    function goToCabinet(userId, hash) {
+      if (!userId || !hash) {
+        alert("🔒 Доступ ограничен. Откройте через Telegram.");
+        return;
+      }
+      window.location.href = `/cabinet?user_id=${userId}&hash=${hash}`;
+    }
+
     function toggleTheme() {
       const html = document.documentElement;
       const icon = document.getElementById('theme-icon');
@@ -106,13 +136,19 @@
         localStorage.setItem('theme', 'dark');
       }
 
-      const user_id = new URLSearchParams(window.location.search).get('user_id');
-      const hash = new URLSearchParams(window.location.search).get('hash');
+      const urlParams = new URLSearchParams(window.location.search);
+      const user_id = urlParams.get('user_id');
+      const hash = urlParams.get('hash');
+
       if (user_id && hash) {
         fetch('/api/set-theme', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_id: parseInt(user_id), theme: html.getAttribute('data-theme'), hash })
+          body: JSON.stringify({ 
+            user_id: parseInt(user_id), 
+            theme: html.getAttribute('data-theme'), 
+            hash 
+          })
         }).catch(console.warn);
       }
     }
@@ -123,18 +159,20 @@
       const greetingText = document.getElementById('greeting-text');
       const greetingIcon = document.getElementById('greeting-icon');
 
-      if (hour >= 6 && hour < 12) {
-        greetingText.textContent = 'Доброе утро!';
-        greetingIcon.textContent = '🌤';
-      } else if (hour >= 12 && hour < 18) {
-        greetingText.textContent = 'Добрый день!';
-        greetingIcon.textContent = '☀️';
-      } else if (hour >= 18 && hour < 23) {
-        greetingText.textContent = 'Добрый вечер!';
-        greetingIcon.textContent = '🌆';
-      } else {
-        greetingText.textContent = 'Привет ночным!';
-        greetingIcon.textContent = '🌙';
+      if (greetingText && greetingIcon) {
+        if (hour >= 6 && hour < 12) {
+          greetingText.textContent = 'Доброе утро!';
+          greetingIcon.textContent = '🌤';
+        } else if (hour >= 12 && hour < 18) {
+          greetingText.textContent = 'Добрый день!';
+          greetingIcon.textContent = '☀️';
+        } else if (hour >= 18 && hour < 23) {
+          greetingText.textContent = 'Добрый вечер!';
+          greetingIcon.textContent = '🌆';
+        } else {
+          greetingText.textContent = 'Привет ночным!';
+          greetingIcon.textContent = '🌙';
+        }
       }
     }
 
@@ -143,7 +181,8 @@
       if (tg) {
         tg.sendData(text);
       } else {
-        alert('🔹 [Отладка] Сообщение: ' + text);
+        console.log('🔹 [Отладка] Сообщение:', text);
+        alert('📩 Сообщение: ' + text);
       }
     }
 
@@ -157,9 +196,12 @@
 
       updateGreeting();
 
-      const savedTheme = localStorage.getItem('theme') || 'light';
+      const savedTheme = localStorage.getItem('theme') || '{{ theme }}';
       document.documentElement.setAttribute('data-theme', savedTheme);
-      document.getElementById('theme-icon').textContent = savedTheme === 'dark' ? 'light_mode' : 'dark_mode';
+      const icon = document.getElementById('theme-icon');
+      if (icon) {
+        icon.textContent = savedTheme === 'dark' ? 'light_mode' : 'dark_mode';
+      }
     });
   </script>
 
