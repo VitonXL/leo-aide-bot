@@ -10,7 +10,8 @@ from .api import get_user_data
 from database import get_db_pool, get_user_stats, get_referral_stats
 
 router = APIRouter()
-templates = Jinja2Templates(directory="web/templates")
+# ✅ Исправлен путь: не "web/templates", а "templates" (т.к. файл в web/)
+templates = Jinja2Templates(directory="templates")
 
 
 # === ✅ ОБНОВЛЁННЫЙ МАРШРУТ / ===
@@ -83,7 +84,7 @@ async def handle_webapp(
     user_data = eval(parsed_user["user"][0])
     theme_str = parsed_user.get("theme_params", ["{}"])[0]
     try:
-        theme_params = eval(theme_str)  # Или json.loads, если передаётся JSON
+        theme_params = eval(theme_str)
     except:
         theme_params = {}
 
