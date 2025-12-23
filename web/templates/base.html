@@ -24,13 +24,7 @@
 </head>
 <body>
 
-  <!-- Telegram Badge -->
-  <div class="tg-badge" style="display: none;">
-    <span class="material-icons">send</span>
-    Запущено в Telegram
-  </div>
-
-  <!-- Овал с "Лео" -->
+  <!-- Овал с "Лео" (наверху, фиксировано) -->
   <div class="leo-badge-3d" id="leo-badge">
     <div class="leo-logo">
       <span class="l">Л</span><span class="eo">ео</span>
@@ -38,13 +32,13 @@
     <div class="page-tag">{{ page_tag or "Главная" }}</div>
   </div>
 
-  <!-- Шапка -->
+  <!-- Шапка (под овалом) -->
   <div class="full-header" id="main-header">
     <div class="header-left">
       {% block header_left %}
-      <button class="btn-icon" onclick="history.back()" aria-label="Назад">
-        <span class="material-icons">arrow_back</span>
-      </button>
+        <button class="btn-icon" onclick="history.back()" aria-label="Назад">
+          <span class="material-icons">arrow_back</span>
+        </button>
       {% endblock %}
     </div>
     <div class="header-right">
@@ -56,32 +50,26 @@
               src="{{ user.avatar_url }}" 
               alt="Аватар" 
               class="user-avatar"
-              id="user-avatar"
               onclick="goToCabinet({{ user.id }}, '{{ user.hash }}')"
             />
           {% else %}
             <img 
-              src="https://ui-avatars.com/api/?name=Гость&background=0d1117&color=4CAF50&size=128" 
+              src="https://ui-avatars.com/api/?name=Г&background=0d1117&color=4CAF50&size=128" 
               alt="Гость" 
               class="user-avatar"
-              id="user-avatar"
-              onclick="alert('Войдите через Telegram')"
+              onclick="alert('Откройте через Telegram')"
             />
           {% endif %}
         </div>
 
-        <!-- Админ-кнопка -->
+        <!-- Кнопка админки — только для админов -->
         {% if user and user.role == 'admin' %}
-          <button class="admin-btn" id="admin-btn">
-            <span class="material-icons">shield</span>
-          </button>
-        {% else %}
-          <button class="admin-btn" id="admin-btn" style="display: none;">
+          <button class="admin-btn" id="admin-btn" onclick="window.location.href='/admin?user_id={{ user.id }}&hash={{ user.hash }}'">
             <span class="material-icons">shield</span>
           </button>
         {% endif %}
 
-        <!-- Кнопка темы -->
+        <!-- Переключатель темы -->
         <button class="btn-icon" onclick="toggleTheme()" aria-label="Тема">
           <span class="material-icons" id="theme-icon">dark_mode</span>
         </button>
@@ -89,7 +77,7 @@
     </div>
   </div>
 
-  <!-- Основной контент -->
+  <!-- Основной контент с отступом от верхних блоков -->
   <div class="main-content">
     {% block content %}{% endblock %}
   </div>
@@ -97,12 +85,9 @@
   <!-- Футер -->
   <div class="footer-info">
     <div class="footer-tag">Лео — персональный помощник</div>
-    <div class="footer-buttons">
-      <button class="footer-btn" onclick="sendMessage('Нажал: Обратная связь')">
-        Написать в бота
-      </button>
-      <button class="footer-btn" onclick="alert('FAQ')">FAQ</button>
-    </div>
+    <button class="footer-btn" onclick="sendMessage('Нажал: Тех.Поддержка')">
+      Тех.Поддержка
+    </button>
   </div>
 
   <!-- Общий JS -->
@@ -111,31 +96,29 @@
   <!-- JS страницы -->
   {% block scripts %}{% endblock %}
 
+  <!-- Глобальные скрипты -->
   <script>
-    // Перейти в кабинет с защитой
+    // Переход в кабинет с проверкой
     function goToCabinet(userId, hash) {
       if (!userId || !hash) {
-        alert("🔒 Доступ ограничен. Откройте через Telegram.");
+        alert("🔒 Откройте приложение через Telegram.");
         return;
       }
       window.location.href = `/cabinet?user_id=${userId}&hash=${hash}`;
     }
 
+    // Переключение темы
     function toggleTheme() {
       const html = document.documentElement;
       const icon = document.getElementById('theme-icon');
       const isDark = html.getAttribute('data-theme') === 'dark';
 
-      if (isDark) {
-        html.setAttribute('data-theme', 'light');
-        icon.textContent = 'dark_mode';
-        localStorage.setItem('theme', 'light');
-      } else {
-        html.setAttribute('data-theme', 'dark');
-        icon.textContent = 'light_mode';
-        localStorage.setItem('theme', 'dark');
-      }
+      const newTheme = isDark ? 'light' : 'dark';
+      html.setAttribute('data-theme', newTheme);
+      icon.textContent = isDark ? 'dark_mode' : 'light_mode';
+      localStorage.setItem('theme', newTheme);
 
+      // Сохраняем тему на сервере, если есть user_id и hash
       const urlParams = new URLSearchParams(window.location.search);
       const user_id = urlParams.get('user_id');
       const hash = urlParams.get('hash');
@@ -144,20 +127,20 @@
         fetch('/api/set-theme', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            user_id: parseInt(user_id), 
-            theme: html.getAttribute('data-theme'), 
-            hash 
-          })
+          body: JSON.stringify({ user_id: parseInt(user_id), theme: newTheme, hash })
         }).catch(console.warn);
       }
     }
 
+    // Обновление приветствия
     function updateGreeting() {
       const now = new Date();
       const hour = now.getHours();
       const greetingText = document.getElementById('greeting-text');
       const greetingIcon = document.getElementById('greeting-icon');
+      const userNameEl = document.getElementById('user-name');
+
+      const userName = "{{ user.first_name if user and user.first_name else 'Пользователь' }}";
 
       if (greetingText && greetingIcon) {
         if (hour >= 6 && hour < 12) {
@@ -174,18 +157,24 @@
           greetingIcon.textContent = '🌙';
         }
       }
+
+      if (userNameEl) {
+        userNameEl.textContent = userName;
+      }
     }
 
+    // Отправка сообщения в бот
     function sendMessage(text) {
       const tg = window.Telegram?.WebApp;
       if (tg) {
         tg.sendData(text);
       } else {
         console.log('🔹 [Отладка] Сообщение:', text);
-        alert('📩 Сообщение: ' + text);
+        alert('📩 ' + text);
       }
     }
 
+    // Инициализация при загрузке
     document.addEventListener('DOMContentLoaded', () => {
       const tg = window.Telegram?.WebApp;
       if (tg) {
@@ -196,6 +185,7 @@
 
       updateGreeting();
 
+      // Восстановление темы
       const savedTheme = localStorage.getItem('theme') || '{{ theme }}';
       document.documentElement.setAttribute('data-theme', savedTheme);
       const icon = document.getElementById('theme-icon');
