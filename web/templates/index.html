@@ -12,6 +12,9 @@
   <!-- Favicon -->
   <link rel="shortcut icon" href="/static/favicon.ico" type="image/x-icon">
 
+  <!-- Telegram WebApp SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
   <style>
     /* === ГЛОБАЛЬНЫЙ СБРОС === */
     * {
@@ -31,7 +34,7 @@
       font-family: 'Inter', sans-serif;
       color: #212121;
       overflow-x: hidden;
-      background: #f0f7ff;
+      background: #f8fbf8; /* Приглушённый светло-зелёный */
       transition: background 0.4s ease;
     }
 
@@ -49,6 +52,25 @@
       background-color: #0d1117;
       background-attachment: fixed;
       color: #e0f7ff;
+    }
+
+    /* === ОБЩАЯ ОКАНТОВКА ДЛЯ ПЛАШЕК === */
+    .card,
+    .stat-card,
+    .action-btn,
+    .news-item,
+    .footer-info {
+      border: 1px solid rgba(76, 175, 80, 0.12);
+      border-radius: 16px;
+      transition: border 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    [data-theme="dark"] .card,
+    [data-theme="dark"] .stat-card,
+    [data-theme="dark"] .action-btn,
+    [data-theme="dark"] .news-item,
+    [data-theme="dark"] .footer-info {
+      border: 1px solid rgba(178, 255, 89, 0.16);
     }
 
     /* === ОВАЛ С ЛОГОТИПОМ "ЛЕО" === */
@@ -159,7 +181,7 @@
       left: 10px;
       width: calc(100% - 20px);
       height: 60px;
-      background: rgba(255, 255, 255, 0.96);
+      background: rgba(255, 255, 255, 0.94);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
@@ -260,16 +282,30 @@
       border-radius: 16px;
       padding: 24px;
       box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
-      border: 1px solid rgba(178, 255, 89, 0.2);
       margin-bottom: 24px;
-      transition: all 0.3s ease;
+    }
+
+    .card:hover,
+    .action-btn:hover,
+    .stat-card:hover,
+    .news-item:hover {
+      border-color: rgba(76, 175, 80, 0.2);
+      box-shadow: 
+        0 6px 20px rgba(76, 175, 80, 0.12),
+        0 0 0 1px rgba(76, 175, 80, 0.1);
     }
 
     [data-theme="dark"] .card {
       background: #121821;
-      border: 1px solid rgba(178, 255, 89, 0.2);
       box-shadow: 0 0 0 1px rgba(178, 255, 89, 0.15), 0 8px 24px rgba(178, 255, 89, 0.1);
       color: #e0f7ff;
+    }
+
+    [data-theme="dark"] .card:hover {
+      border-color: rgba(178, 255, 89, 0.3);
+      box-shadow: 
+        0 0 0 1px rgba(178, 255, 89, 0.2),
+        0 8px 24px rgba(178, 255, 89, 0.15);
     }
 
     /* === КНОПКИ БЫСТРОГО ДОСТУПА === */
@@ -288,12 +324,10 @@
     .action-btn:hover {
       background: #e8f5e9;
       transform: translateY(-4px);
-      box-shadow: 0 6px 16px rgba(76, 175, 80, 0.12);
     }
 
     [data-theme="dark"] .action-btn {
       background: #0e1a10;
-      border: 1px solid #B2FF59;
       color: #B2FF59;
       box-shadow: 0 0 0 1px #B2FF59, 0 4px 12px rgba(178, 255, 89, 0.1);
     }
@@ -332,13 +366,11 @@
       background: white;
       border-radius: 16px;
       padding: 20px;
-      border: 1px solid rgba(178, 255, 89, 0.2);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
     }
 
     [data-theme="dark"] .stat-card {
       background: #121821;
-      border: 1px solid rgba(178, 255, 89, 0.2);
       box-shadow: 0 0 0 1px rgba(178, 255, 89, 0.1), 0 4px 16px rgba(178, 255, 89, 0.08);
     }
 
@@ -466,7 +498,6 @@
       padding: 20px 16px;
       margin-top: 24px;
       background: rgba(248, 255, 248, 0.9);
-      border-radius: 16px;
       border: 1px solid rgba(178, 255, 89, 0.2);
     }
 
@@ -597,9 +628,45 @@
     [data-theme="dark"] .btn-sm:hover {
       background: #3d8b3d;
     }
+
+    /* === TG BADGE === */
+    .tg-badge {
+      position: fixed;
+      top: 70px;
+      left: 10px;
+      background: #0088cc;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      z-index: 1001;
+      display: none;
+      align-items: center;
+      gap: 6px;
+    }
+
+    [telegram="active"] .tg-badge {
+      display: flex;
+    }
+
+    p {
+      color: #558b5f;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    [data-theme="dark"] p {
+      color: #a5d6a7;
+    }
   </style>
 </head>
 <body>
+
+  <!-- Telegram Badge -->
+  <div class="tg-badge" style="display: none;">
+    <span class="material-icons">send</span>
+    Запущено в Telegram
+  </div>
 
   <!-- Овал с "Лео" -->
   <div class="leo-badge-3d" id="leo-badge">
@@ -648,10 +715,10 @@
 
     <!-- Приветствие -->
     <div class="card">
-      <h2>👋 Добро пожаловать в Лео</h2>
-      <p>Ваш личный помощник в мире Telegram. Здесь — всё, что нужно.</p>
-      <button class="btn-primary" onclick="alert('Начать обучение')">
-        Начать обучение
+      <h2><span id="greeting-icon">👋</span> <span id="greeting-text">Загрузка...</span></h2>
+      <p>Лео — ваш личный помощник в мире Telegram. Умные функции и забота о комфорте.</p>
+      <button class="btn-primary" onclick="alert('💳 Оформление премиум-подписки')">
+        Оформить премиум
       </button>
     </div>
 
@@ -732,7 +799,9 @@
   <div class="footer-info">
     <div class="footer-tag">Лео — персональный помощник</div>
     <div class="footer-buttons">
-      <button class="footer-btn" onclick="alert('💬 Написать в поддержку')">Обратная связь</button>
+      <button class="footer-btn" onclick="sendMessage('Пользователь нажал: Обратная связь')">
+        Написать в бота
+      </button>
       <button class="footer-btn" onclick="alert('❓ Частые вопросы')">FAQ</button>
     </div>
   </div>
@@ -755,8 +824,61 @@
       }
     }
 
+    function updateGreeting() {
+      const now = new Date();
+      const hour = now.getHours();
+      const greetingText = document.getElementById('greeting-text');
+      const greetingIcon = document.getElementById('greeting-icon');
+
+      if (hour >= 6 && hour < 12) {
+        greetingText.textContent = 'Доброе утро!';
+        greetingIcon.textContent = '🌤';
+      } else if (hour >= 12 && hour < 18) {
+        greetingText.textContent = 'Добрый день!';
+        greetingIcon.textContent = '☀️';
+      } else if (hour >= 18 && hour < 23) {
+        greetingText.textContent = 'Добрый вечер!';
+        greetingIcon.textContent = '🌆';
+      } else {
+        greetingText.textContent = 'Привет ночным!';
+        greetingIcon.textContent = '🌙';
+      }
+    }
+
+    function sendMessage(text) {
+      const tg = window.Telegram?.WebApp;
+      if (tg) {
+        tg.sendData(text);
+      } else {
+        alert('🔹 [Отладка] Сообщение: ' + text);
+      }
+    }
+
     const userData = { role: "admin" };
+
     document.addEventListener('DOMContentLoaded', () => {
+      updateGreeting();
+
+      const tg = window.Telegram?.WebApp;
+
+      if (tg) {
+        tg.ready();
+        tg.expand();
+
+        const user = tg.initDataUnsafe.user;
+        if (user) {
+          const avatar = document.getElementById('user-avatar');
+          if (user.photo_url) {
+            avatar.src = user.photo_url;
+          } else {
+            avatar.src = `https://ui-avatars.com/api/?name=${user.first_name}&background=4CAF50&color=fff`;
+          }
+        }
+
+        // Показываем бейдж
+        document.body.setAttribute('telegram', 'active');
+      }
+
       if (userData.role === 'admin') {
         document.getElementById('admin-btn').style.display = 'flex';
       }
