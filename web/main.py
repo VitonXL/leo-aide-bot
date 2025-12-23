@@ -5,7 +5,7 @@ import json
 from datetime import datetime
 from fastapi.staticfiles import StaticFiles
 from fastapi import FastAPI, HTTPException
-from starlette.responses import FileResponse  # ✅ Правильный импорт
+from starlette.responses import FileResponse
 from fastapi.responses import JSONResponse
 from fastapi import APIRouter
 from loguru import logger
@@ -116,6 +116,10 @@ app.mount("/static", StaticFiles(directory="web/static"), name="static")
 
 # --- Роуты ---
 app.include_router(admin_api)
+
+# ✅ Подключаем основные роуты
+from .routes import router as web_router
+app.include_router(web_router)
 
 @app.get("/health")
 async def health():
