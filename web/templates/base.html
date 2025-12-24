@@ -18,7 +18,7 @@
         left: 0 !important;
         right: 0 !important;
         z-index: 1000 !important;
-        background: rgba(255, 255, 255, 0.96) !important; /* ✅ Правильный фон */
+        background: rgba(255, 255, 255, 0.96) !important;
         background: linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(220, 255, 240, 0.9)) !important;
         backdrop-filter: blur(12px) !important;
         -webkit-backdrop-filter: blur(12px) !important;
@@ -395,7 +395,7 @@
     {% endraw %}
 </head>
 <body>
-    <!-- Убраны style="" из header — теперь работает только CSS -->
+    <!-- Шапка — без style="", только классы -->
     <header id="combined-header">
         <div class="header-container">
             <!-- ЛЕВАЯ ЧАСТЬ -->
@@ -429,7 +429,84 @@
 
     <div id="toast">Сообщение</div>
 
-    <script src="/static/js/main.js" charset="utf-8"></script>
+    <!-- 🔥 ВСТРОЕННЫЙ JS — ГАРАНТИЯ UTF-8 -->
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        console.log('✅ DOM загружен');
+
+        // --- Тема ---
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        const html = document.documentElement;
+
+        const savedTheme =
+          document.cookie.match(/theme=([^;]+)/)?.[1] ||
+          localStorage.getItem('theme') ||
+          'light';
+
+        html.setAttribute('data-theme', savedTheme);
+        themeIcon.textContent = savedTheme === 'dark' ? 'light_mode' : 'dark_mode';
+
+        if (themeToggle) {
+          themeToggle.onclick = () => {
+            const isDark = html.getAttribute('data-theme') === 'dark';
+            const newTheme = isDark ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            themeIcon.textContent = isDark ? 'dark_mode' : 'light_mode';
+            localStorage.setItem('theme', newTheme);
+            document.cookie = `theme=${newTheme}; path=/; max-age=31536000`;
+            console.log('🌙 Тема:', newTheme);
+          };
+        }
+
+        // --- Скрытие шапки ---
+        const header = document.getElementById('combined-header');
+        let lastScroll = 0;
+        if (header) {
+          window.addEventListener('scroll', () => {
+            const current = window.scrollY;
+            if (current > 100 && current > lastScroll) {
+              header.classList.add('hidden');
+            } else if (current < lastScroll && current > 50) {
+              header.classList.remove('hidden');
+            }
+            lastScroll = current;
+          });
+        }
+
+        // --- Кнопка меню ---
+        const menuBtn = document.getElementById('menu-btn');
+        if (menuBtn) {
+          menuBtn.onclick = () => {
+            Toast.info("Меню нажато");
+          };
+        }
+
+        // --- Toast ---
+        window.Toast = {
+          show: (msg) => {
+            const toast = document.getElementById('toast');
+            if (!toast) return;
+            toast.textContent = msg;
+            toast.className = 'show';
+            setTimeout(() => {
+              toast.className = '';
+            }, 3000);
+          },
+          info: (msg) => Toast.show(msg),
+          success: (msg) => Toast.show(msg),
+          warning: (msg) => Toast.show(msg),
+          error: (msg) => Toast.show(msg)
+        };
+
+        // --- Telegram WebApp (если в Telegram) ---
+        if (window.Telegram?.WebApp) {
+          window.Telegram.WebApp.ready();
+          window.Telegram.WebApp.expand();
+        }
+      });
+    </script>
+
     {% block scripts %}{% endblock %}
 </body>
 </html>
