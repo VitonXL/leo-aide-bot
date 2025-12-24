@@ -1,13 +1,14 @@
-// web/static/js/main.js
-
 // Смена темы
 function toggleTheme() {
   const html = document.documentElement;
   const isDark = html.getAttribute('data-theme') === 'dark';
   const newTheme = isDark ? 'light' : 'dark';
   html.setAttribute('data-theme', newTheme);
-  document.getElementById('theme-icon').textContent = isDark ? 'dark_mode' : 'light_mode';
+  document.getElementById('theme-icon').textContent = isDark ? 'light_mode' : 'dark_mode';
   localStorage.setItem('theme', newTheme);
+  
+  // ✅ ДОБАВЛЕНО: сохраняем тему в куки
+  document.cookie = `theme=${newTheme}; path=/; max-age=31536000`; // 1 год
 }
 
 // Скрытие шапки при скролле
@@ -44,7 +45,12 @@ window.Toast = {
 
 // Инициализация
 document.addEventListener('DOMContentLoaded', () => {
-  const savedTheme = localStorage.getItem('theme') || 'light';
+  // ✅ ПРИОРИТЕТ: сначала cookie, потом localStorage
+  const savedTheme = 
+    document.cookie.match(/theme=([^;]+)/)?.[1] || 
+    localStorage.getItem('theme') || 
+    'light';
+
   document.documentElement.setAttribute('data-theme', savedTheme);
   const icon = document.getElementById('theme-icon');
   if (icon) {
