@@ -133,3 +133,7 @@ async def health():
 async def startup_event():
     logger.info("🟢 Веб-сервер запущен")
     logger.info("✨ Доступные роуты: /, /cabinet, /finance, /admin, /api/admin/stats")
+
+@app.get("/favicon.ico")
+async def favicon():
+    return FileResponse("web/static/favicon.ico")
