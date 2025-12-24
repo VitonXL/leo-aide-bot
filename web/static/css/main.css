@@ -47,26 +47,25 @@ body {
   line-height: 1.6;
 }
 
-/* === ШАПКА С АНИМАЦИЕЙ И ПРОЗРАЧНОСТЬЮ === */
+/* === ШАПКА С ПРОЗРАЧНОСТЬЮ === */
 #combined-header {
   position: sticky;
   top: 0;
   left: 0;
   right: 0;
   z-index: 1000;
-  background: var(--bg-secondary);
-  background: rgba(255, 255, 255, 0.94);
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(220, 255, 240, 0.88)); /* бело-голубая */
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.96);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(220, 255, 240, 0.9));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border-light);
   transition: transform var(--transition);
   transform: translateY(0);
 }
 
 [data-theme="dark"] #combined-header {
-  background: rgba(13, 17, 23, 0.94);
-  background: linear-gradient(145deg, rgba(13, 17, 23, 0.96), rgba(18, 24, 33, 0.88));
+  background: rgba(13, 17, 23, 0.96);
+  background: linear-gradient(145deg, rgba(13, 17, 23, 0.98), rgba(18, 24, 33, 0.9));
   border-color: var(--border-dark);
 }
 
@@ -79,94 +78,112 @@ body {
   max-width: 600px;
   margin: 0 auto;
   padding: 0 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   height: 60px;
-}
-
-/* === ЛЕВАЯ ЧАСТЬ ШАПКИ === */
-.header-left {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
 }
 
-.header-left .btn-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  color: var(--accent);
-}
-
-.header-left .btn-icon:hover {
-  background: var(--bg-hover);
-}
-
-.header-left .btn-icon span {
-  font-size: 20px;
-}
-
-/* === ЛОГОТИП === */
-.logo {
+/* === ЛЕВАЯ ЧАСТЬ === */
+.header-left {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-shrink: 0;
+}
+
+/* === Иконка приложения (большая) === */
+.app-icon-wrapper {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.app-icon {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* === Кнопка меню === */
+#menu-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+#menu-btn:hover {
+  background: var(--bg-hover);
+}
+
+#menu-btn span {
+  font-size: 20px;
+}
+
+/* === Центр: название страницы === */
+.page-title {
+  font-size: 1.1em;
   font-weight: 600;
-  font-size: 1.2em;
   color: var(--text-primary);
-  text-decoration: none;
+  text-align: center;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0 8px;
 }
 
-.logo img {
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-}
-
-/* === ПРАВАЯ ЧАСТЬ ШАПКИ === */
+/* === ПРАВАЯ ЧАСТЬ === */
 .header-right {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-shrink: 0;
 }
 
-.header-right .btn-icon {
-  width: 36px;
-  height: 36px;
+/* === Смена темы === */
+#theme-toggle {
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  background: var(--bg-secondary);
   border: 1px solid var(--border-light);
+  background: var(--bg-secondary);
+  color: var(--accent);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: var(--accent);
   transition: var(--transition);
 }
 
-[data-theme="dark"] .header-right .btn-icon {
-  background: var(--bg-dark-secondary);
+[data-theme="dark"] #theme-toggle {
   border-color: var(--border-dark);
+  background: var(--bg-dark-secondary);
   color: var(--accent-light);
 }
 
-.header-right .btn-icon:hover {
+#theme-toggle:hover {
   background: var(--bg-hover);
   transform: scale(1.05);
 }
 
-.header-right .btn-icon:active {
-  transform: scale(0.98);
+#theme-toggle span {
+  font-size: 20px;
 }
 
-/* === АВАТАР === */
+/* === Аватар === */
 .user-avatar {
   width: 36px;
   height: 36px;
@@ -273,7 +290,7 @@ body {
   font-size: 15px;
 }
 
-/* === СТАТИСТИКА === */
+/* === СТАТИСТИКА (ПОГОДА, КУРСЫ) === */
 .dual-stats {
   display: grid;
   grid-template-columns: 1fr 1fr;
