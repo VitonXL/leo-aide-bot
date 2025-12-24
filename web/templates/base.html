@@ -1,46 +1,63 @@
-<!-- web/templates/base.html -->
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="ru" data-theme="{{ theme }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>{{ title }}</title>
-    <link rel="stylesheet" href="/static/css/main.css?v=11">
+    <title>{{ title | default("Лео Помощник") }}</title>
+    <link rel="stylesheet" href="/static/css/main.css?v=12">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
-    <div class="app-header" id="app-header">
-        <div class="leo-badge-3d centered">
-            LEO
-            <div class="page-tag">{{ page_tag or "HOME" }}</div>
-        </div>
-        <div class="header-panel">
-            <div class="header-left">
-                <button class="btn-icon">
-                    <span class="material-icons">menu</span>
-                </button>
-            </div>
-            <div class="header-right">
-                <button class="btn-icon">
-                    <span class="material-icons">notifications</span>
-                </button>
-                <button class="admin-btn">
-                    <span class="material-icons">settings</span>
-                </button>
-                <img src="{{ user.get('avatar_url', '/static/img/avatar-placeholder.png') }}" alt="User" class="user-avatar">
+    <!-- Универсальная адаптивная шапка -->
+    <header class="header">
+        <div class="header-left">
+            <!-- Стрелка назад (только если не standalone) -->
+            {% if not request.query_params.get("standalone") %}
+            <button class="btn-icon" onclick="history.back()" aria-label="Назад">
+                <i class="icon-arrow">←</i>
+            </button>
+            {% endif %}
+
+            <!-- Логотип -->
+            <div class="logo">
+                <img src="/static/img/logo.png" alt="Лео">
+                <span>Лео</span>
             </div>
         </div>
-    </div>
+
+        <div class="header-right">
+            <!-- Кнопка смены темы -->
+            <button class="btn-icon" id="theme-toggle" aria-label="Сменить тему">
+                <i class="icon-sun" id="theme-icon"></i>
+            </button>
+
+            <!-- Уведомления (временно скрыты) -->
+            <!-- <button class="btn-icon" aria-label="Уведомления">
+                <i class="icon-bell">🔔</i>
+            </button> -->
+
+            <!-- Админ-панель — только для админов -->
+            {% if user.role == "admin" and user.id and user.hash %}
+            <a href="/admin?user_id={{ user.id }}&hash={{ user.hash }}" class="btn-icon" aria-label="Админ-панель">
+                <i class="icon-shield">🛡️</i>
+            </a>
+            {% endif %}
+
+            <!-- Аватар -->
+            <img src="{{ user.get('avatar_url', '/static/img/avatar-placeholder.png') }}" alt="User" class="user-avatar">
+        </div>
+    </header>
 
     <div class="main-content">
         {% block content %}{% endblock %}
     </div>
 
+    <!-- Toast уведомления -->
     <div id="toast">Сообщение</div>
 
-    {% block scripts %}
-    <script src="/static/js/app.js"></script>
-    {% endblock %}
+    <!-- Скрипты -->
+    <script src="/static/js/main.js"></script>
+    {% block scripts %}{% endblock %}
 </body>
 </html>
