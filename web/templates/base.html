@@ -7,21 +7,24 @@
     <link rel="stylesheet" href="/static/css/main.css?v=12">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Favicon -->
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
 </head>
 <body>
     <!-- Универсальная адаптивная шапка -->
-    <header class="header">
+    <header class="header" id="combined-header">  <!-- ✅ добавлен id -->
         <div class="header-left">
-            <!-- Стрелка назад (только если не standalone) -->
+            <!-- Стрелка назад -->
             {% if not request.query_params.get("standalone") %}
             <button class="btn-icon" onclick="history.back()" aria-label="Назад">
-                <i class="icon-arrow">←</i>
+                <span class="material-icons">arrow_back</span>
             </button>
             {% endif %}
 
             <!-- Логотип -->
             <div class="logo">
-                <img src="/static/img/logo.png" alt="Лео">
+                <!-- ✅ Исправлен путь к логотипу -->
+                <img src="/static/favicon.ico" alt="Лео" style="width: 28px; height: 28px;">
                 <span>Лео</span>
             </div>
         </div>
@@ -29,18 +32,14 @@
         <div class="header-right">
             <!-- Кнопка смены темы -->
             <button class="btn-icon" id="theme-toggle" aria-label="Сменить тему">
-                <i class="icon-sun" id="theme-icon"></i>
+                <!-- ✅ Исправлено: span.material-icons -->
+                <span class="material-icons" id="theme-icon">dark_mode</span>
             </button>
-
-            <!-- Уведомления (временно скрыты) -->
-            <!-- <button class="btn-icon" aria-label="Уведомления">
-                <i class="icon-bell">🔔</i>
-            </button> -->
 
             <!-- Админ-панель — только для админов -->
             {% if user.role == "admin" and user.id and user.hash %}
             <a href="/admin?user_id={{ user.id }}&hash={{ user.hash }}" class="btn-icon" aria-label="Админ-панель">
-                <i class="icon-shield">🛡️</i>
+                <span class="material-icons">admin_panel_settings</span>
             </a>
             {% endif %}
 
@@ -53,7 +52,7 @@
         {% block content %}{% endblock %}
     </div>
 
-    <!-- Toast уведомления -->
+    <!-- Toast -->
     <div id="toast">Сообщение</div>
 
     <!-- Скрипты -->
