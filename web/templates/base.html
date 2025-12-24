@@ -1,20 +1,19 @@
 <!DOCTYPE html>
-<html lang="ru" data-theme="{{ theme }}">
+<html lang="ru" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>{{ title | default("Лео Помощник") }}</title>
-    <link rel="stylesheet" href="/static/css/main.css?v=12">
+    <link rel="stylesheet" href="/static/css/main.css?v=13">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <!-- Favicon -->
     <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
 </head>
 <body>
-    <!-- Универсальная адаптивная шапка -->
-    <header class="header" id="combined-header">  <!-- ✅ добавлен id -->
+    <!-- Полупрозрачная адаптивная шапка -->
+    <header id="combined-header" class="header">
         <div class="header-left">
-            <!-- Стрелка назад -->
+            <!-- Кнопка "назад" -->
             {% if not request.query_params.get("standalone") %}
             <button class="btn-icon" onclick="history.back()" aria-label="Назад">
                 <span class="material-icons">arrow_back</span>
@@ -23,21 +22,19 @@
 
             <!-- Логотип -->
             <div class="logo">
-                <!-- ✅ Исправлен путь к логотипу -->
-                <img src="/static/favicon.ico" alt="Лео" style="width: 28px; height: 28px;">
+                <img src="/static/favicon.ico" alt="Лео">
                 <span>Лео</span>
             </div>
         </div>
 
         <div class="header-right">
-            <!-- Кнопка смены темы -->
+            <!-- Смена темы -->
             <button class="btn-icon" id="theme-toggle" aria-label="Сменить тему">
-                <!-- ✅ Исправлено: span.material-icons -->
                 <span class="material-icons" id="theme-icon">dark_mode</span>
             </button>
 
-            <!-- Админ-панель — только для админов -->
-            {% if user.role == "admin" and user.id and user.hash %}
+            <!-- Админ-панель -->
+            {% if user and user.role == "admin" and user.id and user.hash %}
             <a href="/admin?user_id={{ user.id }}&hash={{ user.hash }}" class="btn-icon" aria-label="Админ-панель">
                 <span class="material-icons">admin_panel_settings</span>
             </a>
