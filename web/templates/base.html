@@ -396,32 +396,34 @@
 </head>
 <body>
     <!-- Шапка — без style="", только классы -->
-    <header id="combined-header">
-        <div class="header-container">
-            <!-- ЛЕВАЯ ЧАСТЬ -->
-            <div class="header-left">
-                <div class="app-icon-wrapper">
-                    <img src="/static/favicon.ico" alt="Лео" class="app-icon">
-                </div>
-                <button class="btn-icon" id="menu-btn">
-                    <span class="material-icons">menu</span>
-                </button>
-            </div>
+    <header id="combined-header" style="position: sticky !important; top: 0 !important; left: 0 !important; right: 0 !important; z-index: 1000 !important; background: rgba(255,255,255,0.96); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(76,175,80,0.12); transition: transform 0.3s ease;">
+  <div class="header-container" style="display: flex !important; justify-content: space-between !important; align-items: center !important; width: 100% !important; max-width: 600px !important; margin: 0 auto !important; padding: 0 16px !important; height: 60px !important; gap: 12px !important; background: yellow !important; border: 1px dashed red !important;">
+    
+    <!-- ЛЕВО -->
+    <div class="header-left" style="display: flex !important; align-items: center !important; gap: 8px !important; flex-shrink: 0 !important;">
+      <div class="app-icon-wrapper" style="width: 36px !important; height: 36px !important;">
+        <img src="/static/favicon.ico" alt="Лео" class="app-icon" style="width: 100% !important; height: 100% !important;">
+      </div>
+      <button class="btn-icon" id="menu-btn" style="width: 40px !important; height: 40px !important; background: transparent !important; display: flex !important;">
+        <span class="material-icons" style="font-size: 20px !important;">menu</span>
+      </button>
+    </div>
 
-            <!-- ЦЕНТР -->
-            <div class="page-title">
-                {{ page_title | default("Главная") }}
-            </div>
+    <!-- ЦЕНТР -->
+    <div class="page-title" style="flex: 1 !important; text-align: center !important; font-weight: 600 !important; color: #212121 !important; overflow: hidden !important; text-overflow: ellipsis !important;">
+      {{ page_title | default("Главная") }}
+    </div>
 
-            <!-- ПРАВАЯ ЧАСТЬ -->
-            <div class="header-right">
-                <button class="btn-icon" id="theme-toggle">
-                    <span class="material-icons" id="theme-icon">dark_mode</span>
-                </button>
-                <img src="{{ user.get('avatar_url', '/static/img/avatar-placeholder.png') }}" alt="User" class="user-avatar">
-            </div>
-        </div>
-    </header>
+    <!-- ПРАВО -->
+    <div class="header-right" style="display: flex !important; align-items: center !important; gap: 8px !important; flex-shrink: 0 !important;">
+      <button class="btn-icon" id="theme-toggle" style="width: 40px !important; height: 40px !important; background: #fff !important; border: 1px solid rgba(76,175,80,0.12) !important; display: flex !important;">
+        <span class="material-icons" id="theme-icon" style="font-size: 20px !important;">dark_mode</span>
+      </button>
+      <img src="{{ user.get('avatar_url', '/static/img/avatar-placeholder.png') }}" alt="User" class="user-avatar" style="width: 36px !important; height: 36px !important; border-radius: 50% !important; border: 2px solid #4CAF50 !important;">
+    </div>
+
+  </div>
+</header>
 
     <div class="main-content">
         {% block content %}{% endblock %}
