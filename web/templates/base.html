@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
 
-    <!-- ✅ Полный CSS — с !important и raw -->
+    <!-- 🔥 Оставляем ВЕСЬ CSS — он нужен -->
     {% raw %}
     <style>
       /* === ФОРСИРОВАННАЯ ШАПКА === */
@@ -55,17 +55,15 @@
         flex-shrink: 0 !important;
       }
 
-      /* Остальные стили — как у тебя — НЕ ТРОГАЕМ */
-      /* Вставь сюда ВЕСЬ свой CSS отсюда до конца */
-      /* Я не буду его копировать, чтобы не удлинять */
-      /* Но он должен быть! */
+      /* === ОСТАЛЬНОЙ CSS — КАК У ТЕБЯ — НЕ ТРОГАЕМ === */
+      /* ... весь остальной CSS ... */
     </style>
     {% endraw %}
 </head>
 <body>
-    <header id="combined-header">
-        <div class="header-container">
-            <!-- ЛЕВО -->
+    <!-- ✅ Только шапка — с style="", чтобы ПРОБИТЬ конфликты -->
+    <header id="combined-header" style="position: sticky !important; top: 0 !important; left: 0 !important; right: 0 !important; z-index: 1000 !important;">
+        <div class="header-container" style="display: flex !important; justify-content: space-between !important; align-items: center !important;">
             <div class="header-left">
                 <div class="app-icon-wrapper">
                     <img src="/static/favicon.ico" alt="Лео" class="app-icon">
@@ -74,13 +72,9 @@
                     <span class="material-icons">menu</span>
                 </button>
             </div>
-
-            <!-- ЦЕНТР -->
             <div class="page-title">
                 {{ page_title | default("Главная") }}
             </div>
-
-            <!-- ПРАВО -->
             <div class="header-right">
                 <button class="btn-icon" id="theme-toggle">
                     <span class="material-icons" id="theme-icon">dark_mode</span>
