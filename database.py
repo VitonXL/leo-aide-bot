@@ -189,7 +189,7 @@ async def get_user_role(pool, user_id: int) -> str:
 
 
 async def set_user_role(pool, user_id: int, role: str):
-    valid_roles = ['user', 'premium', 'admin']
+    valid_roles = ['user', 'premium', 'moderator', 'admin']
     if role not in valid_roles:
         raise ValueError(f"Роль должна быть одной из: {valid_roles}")
     async with pool.acquire() as conn:
