@@ -4,10 +4,9 @@ import yaml
 import json
 from datetime import datetime
 from fastapi.staticfiles import StaticFiles
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, APIRouter
 from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.templating import Jinja2Templates
-from fastapi import APIRouter
 from loguru import logger
 
 # Добавляем путь
@@ -40,9 +39,20 @@ def save_usage(data):
     with open(USAGE_JSON, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
+def load_users_yml():
+    if not os.path.exists(USERS_YML):
+        return []
+    with open(USERS_YML, "r", encoding="utf-8") as f:
+        return yaml.safe_load(f) or []
+
+def save_users_yml(users):
+    with open(USERS_YML, "w", encoding="utf-8") as f:
+        yaml.dump(users, f, ensure_ascii=False, default_flow_style=False)
+
 # --- Админ API ---
 admin_api = APIRouter(prefix="/api/admin", tags=["admin"])
 
+# Статистика
 @admin_api.get("/stats")
 async def get_admin_stats():
     usage = load_usage()
@@ -59,9 +69,11 @@ async def get_admin_stats():
             {"feature": "Финансы", "requests": 843, "growth": "+7%"},
             {"feature": "Погода", "requests": 621, "growth": "+3%"},
             {"feature": "Игры", "requests": 304, "growth": "-2%"},
-        ]
+        ],
+        "api_usage": usage["gigachat"]
     }
 
+# Использование API
 @admin_api.get("/api-usage")
 async def get_api_usage():
     usage = load_usage()
@@ -77,6 +89,82 @@ async def get_api_usage():
         }
     }
 
+# Обновить лимит API
+@admin_api.post("/update-api-limit")
+async def update_api_limit(data: dict):
+    new_limit = data.get("limit", 100)
+    if new_limit < 1:
+        raise HTTPException(status_code=400, detail="Лимит должен быть > 0")
+    usage = load_usage()
+    usage["gigachat"]["limit"] = new_limit
+    save_usage(usage)
+    logger.info(f"Лимит GigaChat обновлён: {new_limit}")
+    return {"status": "ok", "limit": new_limit}
+
+# Поиск пользователя
+@admin_api.get("/user")
+async def get_user(query: str):
+    users = load_users_yml()
+    for u in users:
+        if str(query) in str(u.get("id")) or query.lower() in u.get("username", "").lower():
+            return u
+    return None
+
+# Выдать премиум
+@admin_api.post("/grant-premium")
+async def grant_premium(data: dict):
+    user_id = str(data.get("user_id"))
+    users = load_users_yml()
+    for u in users:
+        if str(u.get("id")) == user_id:
+            u["premium"] = True
+            u["premium_expires"] = (datetime.now().timestamp() + 30 * 86400)
+            save_users_yml(users)
+            logger.info(f"Премиум выдан: {user_id}")
+            return {"status": "ok"}
+    raise HTTPException(status_code=404, detail="Пользователь не найден")
+
+# Снять премиум
+@admin_api.post("/revoke-premium")
+async def revoke_premium(data: dict):
+    user_id = str(data.get("user_id"))
+    users = load_users_yml()
+    for u in users:
+        if str(u.get("id")) == user_id:
+            u.pop("premium", None)
+            u.pop("premium_expires", None)
+            save_users_yml(users)
+            logger.info(f"Премиум снят: {user_id}")
+            return {"status": "ok"}
+    raise HTTPException(status_code=404, detail="Пользователь не найден")
+
+# Заблокировать
+@admin_api.post("/block-user")
+async def block_user(data: dict):
+    user_id = str(data.get("user_id"))
+    users = load_users_yml()
+    for u in users:
+        if str(u.get("id")) == user_id:
+            u["blocked"] = True
+            save_users_yml(users)
+            logger.info(f"Пользователь заблокирован: {user_id}")
+            return {"status": "ok"}
+    raise HTTPException(status_code=404, detail="Пользователь не найден")
+
+# Сброс статистики пользователя
+@admin_api.post("/reset-user")
+async def reset_user(data: dict):
+    user_id = str(data.get("user_id"))
+    usage = load_usage()
+    if user_id in usage["gigachat"]["users"]:
+        usage["gigachat"]["users"][user_id] = 0
+        usage["gigachat"]["total"] = sum(usage["gigachat"]["users"].values())
+        save_usage(usage)
+        logger.info(f"Статистика сброшена: {user_id}")
+        return {"status": "ok"}
+    raise HTTPException(status_code=404, detail="Пользователь не найден")
+
+# Обновить users.yml из админки
 @admin_api.post("/patch-users")
 async def patch_users_from_yml():
     if not os.path.exists(USERS_YML):
@@ -90,11 +178,13 @@ async def patch_users_from_yml():
             if user_id not in usage["gigachat"]["users"]:
                 usage["gigachat"]["users"][user_id] = 0
         save_usage(usage)
+        logger.info(f"users.yml загружен: {len(data)} пользователей")
         return {"status": "success", "message": "Пользователи обновлены", "count": len(data)}
     except Exception as e:
         logger.error(f"Ошибка при обработке users.yml: {e}")
         raise HTTPException(status_code=500, detail="Ошибка при чтении файла")
 
+# Сброс всех счётчиков
 @admin_api.post("/reset-usage")
 async def reset_usage_counters():
     usage = load_usage()
@@ -105,6 +195,7 @@ async def reset_usage_counters():
     logger.info("Счётчики GigaChat сброшены администратором")
     return {"status": "success", "message": "Счётчики GigaChat сброшены"}
 
+# Режим перегрузки
 @admin_api.post("/overuse")
 async def toggle_overuse():
     logger.info("Режим перегрузки GigaChat активирован")
@@ -122,28 +213,40 @@ print(f"✅ Статика доступна из: {static_dir}")
 templates = Jinja2Templates(directory=templates_dir)
 
 # --- Маршрут для админки ---
-ADMIN_ID = 1799560429  # ← Твой ID
+ADMIN_ID = 1799560429
 
 @app.get("/admin", response_class=HTMLResponse)
 async def admin_page(request: Request):
-    if int(request.query_params.get("user_id", 0)) != 1799560429:
+    if int(request.query_params.get("user_id", 0)) != ADMIN_ID:
         return HTMLResponse("❌ Доступ запрещён", status_code=403)
+
+    usage = load_usage()
+    users = load_users_yml()
+    support_requests = [
+        {"user_id": 1799560429, "message": "Не работает GigaChat", "status": "new"},
+        {"user_id": 123456, "message": "Ошибка оплаты", "status": "processing"}
+    ]
 
     return templates.TemplateResponse(
         "admin.html",
         {
             "request": request,
-            "page_title": "Админка",
-            "stats": {"total_users": 128, "active_today": 89, "premium_users": 24, "new_last_week": 17, "top_features": [{"feature": "GigaChat", "requests": 1200}, {"feature": "Финансы", "requests": 843}]},
-            "api_usage": {"gigachat": {"used": 45, "limit": 100, "remaining": 55}},
+            "page_title": "Админ",
+            "stats": await get_admin_stats(),
+            "api_usage": await get_api_usage(),
             "user_list": [
-                {"id": 1, "username": "vitron", "role": "admin", "is_premium": True},
-                {"id": 2, "username": "user_123", "role": "user", "is_premium": False}
+                {
+                    "id": u.get("id"),
+                    "first_name": u.get("first_name", "Пользователь"),
+                    "username": u.get("username", ""),
+                    "role": "admin" if u.get("id") == ADMIN_ID else "premium" if u.get("premium") else "user",
+                    "language": u.get("language", "ru"),
+                    "premium_expires": u.get("premium_expires"),
+                    "last_seen": u.get("last_seen", datetime.now().isoformat())
+                }
+                for u in users
             ],
-            "support_requests": [
-                {"user_id": 1799560429, "message": "Не работает GigaChat", "status": "new"},
-                {"user_id": 123456, "message": "Ошибка оплаты", "status": "processing"}
-            ]
+            "support_requests": support_requests
         }
     )
 
