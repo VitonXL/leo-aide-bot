@@ -19,7 +19,7 @@
   --radius-lg: 24px;
   --shadow: 0 6px 20px rgba(76, 175, 80, 0.08);
   --shadow-hover: 0 12px 28px rgba(76, 175, 80, 0.16), 0 16px 40px rgba(0, 0, 0, 0.12);
-  --transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition:  0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 [data-theme="dark"] {
@@ -254,7 +254,7 @@ body, html {
 {% endblock %}
 
 {% block content %}
-  <!-- УБРАЛИ: {% include "components/header.html" } -->
+  <!-- УБРАЛИ: {% include "components/header.html" %} -->
   <!-- Потому что base.html уже включает шапку -->
 
   <script>
@@ -264,7 +264,7 @@ body, html {
       if (titleEl) {
         titleEl.textContent = "Админка";
       }
-      Toast.info('Добро пожаловать, админ!');
+      Toast.info('Добро пожеловать, админ!');
     });
   </script>
 
@@ -274,16 +274,115 @@ body, html {
       <p>Управление пользователями, поддержкой и системой</p>
     </div>
 
-    <!-- Остальной контент — как у тебя -->
-    <!-- Статистика, пользователи, поддержка — всё остаётся -->
-    <!-- ... (твой код) ... -->
+    <!-- Статистика -->
+    <div class="admin-card">
+      <h2><span class="material-icons">insights</span> Статистика</h2>
+      <div class="btn-group">
+        <div class="stat-item">
+          <div class="stat-label">Пользователи</div>
+          <div class="stat-value">128</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Активные</div>
+          <div class="stat-value">89</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Премиум</div>
+          <div class="stat-value" style="color: #DAA520;">24</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Новых</div>
+          <div class="stat-value">17</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Топ функций -->
+    <div class="admin-card">
+      <h2><span class="material-icons">trending_up</span> Топ функций</h2>
+      <table class="user-table">
+        <thead>
+          <tr>
+            <th>Функция</th>
+            <th>Запросы</th>
+            <th>Рост</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>GigaChat</td><td>1.2k</td><td style="color: #4CAF50;">+12%</td></tr>
+          <tr><td>Финансы</td><td>843</td><td style="color: #4CAF50;">+7%</td></tr>
+          <tr><td>Погода</td><td>621</td><td style="color: #4CAF50;">+3%</td></tr>
+          <tr><td>Игры</td><td>304</td><td style="color: #f44336;">-2%</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Управление -->
+    <div class="admin-card">
+      <h2><span class="material-icons">settings</span> Управление</h2>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="refreshUsers()">
+          <span class="material-icons">refresh</span> Обновить
+        </button>
+        <button class="btn btn-primary" onclick="patchUsers()">
+          <span class="material-icons">update</span> Патч
+        </button>
+        <button class="btn btn-primary" onclick="resetApiCounters()">
+          <span class="material-icons">restart_alt</span> Сброс
+        </button>
+        <button class="btn btn-primary" onclick="enableOveruse()">
+          <span class="material-icons">warning</span> Перегрузка
+        </button>
+      </div>
+    </div>
+
+    <!-- Пользователи -->
+    <div class="admin-card">
+      <h2><span class="material-icons">people</span> Пользователи</h2>
+      <table class="user-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Юзер</th>
+            <th>Роль</th>
+            <th>Премиум</th>
+            <th>Действие</th>
+          </tr>
+        </thead>
+        <tbody id="user-list">
+          <tr><td><code>1</code></td><td>@vitron</td><td><div class="status admin">Админ</div></td><td><div class="status premium">Да</div></td><td><button class="btn btn-sm">Снять админа</button></td></tr>
+          <tr><td><code>2</code></td><td>@user_123</td><td><div class="status user">Пользователь</div></td><td><div class="status user">Нет</div></td><td><button class="btn btn-sm">Сделать админом</button></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Поддержка -->
+    <div class="admin-card">
+      <h2><span class="material-icons">help</span> Техподдержка</h2>
+      <table class="support-table">
+        <thead>
+          <tr>
+            <th>Пользователь</th>
+            <th>Сообщение</th>
+            <th>Статус</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>@vitron</td><td>Не работает GigaChat</td><td><div class="status">Новое</div></td></tr>
+          <tr><td>@user_123</td><td>Ошибка оплаты</td><td><div class="status">В обработке</div></td></tr>
+        </tbody>
+      </table>
+      <button class="btn btn-primary" style="width:100%; margin-top:12px;" onclick="markAsRead()">
+        Отметить прочитанными
+      </button>
+    </div>
   </div>
 {% endblock %}
 
 {% block scripts %}
   {{ super() }}
   <script>
-    // Твой JS — остаётся
+    // Мок-данные
     const mockUsers = [
       { id: 1, username: "vitron", role: "admin", is_premium: true },
       { id: 2, username: "user_12345", role: "user", is_premium: false },
@@ -318,15 +417,16 @@ body, html {
 
     function patchUsers() { Toast.info('Запуск патча из users.yml...'); }
     function exportUsers() { Toast.info('Экспорт пользователей...'); }
-    function setRole(id, newRole) { Toast.success(`Роль пользователя ${id} изменена на ${newRole}`); refreshUsers(); }
+    function setRole(id, newRole) { Toast.success(`Роль пользователя ${id} изменена на ${newRole}`); }
     function markAsRead() { Toast.info('Все обращения отмечены как прочитанные'); }
     function resetApiCounters() { Toast.info('Счётчики GigaChat сброшены'); }
     function enableOveruse() { Toast.warning('Режим перегрузки GigaChat включён'); }
 
-    // Убедимся, что тема сохраняется
+    // При загрузке — обновим заголовок
     document.addEventListener('DOMContentLoaded', () => {
       const savedTheme = localStorage.getItem('theme') || 'light';
       document.documentElement.setAttribute('data-theme', savedTheme);
+      Toast.info('Добро пожеловать, админ!');
     });
   </script>
 {% endblock %}
