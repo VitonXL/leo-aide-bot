@@ -1,4 +1,4 @@
-  {% extends "base.html" %}
+{% extends "base.html" %}
 
 {% block title %}Лео — Админка{% endblock %}
 
@@ -323,7 +323,7 @@ body, html {
       <h2><span class="material-icons">api</span> GigaChat API</h2>
       <p>Запросов сегодня: <strong>{{ api_usage.gigachat.used }} / {{ api_usage.gigachat.limit }}</strong></p>
       <div style="width: 100%; height: 8px; background: #e0e0e0; border-radius: 4px; margin: 8px 0;">
-        <div style="height: 100%; background: var(--accent); width: {{ (api_usage.gigachat.used / api_usage.gigachat.limit * 100) | min(100) }}%; transition: width 0.4s ease;"></div>
+        <div style="height: 100%; background: var(--accent); width: {{ [api_usage.gigachat.used / api_usage.gigachat.limit * 100, 100] | min }}%; transition: width 0.4s ease;"></div>
       </div>
       <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">
         Осталось: {{ api_usage.gigachat.remaining }}
