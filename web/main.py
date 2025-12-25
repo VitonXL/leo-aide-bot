@@ -1,4 +1,3 @@
-# web/main.py
 import sys
 import os
 import yaml
@@ -264,6 +263,65 @@ async def admin_page(request: Request):
         }
     )
 
+
+# --- Маршрут для модераторов: тикеты ---
+@app.get("/tickets", response_class=HTMLResponse)
+async def tickets_page(request: Request):
+    user_id_str = request.query_params.get("user_id")
+    hash = request.query_params.get("hash")
+    
+    if not user_id_str or not hash:
+        return HTMLResponse("❌ Не хватает данных для входа", status_code=403)
+    
+    try:
+        user_id = int(user_id_str)
+    except (ValueError, TypeError):
+        return HTMLResponse("❌ Неверный user_id", status_code=403)
+    
+    # Проверяем: модератор или админ?
+    if not await verify_cabinet_link(user_id, hash, required_role="moderator"):
+        return HTMLResponse("❌ Доступ запрещён", status_code=403)
+
+    # Получаем тикеты через существующее API
+    try:
+        pool = await get_db_pool()
+        async with pool.acquire() as conn:
+            tickets = await conn.fetch("""
+                SELECT id, user_id, username, first_name, message, status, created_at, ticket_id
+                FROM support_tickets
+                WHERE status IN ('open', 'in_progress')
+                ORDER BY created_at DESC
+            """)
+
+        ticket_list = [
+            {
+                "id": t["id"],
+                "ticket_id": t["ticket_id"],
+                "user_id": t["user_id"],
+                "username": t["username"] or "unknown",
+                "first_name": t["first_name"] or "Пользователь",
+                "message": t["message"][:100] + "..." if len(t["message"]) > 100 else t["message"],
+                "status": t["status"],
+                "created_at": t["created_at"].strftime("%d.%m %H:%M")
+            }
+            for t in tickets
+        ]
+    except Exception as e:
+        logger.error(f"❌ Ошибка загрузки тикетов: {e}")
+        ticket_list = []
+
+    return templates.TemplateResponse(
+        "tickets.html",
+        {
+            "request": request,
+            "page_title": "Техподдержка",
+            "tickets": ticket_list,
+            "user_id": user_id,
+            "hash": hash
+        }
+    )
+
+
 # --- Подключаем остальные роуты ---
 app.include_router(admin_api)
 
@@ -285,4 +343,4 @@ async def favicon():
 @app.on_event("startup")
 async def startup_event():
     logger.info("🟢 Веб-сервер запущен")
-    logger.info("✨ Доступные роуты: /, /cabinet, /finance, /admin, /api/admin/stats")
+    logger.info("✨ Доступные роуты: /, /cabinet, /finance, /admin, /tickets, /api/admin/stats")
