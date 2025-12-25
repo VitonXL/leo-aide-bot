@@ -7,7 +7,7 @@ from typing import Dict, Any
 # Добавляем путь к папке bot
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))  # Добавляем корень: /app
 
-from fastapi import APIRouter, HTTPException, Body
+from fastapi import APIRouter, HTTPException, Body, Query, Depends
 from loguru import logger
 from database import (
     get_db_pool,
@@ -25,6 +25,28 @@ if not DATABASE_URL:
     raise RuntimeError("❌ DATABASE_URL не задана")
 
 print(f"✅ DATABASE_URL: {DATABASE_URL[:30]}...")
+
+# --- Импорт утилит ---
+from .utils import verify_cabinet_link  # ✅ Используем проверку из utils
+
+
+# === Зависимости: проверка ролей ===
+async def require_admin(user_id: int = Query(...), hash: str = Query(...)):
+    """
+    Доступ только для админов.
+    """
+    if not await verify_cabinet_link(user_id, hash, required_role="admin"):
+        raise HTTPException(status_code=403, detail="Доступ запрещён")
+    return user_id
+
+
+async def require_moderator(user_id: int = Query(...), hash: str = Query(...)):
+    """
+    Доступ для модераторов и админов.
+    """
+    if not await verify_cabinet_link(user_id, hash, required_role="moderator"):
+        raise HTTPException(status_code=403, detail="Доступ запрещён")
+    return user_id
 
 
 # === 🔍 Получение данных пользователя ===
@@ -108,10 +130,8 @@ async def set_user_theme(user_id: int, theme: str = Body(...), hash: str = Body(
     if theme not in ["light", "dark"]:
         raise HTTPException(status_code=400, detail="Theme must be 'light' or 'dark'")
 
-    # Импортируем утилиту проверки
     try:
-        from .utils import verify_cabinet_link
-        if not verify_cabinet_link(user_id, hash):
+        if not await verify_cabinet_link(user_id, hash):
             raise HTTPException(status_code=403, detail="Invalid signature")
     except ImportError:
         logger.error("❌ Не удалось импортировать .utils.verify_cabinet_link")
@@ -129,7 +149,7 @@ async def set_user_theme(user_id: int, theme: str = Body(...), hash: str = Body(
 
 # === 🔐 АДМИН-ПАНЕЛЬ: Статистика ===
 @router.get("/admin/stats")
-async def get_admin_stats():
+async def get_admin_stats(user_id: int = Depends(require_admin)):
     pool = await get_db_pool()
     async with pool.acquire() as conn:
         total = await conn.fetchval("SELECT COUNT(*) FROM users")
@@ -148,7 +168,7 @@ async def get_admin_stats():
 
 
 @router.get("/admin/users")
-async def get_all_users():
+async def get_all_users(user_id: int = Depends(require_admin)):
     pool = await get_db_pool()
     async with pool.acquire() as conn:
         rows = await conn.fetch("""
@@ -163,7 +183,7 @@ async def get_all_users():
 
 
 @router.get("/admin/user")
-async def get_single_user(query: str):
+async def get_single_user(query: str, user_id: int = Depends(require_admin)):
     pool = await get_db_pool()
     async with pool.acquire() as conn:
         if query.startswith('@'):
@@ -179,7 +199,7 @@ async def get_single_user(query: str):
 
 # === Премиум ===
 @router.post("/admin/grant-premium")
-async def api_grant_premium(user_id: int):
+async def api_grant_premium(user_id: int = Body(..., embed=True), admin_id: int = Depends(require_admin)):
     pool = await get_db_pool()
     async with pool.acquire() as conn:
         result = await conn.execute("""
@@ -194,7 +214,7 @@ async def api_grant_premium(user_id: int):
 
 
 @router.post("/admin/revoke-premium")
-async def api_revoke_premium(user_id: int = Body(..., embed=True)):
+async def api_revoke_premium(user_id: int = Body(..., embed=True), admin_id: int = Depends(require_admin)):
     pool = await get_db_pool()
     async with pool.acquire() as conn:
         await conn.execute("""
@@ -208,7 +228,7 @@ async def api_revoke_premium(user_id: int = Body(..., embed=True)):
 
 # === Активность ===
 @router.get("/admin/activity-by-day")
-async def get_activity_by_day():
+async def get_activity_by_day(user_id: int = Depends(require_admin)):
     pool = await get_db_pool()
     async with pool.acquire() as conn:
         rows = await conn.fetch("""
@@ -227,7 +247,7 @@ async def get_activity_by_day():
 
 
 @router.get("/admin/top-commands")
-async def get_top_commands():
+async def get_top_commands(user_id: int = Depends(require_admin)):
     pool = await get_db_pool()
     async with pool.acquire() as conn:
         rows = await conn.fetch("""
@@ -245,7 +265,7 @@ async def get_top_commands():
 
 # === Отзывы ===
 @router.get("/admin/reviews")
-async def get_reviews():
+async def get_reviews(user_id: int = Depends(require_admin)):
     pool = await get_db_pool()
     async with pool.acquire() as conn:
         rows = await conn.fetch("""
@@ -262,23 +282,24 @@ async def get_reviews():
 
 
 # === 🛠 ТЕХПОДДЕРЖКА: Тикеты ===
-
 @router.get("/admin/support-tickets")
-async def get_support_tickets():
+async def get_support_tickets(user_id: int = Depends(require_moderator)):
     """
     Возвращает все открытые и в работе тикеты.
+    Доступ: модераторы и админы.
     """
     pool = await get_db_pool()
     async with pool.acquire() as conn:
         rows = await conn.fetch("""
-            SELECT id, user_id, username, first_name, message, status, created_at
+            SELECT id, user_id, username, first_name, message, status, created_at, ticket_id
             FROM support_tickets
-            WHERE status != 'resolved'
+            WHERE status IN ('open', 'in_progress')
             ORDER BY created_at DESC
         """)
         return [
             {
                 "id": r["id"],
+                "ticket_id": r["ticket_id"],
                 "user_id": r["user_id"],
                 "username": r["username"] or "unknown",
                 "first_name": r["first_name"] or "Пользователь",
@@ -290,21 +311,22 @@ async def get_support_tickets():
         ]
 
 
-# === 📩 Ответ на тикет ===
 @router.post("/admin/reply-support")
 async def reply_support(
-    ticket_id: int = Body(..., embed=True),
-    reply_text: str = Body(..., embed=True)
+    ticket_id: str = Body(..., embed=True),  # Теперь str
+    reply_text: str = Body(..., embed=True),
+    user_id: int = Depends(require_moderator)  # Проверка роли
 ):
     """
     Отправляет ответ пользователю и закрывает тикет.
+    Использует ticket_id (строка), а не id.
     """
     pool = await get_db_pool()
 
     # Получаем данные тикета
     async with pool.acquire() as conn:
         ticket = await conn.fetchrow(
-            "SELECT user_id, message FROM support_tickets WHERE id = $1", ticket_id
+            "SELECT user_id, message FROM support_tickets WHERE ticket_id = $1", ticket_id
         )
         if not ticket:
             raise HTTPException(status_code=404, detail="Тикет не найден")
@@ -343,7 +365,7 @@ async def reply_support(
         # Обновляем статус тикета
         async with pool.acquire() as conn:
             await conn.execute(
-                "UPDATE support_tickets SET status = 'in_progress', updated_at = NOW() WHERE id = $1",
+                "UPDATE support_tickets SET status = 'in_progress', updated_at = NOW() WHERE ticket_id = $1",
                 ticket_id
             )
 
@@ -355,15 +377,16 @@ async def reply_support(
     # Закрываем тикет
     async with pool.acquire() as conn:
         await conn.execute(
-            "UPDATE support_tickets SET status = 'resolved', updated_at = NOW() WHERE id = $1",
+            "UPDATE support_tickets SET status = 'resolved', updated_at = NOW() WHERE ticket_id = $1",
             ticket_id
         )
     logger.info(f"✅ Тикет {ticket_id} успешно закрыт")
 
     return {"status": "ok", "message": "Ответ отправлен, тикет закрыт"}
 
+
 @router.get("/admin/reply-templates")
-async def get_reply_templates():
+async def get_reply_templates(user_id: int = Depends(require_moderator)):
     return {
         "templates": [
             {"id": "thanks", "title": "Спасибо", "text": "Спасибо за обращение! ✅"},
