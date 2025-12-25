@@ -4,8 +4,9 @@ import yaml
 import json
 from datetime import datetime
 from fastapi.staticfiles import StaticFiles
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import JSONResponse, HTMLResponse
+from fastapi.templating import Jinja2Templates
 from fastapi import APIRouter
 from loguru import logger
 
@@ -109,16 +110,41 @@ async def toggle_overuse():
     logger.info("Режим перегрузки GigaChat активирован")
     return {"status": "success", "message": "Режим перегрузки включён"}
 
-# --- Статика ---
+# --- Статика и шаблоны ---
 static_dir = os.path.join(os.path.dirname(__file__), "static")
+templates_dir = os.path.join(os.path.dirname(__file__), "templates")
+os.makedirs(templates_dir, exist_ok=True)
+
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
 print(f"✅ Статика доступна из: {static_dir}")
-print(f"✅ DATABASE_URL: {os.getenv('DATABASE_URL', 'not set')}")
 
-# --- Роуты ---
+# --- Jinja2 для HTML-шаблонов ---
+templates = Jinja2Templates(directory=templates_dir)
+
+# --- Маршрут для админки ---
+ADMIN_ID = 1799560429  # ← Твой ID
+
+@app.get("/admin", response_class=HTMLResponse)
+async def admin_page(request: Request):
+    # Здесь можно в будущем проверить сессию или Telegram WebApp
+    # Пока просто проверим ID (в реальности — лучше использовать auth)
+    user_id = request.query_params.get("user_id")
+    
+    if not user_id or int(user_id) != ADMIN_ID:
+        return HTMLResponse(content="❌ Доступ запрещён", status_code=403)
+
+    return templates.TemplateResponse(
+        "admin.html",
+        {
+            "request": request,
+            "admin_id": ADMIN_ID,
+            "page_title": "Админка"
+        }
+    )
+
+# --- Подключаем остальные роуты ---
 app.include_router(admin_api)
 
-# Подключаем основные роуты
 try:
     from .routes import router as web_router
     app.include_router(web_router)
@@ -129,11 +155,12 @@ except Exception as e:
 async def health():
     return {"status": "ok"}
 
+@app.get("/favicon.ico")
+async def favicon():
+    from fastapi.responses import FileResponse
+    return FileResponse(os.path.join(static_dir, "favicon.ico"))
+
 @app.on_event("startup")
 async def startup_event():
     logger.info("🟢 Веб-сервер запущен")
     logger.info("✨ Доступные роуты: /, /cabinet, /finance, /admin, /api/admin/stats")
-
-@app.get("/favicon.ico")
-async def favicon():
-    return FileResponse("web/static/favicon.ico")
