@@ -332,7 +332,7 @@ from web.utils import verify_cabinet_link
 # --- Подключаем API ---
 try:
     from .api import router as api_router
-    app.include_router(api_router)
+    app.include_router(api_router, prefix="/api")  # ← добавлен префикс
     logger.info("✅ API-роуты подключены: /api/admin/...")
 except Exception as e:
     logger.error(f"❌ Ошибка импорта API: {e}")
