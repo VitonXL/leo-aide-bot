@@ -8,7 +8,7 @@ from fastapi import FastAPI, HTTPException, Request, APIRouter
 from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.templating import Jinja2Templates
 from loguru import logger
-from database import get_db_pool
+from database import get_db_pool, ensure_support_table_exists
 
 # Добавляем путь
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
