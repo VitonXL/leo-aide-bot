@@ -31,15 +31,96 @@
   transition: width 0.4s ease;
 }
 
-/* Используем стили из base.html: card, stat-card, section-title */
+/* Новые стили для тикетов */
+.support-row {
+  display: flex;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.support-user {
+  flex: 1;
+  font-size: 14px;
+}
+
+.support-user .name {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.support-user .username {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.support-message {
+  flex: 2;
+  color: var(--text-primary);
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.support-actions {
+  flex: 1;
+  text-align: right;
+}
+
+.reply-btn {
+  padding: 6px 12px;
+  font-size: 12px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.reply-btn:hover {
+  background: #0056b3;
+}
+
+/* Форма ответа */
+.reply-form {
+  margin-top: 8px;
+  padding: 12px;
+  background: var(--bg-light);
+  border-radius: 8px;
+  display: none;
+}
+
+.reply-form textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+  font-size: 14px;
+  resize: none;
+  height: 60px;
+}
+
+.reply-form button {
+  margin-top: 8px;
+  padding: 6px 12px;
+  font-size: 12px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.reply-form .cancel {
+  background: var(--text-secondary);
+}
 </style>
 {% endblock %}
 
 {% block content %}
-  <!-- НЕТ h1, НЕТ дубля шапки -->
-  <!-- page_title из base.html покажет "Админ" -->
-
-  <!-- Статистика — используем готовые .card -->
+  <!-- Статистика -->
   <div class="card">
     <div class="section-title">
       <span class="material-icons">insights</span> Статистика
@@ -68,7 +149,7 @@
     </div>
   </div>
 
-  <!-- Поддержка -->
+  <!-- Техподдержка -->
   <div class="card">
     <div class="section-title">
       <span class="material-icons">help</span> Техподдержка
@@ -82,7 +163,7 @@
         </tr>
       </thead>
       <tbody id="support-requests">
-        <!-- заполняется через JS -->
+        <!-- Будет заполнено через JavaScript -->
       </tbody>
     </table>
   </div>
@@ -92,6 +173,9 @@
   {{ super() }}
   <script src="/static/js/admin.js"></script>
   <script>
+    // Глобальная переменная для хранения тикетов
+    let supportTickets = [];
+
     // Инициализация API
     function updateApiDisplay() {
       const used = statsData.api_usage?.gigachat?.used || 0;
@@ -109,8 +193,95 @@
       updateApiDisplay();
     };
 
+    // Загрузка тикетов
+    async function loadSupportTickets() {
+      try {
+        const response = await fetch('/api/admin/support-tickets'); // Мы добавим этот эндпоинт позже
+        if (!response.ok) throw new Error('Ошибка загрузки');
+        supportTickets = await response.json();
+        renderSupportTickets();
+      } catch (err) {
+        console.error('Ошибка:', err);
+        document.getElementById('support-requests').innerHTML = `
+          <tr><td colspan="3">❌ Не удалось загрузить тикеты</td></tr>
+        `;
+      }
+    }
+
+    // Отображение тикетов
+    function renderSupportTickets() {
+      const container = document.getElementById('support-requests');
+      if (!supportTickets.length) {
+        container.innerHTML = `<tr><td colspan="3">Нет открытых запросов</td></tr>`;
+        return;
+      }
+
+      container.innerHTML = supportTickets.map(ticket => `
+        <tr>
+          <td>
+            <div class="support-user">
+              <div class="name">${ticket.first_name || 'Пользователь'}</div>
+              <div class="username">@${ticket.username || 'unknown'}</div>
+            </div>
+          </td>
+          <td>
+            <div class="support-message" title="${ticket.message}">
+              ${ticket.message.length > 50 ? ticket.message.slice(0, 50) + '...' : ticket.message}
+            </div>
+          </td>
+          <td class="support-actions">
+            <button class="reply-btn" onclick="toggleReplyForm('${ticket.ticket_id}')">Ответить</button>
+            <div class="reply-form" id="reply-form-${ticket.ticket_id}">
+              <textarea placeholder="Введите ответ..."></textarea>
+              <button onclick="sendReply('${ticket.ticket_id}')">Отправить</button>
+              <button class="cancel" onclick="toggleReplyForm('${ticket.ticket_id}')">Отмена</button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // Показать/скрыть форму ответа
+    function toggleReplyForm(ticketId) {
+      const form = document.getElementById(`reply-form-${ticketId}`);
+      form.style.display = form.style.display === 'none' || !form.style.display ? 'block' : 'none';
+    }
+
+    // Отправить ответ
+    async function sendReply(ticketId) {
+      const form = document.getElementById(`reply-form-${ticketId}`);
+      const textarea = form.querySelector('textarea');
+      const replyText = textarea.value.trim();
+      if (!replyText) return alert('Введите текст ответа');
+
+      try {
+        const response = await fetch('/api/admin/reply-ticket', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ticket_id: ticketId, reply_text: replyText })
+        });
+
+        if (response.ok) {
+          alert('Ответ отправлен');
+          // Убираем тикет из списка
+          supportTickets = supportTickets.filter(t => t.ticket_id !== ticketId);
+          renderSupportTickets();
+        } else {
+          const data = await response.json();
+          alert('Ошибка: ' + (data.detail || 'неизвестная'));
+        }
+      } catch (err) {
+        alert('Ошибка сети: ' + err.message);
+      }
+
+      textarea.value = '';
+      toggleReplyForm(ticketId);
+    }
+
+    // Загружаем тикеты после DOM
     document.addEventListener('DOMContentLoaded', () => {
       setTimeout(updateApiDisplay, 800);
+      loadSupportTickets();
     });
   </script>
 {% endblock %}
