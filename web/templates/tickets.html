@@ -7,61 +7,20 @@
         Техподдержка
     </h2>
     <p style="color: var(--text-secondary); margin-bottom: 24px;">
-        Отвечайте на запросы пользователей. Только для модераторов и админов.
+        Управляйте обращениями пользователей. Доступ: модераторы и админы.
     </p>
 
-    {% if tickets|length == 0 %}
-        <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
-            <span class="material-icons" style="font-size: 48px; opacity: 0.5;">inbox</span>
-            <p style="margin-top: 12px;">Нет открытых тикетов</p>
-        </div>
-    {% else %}
-        <div style="display: grid; gap: 16px;">
-            {% for ticket in tickets %}
-            <div class="card" style="padding: 16px; border-left: 4px solid var(--accent); background: var(--bg-secondary);">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-                    <div>
-                        <strong style="color: var(--text-primary);">{{ ticket.first_name }}</strong>
-                        {% if ticket.username %}
-                            <span style="color: var(--text-secondary); margin-left: 8px;">@{{ ticket.username }}</span>
-                        {% endif %}
-                    </div>
-                    <span class="btn-sm" style="background: var(--accent-light); color: #006400; width: auto; padding: 4px 12px; font-size: 12px;">
-                        {{ ticket.created_at }}
-                    </span>
-                </div>
+    <!-- Вкладки -->
+    <div style="display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid var(--border-light); overflow-x: auto; padding-bottom: 4px;">
+        <button class="btn-sm tab-btn active" data-status="open" style="background: var(--accent); color: white; white-space: nowrap; padding: 8px 16px; border-radius: 8px 8px 0 0;">Открытые</button>
+        <button class="btn-sm tab-btn" data-status="in_progress" style="background: transparent; color: var(--text-secondary); white-space: nowrap; padding: 8px 16px; border-radius: 8px 8px 0 0;">В работе</button>
+        <button class="btn-sm tab-btn" data-status="resolved" style="background: transparent; color: var(--text-secondary); white-space: nowrap; padding: 8px 16px; border-radius: 8px 8px 0 0;">Закрытые</button>
+    </div>
 
-                <p style="color: var(--text-primary); margin: 8px 0; font-size: 14px; line-height: 1.5;">
-                    {{ ticket.message }}
-                </p>
-
-                <div style="display: flex; gap: 8px; margin-top: 12px;">
-                    <span class="
-                        {% if ticket.status == 'open' %} 
-                            btn-sm" style="background: #e8f5e9; color: #2e7d32; 
-                        {% elif ticket.status == 'in_progress' %} 
-                            btn-sm" style="background: #fff8e1; color: #f57f17; 
-                        {% else %} 
-                            btn-sm" style="background: #e8f5e9; color: #2e7d32; 
-                        {% endif %}
-                        width: auto; padding: 6px 12px; font-size: 12px;">
-                        {% if ticket.status == 'open' %}Новый{% elif ticket.status == 'in_progress' %}В работе{% else %}Закрыт{% endif %}
-                    </span>
-
-                    <button 
-                        class="btn-sm" 
-                        style="background: var(--accent); color: white; width: auto;"
-                        data-ticket-id="{{ ticket.ticket_id }}"
-                        data-user-id="{{ ticket.user_id }}"
-                        data-bs-toggle="modal" 
-                        data-bs-target="#replyModal">
-                        Ответить
-                    </button>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    {% endif %}
+    <!-- Список тикетов -->
+    <div id="tickets-list" style="display: grid; gap: 16px;">
+        <!-- Тикеты будут подставляться динамически -->
+    </div>
 </div>
 
 <!-- Модальное окно для ответа -->
@@ -75,7 +34,15 @@
             <div class="modal-body">
                 <input type="hidden" id="currentTicketId"/>
                 <div class="mb-3">
-                    <label class="form-label" style="color: var(--text-primary);">Шаблоны ответов</label>
+                    <label class="form-label" style="color: var(--text-primary);">Категории шаблонов</label>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px;">
+                        <button class="btn-sm active" data-category="common" style="background: var(--accent); color: white;">Основные</button>
+                        <button class="btn-sm" data-category="gigachat" style="background: transparent; color: var(--text-secondary);">GigaChat</button>
+                        <button class="btn-sm" data-category="finance" style="background: transparent; color: var(--text-secondary);">Финансы</button>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" style="color: var(--text-primary);">Шаблоны</label>
                     <div id="templates-container" style="display: grid; gap: 8px; margin-top: 8px;"></div>
                 </div>
                 <div class="mb-3">
@@ -104,74 +71,215 @@
     const userId = "{{ user_id }}";
     const hash = "{{ hash }}";
 
-    // Загружаем шаблоны ответов
-    async function loadTemplates() {
-        try {
-            const res = await fetch(`/api/admin/reply-templates?user_id=${userId}&hash=${hash}`);
-            const data = await res.json();
-            const container = document.getElementById("templates-container");
-
-            data.templates.forEach(tpl => {
-                const btn = document.createElement("button");
-                btn.className = "btn-sm";
-                btn.style = "width: 100%; text-align: left; background: var(--bg-hover); border: 1px solid var(--border-light);";
-                btn.innerHTML = `<strong style="color: var(--accent);">${tpl.title}</strong>: ${tpl.text}`;
-                btn.onclick = () => document.getElementById("replyText").value = tpl.text;
-                container.appendChild(btn);
-            });
-        } catch (e) {
-            console.error("Ошибка загрузки шаблонов:", e);
-            Toast.error("Не удалось загрузить шаблоны");
+    // Все тикеты (придёт с бэкенда, но добавим тестовый)
+    const allTickets = [
+        {
+            id: 1,
+            ticket_id: "TICKET-0429-17",
+            user_id: 1799560429,
+            username: "dev_leo",
+            first_name: "Лев",
+            message: "Не работает GigaChat в режиме 'Анализ файлов'. Выдаёт ошибку 'Context limit exceeded'.",
+            status: "open",
+            created_at: "сейчас"
+        },
+        {
+            id: 2,
+            ticket_id: "TICKET-0123-45",
+            user_id: 123456789,
+            username: "alex_chat",
+            first_name: "Алексей",
+            message: "Премиум не активировался после оплаты. Скриншот прикрепил.",
+            status: "in_progress",
+            created_at: "5 мин назад"
+        },
+        {
+            id: 3,
+            ticket_id: "TICKET-0987-65",
+            user_id: 987654321,
+            username: "masha_ai",
+            first_name: "Мария",
+            message: "Не получается войти с нового устройства. Пишет 'Неверный токен'.",
+            status: "resolved",
+            created_at: "1 час назад"
+        },
+        {
+            id: 4,
+            ticket_id: "TICKET-1111-22",
+            user_id: 111111111,
+            username: "user_111",
+            first_name: "Аноним",
+            message: "Предложение по улучшению интерфейса: добавить тему 'Океан'.",
+            status: "resolved",
+            created_at: "2 часа назад"
         }
+    ];
+
+    // Шаблоны ответов с категориями
+    const templates = {
+        common: [
+            { id: "thanks", title: "Спасибо", text: "Спасибо за обращение! ✅" },
+            { id: "info", title: "Инструкция", text: "Подробная инструкция: https://leo-aide.online/faq" },
+            { id: "delay", title: "Обработка", text: "Мы получили ваше обращение и уже работаем над ним." },
+            { id: "follow", title: "Следите", text: "Следите за обновлениями в канале: @leo_aide_news" }
+        ],
+        gigachat: [
+            { id: "fixed", title: "Исправлено", text: "Ошибка в GigaChat исправлена в последней версии. Обновите страницу." },
+            { id: "limit", title: "Лимит", text: "Вы достигли лимита запросов. Премиум увеличит лимит до 100/день." },
+            { id: "wait", title: "Ожидание", text: "Сервис временно перегружен. Пожалуйста, попробуйте через 5 минут." }
+        ],
+        finance: [
+            { id: "receipt", title: "Чек", text: "Пожалуйста, пришлите чек об оплате для проверки." },
+            { id: "verify", title: "Проверка", text: "Ваш платёж находится на проверке. Обычно это занимает до 10 минут." },
+            { id: "support", title: "Поддержка", text: "Если проблема не решена — напишите @leo_support_bot" }
+        ]
+    };
+
+    // Отображение тикетов по статусу
+    function showTickets(status) {
+        const container = document.getElementById("tickets-list");
+        const filtered = status === "all" ? allTickets : allTickets.filter(t => t.status === status);
+
+        if (filtered.length === 0) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 40px; color: var(--text-secondary); background: var(--bg-hover); border-radius: 12px;">
+                    <span class="material-icons" style="font-size: 48px; opacity: 0.5;">folder_off</span>
+                    <p style="margin-top: 12px;">Нет тикетов в этой категории</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = filtered.map(ticket => `
+            <div class="card" style="padding: 16px; border-left: 4px solid var(--accent); background: var(--bg-secondary);">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                    <div>
+                        <strong style="color: var(--text-primary);">${ticket.first_name}</strong>
+                        ${ticket.username ? `<span style="color: var(--text-secondary); margin-left: 8px;">@${ticket.username}</span>` : ''}
+                    </div>
+                    <span class="btn-sm" style="background: var(--accent-light); color: #006400; width: auto; padding: 4px 12px; font-size: 12px;">
+                        ${ticket.created_at}
+                    </span>
+                </div>
+
+                <p style="color: var(--text-primary); margin: 8px 0; font-size: 14px; line-height: 1.5;">
+                    ${ticket.message}
+                </p>
+
+                <div style="display: flex; gap: 8px; margin-top: 12px;">
+                    <span class="
+                        ${ticket.status === 'open' ? 'btn-sm" style="background: #e8f5e9; color: #2e7d32;' : ''}
+                        ${ticket.status === 'in_progress' ? 'btn-sm" style="background: #fff8e1; color: #f57f17;' : ''}
+                        ${ticket.status === 'resolved' ? 'btn-sm" style="background: #e8f5e9; color: #2e7d32;' : ''}
+                        width: auto; padding: 6px 12px; font-size: 12px;">
+                        ${ticket.status === 'open' ? 'Новый' : ticket.status === 'in_progress' ? 'В работе' : 'Закрыт'}
+                    </span>
+
+                    ${ticket.status !== 'resolved' ? `
+                    <button 
+                        class="btn-sm" 
+                        style="background: var(--accent); color: white; width: auto;"
+                        data-ticket-id="${ticket.ticket_id}"
+                        data-user-id="${ticket.user_id}"
+                        data-bs-toggle="modal" 
+                        data-bs-target="#replyModal">
+                        Ответить
+                    </button>` : ''}
+                </div>
+            </div>
+        `).join('');
     }
 
-    // Обработка открытия модалки
-    document.addEventListener("DOMContentLoaded", () => {
-        loadTemplates();
-
-        const modal = document.getElementById("replyModal");
-        modal.addEventListener("show.bs.modal", (event) => {
-            const button = event.relatedTarget;
-            const ticketId = button.getAttribute("data-ticket-id");
-            document.getElementById("currentTicketId").value = ticketId;
-            document.getElementById("replyText").value = "";
+    // Вкладки
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            document.querySelectorAll(".tab-btn").forEach(b => {
+                b.classList.remove("active");
+                b.style.background = "transparent";
+                b.style.color = "var(--text-secondary)";
+            });
+            btn.classList.add("active");
+            btn.style.background = "var(--accent)";
+            btn.style.color = "white";
+            showTickets(btn.dataset.status);
         });
+    });
 
-        // Отправка ответа
-        document.getElementById("sendReplyBtn").addEventListener("click", async () => {
-            const ticketId = document.getElementById("currentTicketId").value;
-            const replyText = document.getElementById("replyText").value.trim();
+    // Первоначальный показ
+    showTickets("open");
 
-            if (!replyText) {
-                Toast.warning("Введите текст ответа");
-                return;
-            }
+    // Категории шаблонов
+    document.querySelectorAll("[data-category]").forEach(btn => {
+        btn.addEventListener("click", () => {
+            document.querySelectorAll("[data-category]").forEach(b => {
+                b.classList.remove("active");
+                b.style.background = "transparent";
+                b.style.color = "var(--text-secondary)";
+            });
+            btn.classList.add("active");
+            btn.style.background = "var(--accent)";
+            btn.style.color = "white";
 
-            const btn = document.getElementById("sendReplyBtn");
-            btn.disabled = true;
-            btn.innerHTML = "Отправка...";
+            const category = btn.dataset.category;
+            const container = document.getElementById("templates-container");
+            container.innerHTML = '';
 
-            try {
-                const res = await fetch("/api/admin/reply-support", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ ticket_id: ticketId, reply_text: replyText })
-                });
-
-                if (res.ok) {
-                    Toast.success("Ответ отправлен, тикет закрыт");
-                    setTimeout(() => location.reload(), 1000);
-                } else {
-                    const data = await res.json();
-                    Toast.error(data.detail || "Ошибка отправки");
-                }
-            } catch (e) {
-                Toast.error("Ошибка сети");
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = "Отправить";
-            }
+            templates[category].forEach(tpl => {
+                const tBtn = document.createElement("button");
+                tBtn.className = "btn-sm";
+                tBtn.style = "width: 100%; text-align: left; background: var(--bg-hover); border: 1px solid var(--border-light);";
+                tBtn.innerHTML = `<strong style="color: var(--accent);">${tpl.title}</strong>: ${tpl.text}`;
+                tBtn.onclick = () => document.getElementById("replyText").value = tpl.text;
+                container.appendChild(tBtn);
+            });
         });
+    });
+
+    // Инициализация шаблонов (первая категория)
+    document.querySelector("[data-category='common']").click();
+
+    // Модальное окно
+    document.getElementById("replyModal").addEventListener("show.bs.modal", (event) => {
+        const button = event.relatedTarget;
+        const ticketId = button.getAttribute("data-ticket-id");
+        document.getElementById("currentTicketId").value = ticketId;
+        document.getElementById("replyText").value = "";
+    });
+
+    // Отправка ответа
+    document.getElementById("sendReplyBtn").addEventListener("click", async () => {
+        const ticketId = document.getElementById("currentTicketId").value;
+        const replyText = document.getElementById("replyText").value.trim();
+
+        if (!replyText) {
+            Toast.warning("Введите текст ответа");
+            return;
+        }
+
+        const btn = document.getElementById("sendReplyBtn");
+        btn.disabled = true;
+        btn.innerHTML = "Отправка...";
+
+        try {
+            const res = await fetch("/api/admin/reply-support", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ ticket_id: ticketId, reply_text: reply_text })
+            });
+
+            if (res.ok) {
+                Toast.success("Ответ отправлен, тикет закрыт");
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                const data = await res.json();
+                Toast.error(data.detail || "Ошибка отправки");
+            }
+        } catch (e) {
+            Toast.error("Ошибка сети");
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = "Отправить";
+        }
     });
 </script>
 {% endblock %}
