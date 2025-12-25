@@ -126,19 +126,20 @@ ADMIN_ID = 1799560429  # ← Твой ID
 
 @app.get("/admin", response_class=HTMLResponse)
 async def admin_page(request: Request):
-    # Здесь можно в будущем проверить сессию или Telegram WebApp
-    # Пока просто проверим ID (в реальности — лучше использовать auth)
     user_id = request.query_params.get("user_id")
-    
-    if not user_id or int(user_id) != ADMIN_ID:
-        return HTMLResponse(content="❌ Доступ запрещён", status_code=403)
+    if not user_id or int(user_id) != 1799560429:
+        return HTMLResponse("❌ Доступ запрещён", status_code=403)
+
+    stats = await get_admin_stats()
+    api_usage = await get_api_usage()
 
     return templates.TemplateResponse(
         "admin.html",
         {
             "request": request,
-            "admin_id": ADMIN_ID,
-            "page_title": "Админка"
+            "page_title": "Админка",
+            "stats": stats,
+            "api_usage": api_usage
         }
     )
 
