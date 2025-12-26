@@ -391,3 +391,36 @@ async def get_db_pool():
     if _db_pool is None:
         _db_pool = await create_db_pool()
     return _db_pool
+
+# В список migrations добавь:
+('city', "TEXT"),
+('reminders', """ 
+    CREATE TABLE IF NOT EXISTS reminders (
+        id SERIAL PRIMARY KEY,
+        user_id BIGINT NOT NULL,
+        text TEXT NOT NULL,
+        time TIMESTAMPTZ NOT NULL,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_reminders_time ON reminders (time);
+"""),  # ✅ Добавляем таблицу и индекс для быстрого поиска по времени
+
+('reminders', """ 
+    CREATE TABLE IF NOT EXISTS reminders ( ... );
+    CREATE INDEX IF NOT EXISTS idx_reminders_time ON reminders (time);
+"""),
+('subscriptions', """
+    CREATE TABLE IF NOT EXISTS subscriptions (
+        id SERIAL PRIMARY KEY,
+        user_id BIGINT NOT NULL,
+        name TEXT NOT NULL,
+        amount DECIMAL(10, 2) NOT NULL,
+        currency TEXT DEFAULT '₽',
+        billing_cycle INTERVAL NOT NULL,  -- период: 1 month, 30 days и т.д.
+        next_payment TIMESTAMPTZ NOT NULL,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_subscriptions_next ON subscriptions (next_payment);
+"""),  # ✅ Новая таблица + индекс для уведомлений
