@@ -1,16 +1,15 @@
-# bot/features/weather.py не арботоает! не привяано ничего.
-
+# bot/features/weather.py
+import os  # ✅ добавлен
 import httpx
 from telegram import Update
 from telegram.ext import ContextTypes, CommandHandler, MessageHandler, filters
 
-from database import get_db_pool
+from database import get_db_pool, get_user_lang  # ✅ импорт
 from loguru import logger
 
-WEATHER_API_KEY = os.getenv("WEATHER_API_KEY")  # ← Замени на свой или используй os.getenv
+WEATHER_API_KEY = os.getenv("WEATHER_API_KEY")
 WEATHER_URL = "http://api.openweathermap.org/data/2.5/weather"
 
-# --- Тексты ---
 TEXTS = {
     "ru": {
         "enter_city": "🏙 Введите название города:",
@@ -38,7 +37,54 @@ TEXTS = {
     }
 }
 
+async def get_user_city(pool, user_id: int) -> str:
+    return await pool.fetchval("SELECT city FROM users WHERE id = $1", user_id)
 
+async def set_user_city(pool, user_id: int, city: str):
+    await pool.execute("UPDATE users SET city = $1 WHERE id = $2", city, user_id)
+
+async def cmd_weather(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.effective_user
+    pool = context.application.bot_data['db_pool']
+    lang = await get_user_lang(pool, user.id)
+    texts = TEXTS[lang]
+    if context.args:
+        city = " ".join(context.args)
+        await set_user_city(pool, user.id, city)
+        await update.message.reply_html(texts["saved_city"].format(city=city))
+    else:
+        city = await get_user_city(pool, user.id)
+        if not city: return await update.message.reply_text(texts["enter_city"])
+    await fetch_and_send_weather(update, context, city, texts)
+
+async def fetch_and_send_weather(update: Update, context: ContextTypes.DEFAULT_TYPE, city: str, texts: dict):
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(WEATHER_URL, params={"q": city, "appid": WEATHER_API_KEY, "lang": "ru", "units": "metric"}, timeout=10.0)
+        if response.status_code == 404: return await update.message.reply_text(texts["error_city"])
+        data = response.json()
+        main, wind, clouds = data["main"], data.get("wind", {}), data.get("clouds", {})
+        message = (texts["weather_in"].format(city=city) + texts["temp"].format(temp=int(main["temp"])) + texts["feels_like"].format(feels_like=int(main["feels_like"])) + texts["humidity"].format(humidity=main["humidity"]) + texts["wind"].format(speed=wind.get("speed", "нет данных")) + texts["clouds"].format(clouds=clouds.get("all", "нет данных")))
+        await update.message.reply_html(message)
+    except Exception as e:
+        logger.error(f"❌ Ошибка обработки погоды: {e}")
+        await update.message.reply_text(texts["error_api"])
+
+async def handle_city_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.effective_user
+    if not update.message or not update.message.text: return
+    text = update.message.text.strip()
+    if len(text) < 2 or any(c.isdigit() for c in text): return
+    if text.startswith("/"): return
+    pool = context.application.bot_data['db_pool']
+    lang = await get_user_lang(pool, user.id)
+    texts = TEXTS[lang]
+    await set_user_city(pool, user.id, text)
+    await update.message.reply_html(texts["saved_city"].format(city=text))
+
+def setup_weather_handlers(app):
+    app.add_handler(CommandHandler("weather", cmd_weather))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_city_input), group=5)
 async def get_user_lang(pool, user_id: int) -> str:
     lang = await pool.fetchval("SELECT language FROM users WHERE id = $1", user_id)
     return lang or "ru"
