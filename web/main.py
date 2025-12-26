@@ -214,136 +214,25 @@ print(f"✅ Статика доступна из: {static_dir}")
 templates = Jinja2Templates(directory=templates_dir)
 
 # --- Подключаем утилиты ---
-from web.utils import verify_cabinet_link  # ✅ Импортируем проверку
-
-# --- Маршрут для админки ---
-@app.get("/admin", response_class=HTMLResponse)
-async def admin_page(request: Request):
-    user_id_str = request.query_params.get("user_id")
-    hash = request.query_params.get("hash")
-    
-    if not user_id_str or not hash:
-        return HTMLResponse("❌ Не хватает данных для входа", status_code=403)
-    
-    try:
-        user_id = int(user_id_str)
-    except (ValueError, TypeError):
-        return HTMLResponse("❌ Неверный user_id", status_code=403)
-    
-    # Проверяем: валидный ли хеш и есть ли роль admin
-    if not await verify_cabinet_link(user_id, hash, required_role="admin"):
-        return HTMLResponse("❌ Доступ запрещён", status_code=403)
-
-    usage = load_usage()
-    users = load_users_yml()
-    support_requests = [
-        {"user_id": 1799560429, "message": "Не работает GigaChat", "status": "new"},
-        {"user_id": 123456, "message": "Ошибка оплаты", "status": "processing"}
-    ]
-
-    return templates.TemplateResponse(
-        "admin.html",
-        {
-            "request": request,
-            "page_title": "Админ-панель",
-            "stats": await get_admin_stats(),
-            "api_usage": await get_api_usage(),
-            "user_list": [
-                {
-                    "id": u.get("id"),
-                    "first_name": u.get("first_name", "Пользователь"),
-                    "username": u.get("username", ""),
-                    "role": "admin" if u.get("id") == 1799560429 else "premium" if u.get("premium") else "user",
-                    "language": u.get("language", "ru"),
-                    "premium_expires": u.get("premium_expires"),
-                    "last_seen": u.get("last_seen", datetime.now().isoformat())
-                }
-                for u in users
-            ],
-            "support_requests": support_requests
-        }
-    )
-
-
-# --- Маршрут для модераторов: тикеты ---
-@app.get("/tickets", response_class=HTMLResponse)
-async def tickets_page(request: Request):
-    user_id_str = request.query_params.get("user_id")
-    hash = request.query_params.get("hash")
-    
-    if not user_id_str or not hash:
-        return HTMLResponse("❌ Не хватает данных для входа", status_code=403)
-    
-    try:
-        user_id = int(user_id_str)
-    except (ValueError, TypeError):
-        return HTMLResponse("❌ Неверный user_id", status_code=403)
-    
-    # Проверяем: модератор или админ?
-    if not await verify_cabinet_link(user_id, hash, required_role="moderator"):
-        return HTMLResponse("❌ Доступ запрещён", status_code=403)
-
-    # Получаем тикеты через существующее API
-    try:
-        pool = await get_db_pool()
-        async with pool.acquire() as conn:
-            tickets = await conn.fetch("""
-                SELECT id, user_id, username, first_name, message, status, created_at, ticket_id
-                FROM support_tickets
-                WHERE status IN ('open', 'in_progress')
-                ORDER BY created_at DESC
-            """)
-
-        ticket_list = [
-            {
-                "id": t["id"],
-                "ticket_id": t["ticket_id"],
-                "user_id": t["user_id"],
-                "username": t["username"] or "unknown",
-                "first_name": t["first_name"] or "Пользователь",
-                "message": t["message"][:100] + "..." if len(t["message"]) > 100 else t["message"],
-                "status": t["status"],
-                "created_at": t["created_at"].strftime("%d.%m %H:%M")
-            }
-            for t in tickets
-        ]
-    except Exception as e:
-        logger.error(f"❌ Ошибка загрузки тикетов: {e}")
-        ticket_list = []
-
-    return templates.TemplateResponse(
-        "tickets.html",
-        {
-            "request": request,
-            "page_title": "Техподдержка",
-            "tickets": ticket_list,
-            "user_id": user_id,
-            "hash": hash
-        }
-    )
-
-
-# --- Подключаем остальные роуты ---
-app.include_router(admin_api)
-
-# --- Подключаем утилиты ---
 from web.utils import verify_cabinet_link
+
+# --- Подключаем веб-роуты ---
+try:
+    from .routes import router as web_router
+    app.include_router(web_router)
+    logger.info("✅ Роуты веб-интерфейса подключены")
+except Exception as e:
+    logger.error(f"❌ Ошибка импорта routes: {e}")
 
 # --- Подключаем API ---
 try:
     from .api import router as api_router
-    app.include_router(api_router, prefix="/api")  # ← добавлен префикс
-    logger.info("✅ API-роуты подключены: /api/admin/...")
+    app.include_router(api_router, prefix="/api")
+    logger.info("✅ API-роуты подключены: /api/...")
 except Exception as e:
     logger.error(f"❌ Ошибка импорта API: {e}")
 
-# --- Подключаем веб-роуты (если есть) ---
-try:
-    from .routes import router as web_router
-    app.include_router(web_router)
-except Exception as e:
-    logger.error(f"Ошибка импорта routes: {e}")
-
+# --- Дополнительные маршруты ---
 @app.get("/health")
 async def health():
     return {"status": "ok"}
@@ -358,7 +247,6 @@ async def startup_event():
     logger.info("🟢 Веб-сервер запущен")
     logger.info("✨ Доступные роуты: /, /cabinet, /finance, /admin, /tickets, /api/admin/stats")
     
-    # Создаём таблицу support_tickets при старте
     try:
         await ensure_support_table_exists()
         logger.info("✅ Таблица support_tickets проверена/создана")
