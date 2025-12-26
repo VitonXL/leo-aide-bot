@@ -407,3 +407,21 @@ async def get_db_pool():
     if _db_pool is None:
         _db_pool = await create_db_pool()
     return _db_pool
+
+# --- Получение языка пользователя ---
+async def get_user_lang(pool, user_id: int) -> str:
+    """
+    Возвращает язык интерфейса пользователя ('ru' или 'en').
+    Если не установлен — возвращает 'ru'.
+    """
+    async with pool.acquire() as conn:
+        lang = await conn.fetchval("SELECT language FROM users WHERE id = $1", user_id)
+        return lang if lang in ["ru", "en"] else "ru"
+
+
+# === Глобальный пул подключений ===
+async def get_db_pool():
+    global _db_pool
+    if _db_pool is None:
+        _db_pool = await create_db_pool()
+    return _db_pool
