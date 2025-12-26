@@ -1,6 +1,6 @@
 # bot/features/subscriptions.py
-import re
-from datetime import datetime, timedelta
+from typing import Optional
+from datetime import timedelta
 from decimal import Decimal
 
 from telegram import Update
