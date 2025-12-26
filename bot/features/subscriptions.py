@@ -92,7 +92,11 @@ async def get_user_lang(pool, user_id: int) -> str:
     return lang or "ru"
 
 
-def parse_cycle(cycle_str: str) -> tuple[Optional[timedelta], str]:
+from typing import Optional, Tuple
+
+# ...
+
+def parse_cycle(cycle_str: str) -> Tuple[Optional[timedelta], str]:
     """Парсит период: 1d, 2w, 1m, 1y"""
     match = re.match(r'^(\d+)([dwmy])$', cycle_str.strip().lower())
     if not match:
