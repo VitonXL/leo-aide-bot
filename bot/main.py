@@ -38,6 +38,14 @@ from features.referrals import setup_referral_handlers
 from features.premium import setup_premium_handlers
 from features.help import setup as help_setup
 from features.help import handle_support_message  # ✅ Импорт для MessageHandler
+from features.currency import setup_currency_handlers
+from features.reminders import setup_reminder_handlers
+from features.subscriptions import setup_subscription_handlers
+
+# ...
+setup_currency_handlers(app)
+setup_reminder_handlers(app)
+setup_subscription_handlers(app)
 
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton, MenuButtonWebApp, WebAppInfo
 from telegram.ext import (
